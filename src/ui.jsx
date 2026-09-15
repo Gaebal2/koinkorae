@@ -2,14 +2,15 @@ import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from "react";
 import { BarChart3, Check, ChevronDown, ChevronUp, ImagePlus, MapPin, MessageCircle, Repeat2, Search, Shield, Swords, X, Zap } from "lucide-react";
 import initialCoins from './cmc-top100.json';
+import { prioritizeCoins } from './coins.js';
 import { watchInstallPrompt } from './install-prompt.js';
 import { readPhoto } from './api.js';
-export const cmcCoins = [...initialCoins, {id:'SL',symbol:'SL',name:'SASEUL'}];
+export const cmcCoins = prioritizeCoins(initialCoins);
 export const asset = name => import.meta.env.BASE_URL + name;
 const fmt = n => new Intl.NumberFormat('ko-KR',{notation: Math.abs(n)>999?'compact':'standard'}).format(n);
 const exposure = p => p.support-p.oppose;
 export const coinColor = symbol => ({BTC:'#f59e0b',ETH:'#627eea',SOL:'#14b8a6',XRP:'#334155',SL:'#7157ff'})[symbol]||'#7157ff';
-export const profileImage = () => asset('koin-korae-violet-192.png');
+export const profileImage = () => asset('koin-korae-transparent-192.png');
 
 export function Coin({ symbol, size = "md" }) {
   return (
@@ -18,7 +19,7 @@ export function Coin({ symbol, size = "md" }) {
       style={{ "--coin": coinColor(symbol) }}
     >
       <span className="coin-fallback">{symbol.slice(0, 4)}</span>
-      <img src={asset(`coin-icons/${symbol.toLowerCase()}.svg`)} alt={`${symbol} 아이콘`} onError={event=>{event.currentTarget.style.display="none"}} />
+      <img src={asset(`coin-icons/${symbol.toLowerCase()}.${["SL", "PSL"].includes(symbol) ? "png" : "svg"}`)} alt={`${symbol} 아이콘`} onError={event=>{event.currentTarget.style.display="none"}} />
     </span>
   );
 }
@@ -27,7 +28,7 @@ export function Header({ bp, onProfile }) {
   return (
     <header className="topbar">
       <div className="logo">
-        <button className="header-profile" onClick={onProfile} aria-label="내 프로필로 이동"><img src={asset("koin-korae-violet-192.png")} alt="내 프로필" /></button>
+        <button className="header-profile" onClick={onProfile} aria-label="내 프로필로 이동"><img src={asset("koin-korae-transparent-192.png")} alt="내 프로필" /></button>
         <div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div>
       </div>
       <div className="bp-pill">
@@ -287,7 +288,7 @@ export function Composer({ onClose, onPublish }) {
   const chooseImage=async event=>{try{setImage(await readPhoto(event.target.files?.[0]));setError('')}catch(error){setError(error.message)}};
   const list = cmcCoins
     .filter((c) =>
-      `${c.name} ${c.symbol}`.toLowerCase().includes(query.toLowerCase()),
+      `${c.name} ${c.symbol} ${c.aliases || ""}`.toLowerCase().includes(query.toLowerCase()),
     )
     .slice(0, 12);
   return (
@@ -303,7 +304,7 @@ export function Composer({ onClose, onPublish }) {
       <span className="counter">{content.length}/500</span>
       <div className="feed-image-field">
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={chooseImage}/>
-        {image?<div className="feed-image-preview"><img src={image} alt="피드 이미지 미리보기"/><button type="button" onClick={()=>setImage("")} aria-label="이미지 제거"><X/></button></div>:<button type="button" className="feed-image-picker" onClick={()=>fileRef.current?.click()}><ImagePlus/>이미지 추가</button>}
+        {image?<div className="feed-image-preview"><img src={image} alt="피드 이미지 미리보기"/><button type="button" onClick={()=>setImage("")} aria-label="이미지 제거"><X/></button></div>:<button type="button" className="feed-image-picker" aria-label="이미지 추가" title="이미지 추가" onClick={()=>fileRef.current?.click()}><ImagePlus/></button>}
       </div>
       <label className="search">
         <Search />
@@ -324,7 +325,7 @@ export function Composer({ onClose, onPublish }) {
             <span>
               <b>{c.name}</b>
               <small>
-                {c.symbol} · #{c.cmcRank}
+                {c.symbol}{c.cmcRank ? ` · #${c.cmcRank}` : ''}
               </small>
             </span>
             {coin === c.symbol && <Check />}
@@ -422,5 +423,5 @@ export function InstallPrompt(){
     finally { setInstalling(false); }
   };
   if(!installEvent)return null;
-  return <div className="install-overlay" role="dialog" aria-modal="true" aria-labelledby="install-heading"><section className="install-card"><button className="install-dismiss" onClick={dismiss} aria-label="설치 안내 닫기"><X/></button><img src={asset("koin-korae-violet-192.png")} alt="ㅋㅇㄱㄹ 앱 아이콘"/><small>ㅋㅇㄱㄹ APP</small><h2 id="install-heading">앱으로 설치할까요?</h2><p>홈 화면에서 더 빠르고 편하게 이용할 수 있어요.</p><button className="install-action" onClick={install} disabled={installing}>{installing?"설치 확인 중…":"앱 설치하기"}</button><button className="install-later" onClick={dismiss}>나중에</button></section></div>
+  return <div className="install-overlay" role="dialog" aria-modal="true" aria-labelledby="install-heading"><section className="install-card"><button className="install-dismiss" onClick={dismiss} aria-label="설치 안내 닫기"><X/></button><img src={asset("koin-korae-transparent-192.png")} alt="ㅋㅇㄱㄹ 앱 아이콘"/><small>ㅋㅇㄱㄹ APP</small><h2 id="install-heading">앱으로 설치할까요?</h2><p>홈 화면에서 더 빠르고 편하게 이용할 수 있어요.</p><button className="install-action" onClick={install} disabled={installing}>{installing?"설치 확인 중…":"앱 설치하기"}</button><button className="install-later" onClick={dismiss}>나중에</button></section></div>
 }
