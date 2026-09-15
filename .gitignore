@@ -2,3 +2,10 @@ node_modules/
 dist/
 .analysis-tools/
 *.local
+data/
+.env
+coverage/
+.runtime/
+
+firebase-debug.log
+firestore-debug.log

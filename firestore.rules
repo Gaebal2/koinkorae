@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function text(value, maximum) { return value is string && value.size() <= maximum; }
+    function photo(value) { return text(value, 300000) && (value == '' || value.matches('data:image/(jpeg|png|webp);base64,.*')); }
+    match /profiles/{uid} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['username', 'bio', 'profileImage'])
+        && text(request.resource.data.username, 24)
+        && text(request.resource.data.bio, 200) && photo(request.resource.data.profileImage);
+    }
+    match /pins/{id} {
+      function valid() {
+        let p = request.resource.data;
+        return p.keys().hasOnly(['ownerId', 'slot', 'creator', 'title', 'description', 'coin', 'tradeCoins', 'link', 'image', 'category', 'lat', 'lng'])
+          && p.ownerId == request.auth.uid && p.slot in ['0', '1', '2']
+          && id == request.auth.uid + '_' + p.slot
+          && text(p.creator, 24) && text(p.title, 100) && p.title.size() > 0
+          && text(p.description, 2000) && p.description.size() > 0
+          && text(p.coin, 20) && p.coin.matches('[A-Za-z0-9]+')
+          && p.tradeCoins is list && p.tradeCoins.size() <= 110
+          && text(p.link, 500) && (p.link == '' || p.link.matches('https?://.*'))
+          && photo(p.image) && p.category in ['판매', '구매 희망', '서비스', '사업장']
+          && p.lat is number && p.lat >= -90 && p.lat <= 90
+          && p.lng is number && p.lng >= -180 && p.lng <= 180;
+      }
+      allow read: if true;
+      allow create: if signedIn() && valid();
+      allow update: if signedIn() && resource.data.ownerId == request.auth.uid && valid();
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+  }
+}

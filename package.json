@@ -3,18 +3,28 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "server": "node server/index.js",
+    "report": "node server/report.js",
+    "test": "node --test server/*.test.js src/install-prompt.test.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "cryptocurrency-icons": "^0.18.1",
+    "firebase": "^12.19.0",
     "leaflet": "^1.9.4",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
     "vite": "latest"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2"
   }
 }

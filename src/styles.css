@@ -48,6 +48,7 @@ button {
   justify-content: space-between;
   padding: 0 18px;
   background: #f6f8f5e8;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid #e8ece9;
 }
@@ -158,6 +159,7 @@ main {
   margin: -4px -14px 12px;
   padding: 8px 14px;
   background: #f3f8fce8;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
@@ -439,8 +441,8 @@ main {
   border-radius: 35px;
   background: #2c312ecc;
   border: 1px solid #ffffff1f;
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   padding: 4px 14px;
@@ -469,6 +471,7 @@ main {
   inset: 0;
   z-index: 50;
   background: #16221b91;
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -812,10 +815,10 @@ button:disabled {
 .pin-detail > .pin-delete { position: absolute; z-index: 2; right: -6px; top: -8px; width: auto; height: 27px; border: 2px solid white; background: #314039; color: white; border-radius: 14px; padding: 0 9px; display: grid; place-items: center; box-shadow: 0 3px 10px #15231b45; font-size: 9px; font-weight: 800; }
 .pin-detail a { display: block; max-width: 100%; font-size: 9px; color: var(--primary); font-weight: 700; overflow-wrap: anywhere; word-break: break-all; }
 .app-shell.map-active { padding-bottom: 0; overflow: hidden; }
-.map-active .bottom-nav { background: #2c312ecc; border: 1px solid #ffffff1f; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-.image-lightbox { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 18px; background: #07100cEE; backdrop-filter: blur(10px); }
+.map-active .bottom-nav { background: #2c312ecc; border: 1px solid #ffffff1f; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.image-lightbox { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 18px; background: #07100cEE; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .image-lightbox > img { display: block; max-width: 100%; max-height: 90dvh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 60px #0009; }
-.image-lightbox > button { position: fixed; z-index: 1; right: max(calc((100vw - 430px) / 2 + 18px), 18px); top: 18px; width: 40px; height: 40px; border: 1px solid #ffffff38; border-radius: 50%; background: #ffffff18; color: white; display: grid; place-items: center; backdrop-filter: blur(8px); }
+.image-lightbox > button { position: fixed; z-index: 1; right: max(calc((100vw - 430px) / 2 + 18px), 18px); top: 18px; width: 40px; height: 40px; border: 1px solid #ffffff38; border-radius: 50%; background: #ffffff18; color: white; display: grid; place-items: center; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 .image-lightbox > button svg { width: 20px; }
 .map-page { position: relative; padding: 0; height: calc(100dvh - 66px); }
 .map-stage { position: absolute; inset: 0; }
@@ -1199,7 +1202,7 @@ body { background: #f4f6fb; }
 .minigame > svg,.calendar-mark svg { color: var(--primary); }
 .pin-photo-picker { border-color: #a9d5e4; background: var(--surface-tint); color: var(--primary); }
 .profile-avatar { background: linear-gradient(145deg,#27223f,var(--primary)); }
-.install-overlay { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; background: #06182db3; backdrop-filter: blur(8px); }
+.install-overlay { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; background: #06182db3; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 .install-card { width: min(100%,350px); padding: 28px 22px 17px; border-radius: 25px; background: #ffffff; text-align: center; box-shadow: 0 25px 70px #03172d70; position: relative; }
 .install-card > img { width: 78px; height: 78px; border-radius: 20px; display: block; margin: auto; box-shadow: 0 9px 25px #075ea83d; }
 .install-card > small { display: block; margin-top: 12px; color: var(--primary); font-size: 9px; font-weight: 800; letter-spacing: 1.6px; }
@@ -1240,7 +1243,7 @@ body { background: radial-gradient(circle at 50% 0, #e8e2ff, transparent 38%), #
 .bottom-nav button { color: var(--muted); border-radius: 17px; }
 .bottom-nav button.active { color: var(--primary-dark); background: var(--surface-tint); }
 .modal { background: #fff; box-shadow: 0 30px 90px #13152240; }
-.overlay, .install-overlay { background: #18172299; backdrop-filter: blur(6px); }
+.overlay, .install-overlay { background: #18172299; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .install-card { box-shadow: 0 20px 60px #232a4626; }
 .install-card h2 { color: var(--ink); }
 .install-dismiss, .modal > header button { background: #f0f1f5; color: var(--muted); }
@@ -1258,3 +1261,44 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 button { transition: background-color .15s, box-shadow .15s; }
 button:disabled { cursor: default; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+/* Live account, activity and server-backed game screens. */
+.form-help, .loading-state { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.loading-state { padding: 28px 16px; text-align: center; }
+.connection-error { background: white; border: 1px solid var(--line); padding: 20px; border-radius: 20px; font-size: 13px; }
+.app-error { position: relative; z-index: 30; display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #942b39; background: #fff0f2; font-size: 12px; }
+.app-error button { margin-left: auto; border: 0; background: none; display: grid; place-items: center; }
+.app-error svg { width: 18px; }
+.text-action { border: 0; background: none; color: var(--primary-dark); font-size: 11px; padding: 10px 0; }
+.danger-text { color: #b13345; }
+.repost-label { display: block; color: var(--primary-dark); font-size: 11px; margin: 8px 0; }
+.comment-list { max-height: 35vh; overflow: auto; }
+.comment-list article { border-bottom: 1px solid var(--line); padding: 12px 0; font-size: 12px; overflow-wrap: anywhere; }
+.comment-list small { margin-left: 8px; color: var(--muted); }
+.comment-list p { white-space: pre-wrap; line-height: 1.6; }
+.post-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.profile-tabs { overflow-x: auto; margin: 14px 0; }
+.profile-tabs .segments { width: max-content; min-width: 100%; }
+.profile-pin-summary { display: flex; gap: 12px; border: 1px solid var(--line); border-radius: 20px; padding: 16px; background: white; font-size: 12px; }
+.profile-pin-summary p { color: var(--muted); overflow-wrap: anywhere; }
+.map-message { position: absolute; z-index: 10; top: 12px; left: 14px; right: 14px; background: white; padding: 12px; border-radius: 12px; font-size: 12px; }
+.map-message button { border: 0; background: var(--surface-tint); color: var(--primary); padding: 6px; margin-left: 8px; }
+.game-timeline { height: 16px; border-radius: 8px; background: #e8e5f3; position: relative; overflow: hidden; margin: 20px 0; }
+.game-timeline i { display: block; height: 100%; background: #baf7d0; }
+.game-timeline span { position: absolute; top: 0; width: 4px; height: 100%; background: var(--primary-dark); }
+.reaction-buttons { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 20px 0; }
+.reaction-buttons button { height: 90px; border: 1px solid var(--line); border-radius: 20px; background: #f0edff; color: var(--primary-dark); font-weight: 800; touch-action: manipulation; user-select: none; }
+.reaction-buttons button.lit { background: var(--primary); color: white; }
+.tap-target { touch-action: manipulation; user-select: none; }
+.error { height: auto; min-height: 18px; overflow-wrap: anywhere; }
+.modal .field input, .modal .field textarea, .modal .field select { width: 100%; min-width: 0; }
+.profile-links:has(> :only-child) { grid-template-columns: 1fr; }
+button:disabled { opacity: .55; }
+
+/* Map-first public release */
+.map-first .bottom-nav { grid-template-columns: repeat(2, 1fr); }
+.brand-icon { width: 40px; height: 40px; border-radius: 12px; }
+.map-intro { position: absolute; top: 14px; left: 14px; right: 14px; z-index: 6; padding: 14px; background: #fffffff2; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 5px 20px #27223f15; pointer-events: none; }
+.map-intro small { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+.map-profile-title { font-size: 18px; margin: 24px 18px 12px; }
+.map-first .profile-pin-summary button { margin: 8px 12px 0 0; color: var(--primary-dark); }

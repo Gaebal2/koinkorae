@@ -2,7 +2,7 @@
   "id": "./?app=koin-korae-blue-v3",
   "name": "ㅋㅇㄱㄹ",
   "short_name": "ㅋㅇㄱㄹ",
-  "description": "커뮤니티 참여로 콘텐츠 노출을 결정하는 소셜 플랫폼",
+  "description": "내 주변의 위치 기반 P2P 코인 거래 정보",
   "start_url": "./?source=pwa-v3",
   "scope": "./",
   "display": "standalone",
@@ -10,8 +10,17 @@
   "background_color": "#f4f6fb",
   "theme_color": "#7157ff",
   "icons": [
-    {"src":"./koin-korae-blue-v3-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"./koin-korae-blue-v3-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
-    {"src":"./koin-korae-blue-v3-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+    {
+      "src": "./koin-korae-violet-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./koin-korae-violet-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }
