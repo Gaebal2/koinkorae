@@ -1,4 +1,4 @@
-const CACHE = 'korae-map-v8';
+const CACHE = 'korae-community-v9';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();

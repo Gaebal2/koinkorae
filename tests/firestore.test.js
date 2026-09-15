@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { before, after, beforeEach, test } from 'node:test';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 let env;
 const pin = { ownerId: 'alice', slot: '0', creator: 'Alice', title: 'BTC 거래', description: '공개 장소에서 만나요', coin: 'BTC', tradeCoins: ['BTC'], link: '', image: '', category: '판매', lat: 37.5, lng: 127 };
 before(async () => { env = await initializeTestEnvironment({ projectId: 'demo-koinkorae', firestore: { rules: await readFile('firestore.rules', 'utf8') } }); });
@@ -37,4 +37,39 @@ test('public profiles exclude emails and cannot be edited by others', async () =
   await assertSucceeds(setDoc(doc(alice, 'profiles', 'alice'), profile));
   await assertFails(setDoc(doc(bob, 'profiles', 'alice'), profile));
   await assertFails(setDoc(doc(alice, 'profiles', 'alice'), { ...profile, email: 'private@example.com' }));
+});
+test('check-in grants 10 BP once per server-validated Korean calendar day', async () => {
+  const db = env.authenticatedContext('alice').firestore(), ref = doc(db, 'balances', 'alice');
+  const day = Math.floor((Date.now() + 32400000) / 86400000);
+  const value = { current: 10, lifetime: 10, day, updatedAt: serverTimestamp() };
+  await assertFails(setDoc(ref, { ...value, current: 1000 }));
+  await assertFails(setDoc(ref, { ...value, day: day + 1 }));
+  await assertFails(setDoc(ref, { ...value, day: day - 1 }));
+  await assertSucceeds(setDoc(ref, value));
+  await assertFails(setDoc(ref, { ...value, current: 20, lifetime: 20 }));
+  await assertFails(deleteDoc(ref));
+  await assertFails(getDoc(doc(env.authenticatedContext('bob').firestore(), 'balances', 'alice')));
+  await env.withSecurityRulesDisabled(async context => setDoc(doc(context.firestore(), 'balances', 'alice'), { ...value, day: day - 1 }));
+  await assertSucceeds(setDoc(ref, { ...value, current: 20, lifetime: 20 }));
+});
+test('posts cannot forge owners, timestamps or battle scores; comments require a live post', async () => {
+  const db = env.authenticatedContext('alice').firestore(), ref = doc(db, 'posts', 'post-a');
+  const post = { authorId: 'alice', author: 'Alice', coin: 'BTC', content: 'Hello', image: '', createdAt: serverTimestamp(), support: 0, oppose: 0 };
+  await assertFails(setDoc(ref, { ...post, support: 100 }));
+  await assertFails(setDoc(ref, { ...post, authorId: 'bob' }));
+  await assertFails(setDoc(ref, { ...post, createdAt: 0 }));
+  await assertSucceeds(setDoc(ref, post));
+  await assertFails(setDoc(ref, { ...post, support: 100 }));
+  await assertFails(deleteDoc(doc(env.authenticatedContext('bob').firestore(), 'posts', 'post-a')));
+  const comment = { authorId: 'alice', author: 'Alice', content: 'Reply', createdAt: serverTimestamp() };
+  await assertSucceeds(setDoc(doc(db, 'posts', 'post-a', 'comments', 'reply'), comment));
+  await assertFails(setDoc(doc(db, 'posts', 'missing', 'comments', 'reply'), comment));
+  await assertSucceeds(deleteDoc(ref));
+});
+test('following lists can only be changed by their owner', async () => {
+  const alice = env.authenticatedContext('alice').firestore(), bob = env.authenticatedContext('bob').firestore();
+  await assertSucceeds(setDoc(doc(alice, 'profiles', 'alice', 'following', 'bob'), { createdAt: serverTimestamp() }));
+  await assertFails(setDoc(doc(bob, 'profiles', 'alice', 'following', 'charlie'), { createdAt: serverTimestamp() }));
+  await assertFails(setDoc(doc(alice, 'profiles', 'alice', 'following', 'alice'), { createdAt: serverTimestamp() }));
+  await assertSucceeds(deleteDoc(doc(alice, 'profiles', 'alice', 'following', 'bob')));
 });

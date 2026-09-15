@@ -1,10 +1,10 @@
 # Koin Korae
 
-현재 첫 서비스는 **지도·프로필·이메일 로그인**에 집중하는 위치 기반 P2P 거래 정보 PWA입니다. 호스팅은 GitHub Pages, 인증·DB는 Firebase를 사용하도록 준비했습니다. 홈·체크인·피드·배틀은 숨겨져 있습니다.
+현재 서비스는 **홈·지도·체크인·프로필**을 제공하는 코인 커뮤니티 PWA입니다. 호스팅은 GitHub Pages, 인증·DB는 Firebase입니다. 로그인 화면은 Google 로그인으로 변경했습니다. 홈 피드·글 작성·댓글·팔로잉과 하루 1회 출석(+10 BP)을 Firebase에 연결했습니다. 배틀 검증·광고 보상은 온라인 서버 연결 준비 중입니다.
 
 실행: `npm install` → `npm run dev`. 전용 Firebase 프로젝트 `koinkorae-map`의 공개 웹 설정이 포함되어 있습니다. 다른 프로젝트를 사용하려면 `.env.example`을 참고해 `.env.local`로 덮어쓰세요. 로컬 API 서버는 현재 지도 화면에 필요하지 않습니다.
 
-**현재 설정·배포 방법과 Supabase 이전 구조는 [지도 중심 첫 배포](docs/map-first-release.md)를 참고하세요.** 아래 내용은 추후 확장을 위해 보관한 이전 BattleFeed 로컬 구현 설명입니다.
+**현재 범위는 [커뮤니티 메뉴 복원](docs/community-release.md), 초기 Firebase 설정과 Supabase 이전 구조는 [지도 중심 첫 배포](docs/map-first-release.md)를 참고하세요.** 아래 내용은 추후 확장을 위해 보관한 이전 BattleFeed 로컬 구현 설명입니다.
 
 ## 로컬 실행
 

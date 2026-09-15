@@ -43,6 +43,7 @@ export function Segments({ items, value, onChange, compact = false }) {
         <button
           key={item}
           className={value === item ? "active" : ""}
+          aria-pressed={value === item}
           onClick={() => onChange(item)}
         >
           {item}
