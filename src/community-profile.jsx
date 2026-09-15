@@ -29,7 +29,7 @@ export function CommunityProfile({ profileId, profile, me, balance, pins, follow
   useEffect(() => {
     if (view !== '댓글' || !me || profileId !== me.id) return;
     let active = true; setComments(null);
-    data.ownComments(posts).then(rows => { if (active) setComments(rows); }).catch(() => { if (active) { setComments([]); setError('댓글을 불러오지 못했습니다.'); } });
+    data.ownComments().then(rows => { if (active) setComments(rows); }).catch(error => { console.warn('Profile comment history:', error.code || error.name, error.message); if (active) { setComments([]); setError('댓글을 불러오지 못했습니다.'); } });
     return () => { active = false; };
   }, [view, me?.id, profileId, posts]);
   if (!profileId) return <main><section className="profile-head"><img className="profile-avatar" src={profileImage()} alt="앱 아이콘"/><h1>나의 프로필</h1><p>로그인하고 피드와 거래 정보를 관리하세요.</p><button className="primary" onClick={login}>Google 로그인</button></section></main>;

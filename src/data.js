@@ -136,7 +136,8 @@ export const data = {
     const u = user();
     const rows = await getDocs(query(collectionGroup(db, 'comments'), where('authorId', '==', u.uid)));
     const postIds = [...new Set(rows.docs.map(row => row.ref.parent.parent.id))];
-    const posts = new Map((await this.postsById(postIds)).map(post => [post.id, post]));
+    const postRows = await Promise.all(postIds.map(id => getDoc(doc(db, 'posts', id))));
+    const posts = new Map(postRows.filter(row => row.exists()).map(row => [row.id, normalize(row)]));
     return rows.docs.map(row => ({ ...normalize(row), post: posts.get(row.ref.parent.parent.id) })).filter(row => row.post).sort((a,b) => b.createdAt-a.createdAt);
   },
   watchComments(postId, callback, error) {
