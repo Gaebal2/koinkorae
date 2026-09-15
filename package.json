@@ -12,7 +12,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "server": "node server/index.js",
     "report": "node server/report.js",
-    "test": "node --test server/*.test.js src/install-prompt.test.js src/feed-model.test.js src/battle-engine.test.js src/coins.test.js"
+    "test": "node --test server/*.test.js src/install-prompt.test.js src/feed-model.test.js src/battle-engine.test.js src/coins.test.js src/community-model.test.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

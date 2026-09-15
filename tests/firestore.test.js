@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { before, after, beforeEach, test } from 'node:test';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc, setDoc, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getDocs, collectionGroup, query, where, deleteDoc, serverTimestamp } from 'firebase/firestore';
 let env;
 const pin = { ownerId: 'alice', slot: '0', creator: 'Alice', title: 'BTC 거래', description: '공개 장소에서 만나요', coin: 'BTC', tradeCoins: ['BTC'], link: '', image: '', category: '판매', lat: 37.5, lng: 127 };
 before(async () => { env = await initializeTestEnvironment({ projectId: 'demo-koinkorae', firestore: { rules: await readFile('firestore.rules', 'utf8') } }); });
@@ -72,4 +72,36 @@ test('following lists can only be changed by their owner', async () => {
   await assertFails(setDoc(doc(bob, 'profiles', 'alice', 'following', 'charlie'), { createdAt: serverTimestamp() }));
   await assertFails(setDoc(doc(alice, 'profiles', 'alice', 'following', 'alice'), { createdAt: serverTimestamp() }));
   await assertSucceeds(deleteDoc(doc(alice, 'profiles', 'alice', 'following', 'bob')));
+});
+
+test('public relationship queries include existing follow records without migrating them', async () => {
+  const alice = env.authenticatedContext('alice').firestore(), visitor = env.unauthenticatedContext().firestore();
+  await setDoc(doc(alice, 'profiles', 'alice', 'following', 'bob'), { createdAt: serverTimestamp() });
+  await assertSucceeds(getDocs(collectionGroup(visitor, 'following')));
+  await assertFails(setDoc(doc(visitor, 'profiles', 'alice', 'following', 'charlie'), { createdAt: serverTimestamp() }));
+});
+
+test('profile comment history query is restricted to the signed-in author', async () => {
+  const alice = env.authenticatedContext('alice').firestore(), bob = env.authenticatedContext('bob').firestore();
+  await setDoc(doc(alice,'posts','p'), { authorId:'alice',author:'Alice',coin:'PI',content:'Test',image:'',createdAt:serverTimestamp(),support:0,oppose:0 });
+  await setDoc(doc(alice,'posts','p','comments','c'), { authorId:'alice',author:'Alice',content:'Reply',createdAt:serverTimestamp() });
+  await assertSucceeds(getDocs(query(collectionGroup(alice,'comments'),where('authorId','==','alice'))));
+  await assertFails(getDocs(query(collectionGroup(bob,'comments'),where('authorId','==','alice'))));
+});
+
+test('reposts are unique per account and post, owner removable, and cannot forge scores', async () => {
+  const alice = env.authenticatedContext('alice').firestore(), bob = env.authenticatedContext('bob').firestore(), visitor = env.unauthenticatedContext().firestore();
+  await setDoc(doc(alice, 'posts', 'post-a'), { authorId:'alice', author:'Alice', coin:'BTC', content:'Hello', image:'', createdAt:serverTimestamp(), support:0, oppose:0 });
+  const path = ['posts','post-a','reposts','bob'];
+  await assertSucceeds(setDoc(doc(bob, ...path), { createdAt:serverTimestamp() }));
+  await assertFails(setDoc(doc(bob, ...path), { createdAt:serverTimestamp() }));
+  await assertSucceeds(getDocs(collectionGroup(visitor, 'reposts')));
+  await assertFails(deleteDoc(doc(alice, ...path)));
+  await assertFails(setDoc(doc(visitor, 'posts','post-a','reposts','guest'), { createdAt:serverTimestamp() }));
+  await assertFails(setDoc(doc(bob, 'posts','missing','reposts','bob'), { createdAt:serverTimestamp() }));
+  await assertSucceeds(deleteDoc(doc(bob, ...path)));
+  await assertFails(setDoc(doc(bob, ...path), { createdAt:serverTimestamp(), support:100 }));
+  await assertSucceeds(setDoc(doc(bob, ...path), { createdAt:serverTimestamp() }));
+  await deleteDoc(doc(alice,'posts','post-a'));
+  await assertSucceeds(deleteDoc(doc(bob,...path)));
 });

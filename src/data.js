@@ -2,7 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import publicConfig from './firebase-config.json';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, runTransaction, serverTimestamp, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { getFirestore, collection, collectionGroup, doc, getDoc, getDocs, setDoc, deleteDoc, runTransaction, serverTimestamp, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
 
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || publicConfig.apiKey,
@@ -94,6 +94,15 @@ export const data = {
     if (!configured) { callback([]); return () => {}; }
     return onSnapshot(query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(300)), rows => callback(rows.docs.map(normalize)), error);
   },
+  watchAuthorPosts(uid, callback, error) {
+    if (!configured || !uid) { callback([]); return () => {}; }
+    return onSnapshot(query(collection(db, 'posts'), where('authorId', '==', uid)), rows => callback(rows.docs.map(normalize).sort((a,b) => b.createdAt-a.createdAt)), error);
+  },
+  async postsById(ids) {
+    if (!configured) return [];
+    const rows = await Promise.all(ids.map(id => getDoc(doc(db, 'posts', id))));
+    return rows.filter(row => row.exists()).map(normalize);
+  },
   async publish(value) {
     const u = user();
     await setDoc(doc(collection(db, 'posts')), { authorId: u.uid, author: displayName(u), content: value.content.trim(), coin: value.coin, image: value.image || '', createdAt: serverTimestamp(), support: 0, oppose: 0 });
@@ -107,6 +116,28 @@ export const data = {
     const u = user(), ref = doc(db, 'profiles', u.uid, 'following', id);
     if (id === u.uid) return;
     if (enabled) await setDoc(ref, { createdAt: serverTimestamp() }); else await deleteDoc(ref);
+  },
+  watchRelationships(callback, error) {
+    if (!configured) { callback([]); return () => {}; }
+    return onSnapshot(collectionGroup(db, 'following'), rows => callback(rows.docs.map(row => ({ from: row.ref.parent.parent.id, to: row.id }))), error);
+  },
+  watchReposts(callback, error) {
+    if (!configured) { callback([]); return () => {}; }
+    return onSnapshot(collectionGroup(db, 'reposts'), rows => callback(rows.docs.map(row => ({ ...normalize(row), userId: row.id, postId: row.ref.parent.parent.id }))), error);
+  },
+  async repost(postId, enabled) {
+    const u = user(), ref = doc(db, 'posts', postId, 'reposts', u.uid);
+    if (enabled) await setDoc(ref, { createdAt: serverTimestamp() }); else await deleteDoc(ref);
+  },
+  watchCommentCount(postId, callback, error) {
+    return onSnapshot(collection(db, 'posts', postId, 'comments'), rows => callback(rows.size), error);
+  },
+  async ownComments() {
+    const u = user();
+    const rows = await getDocs(query(collectionGroup(db, 'comments'), where('authorId', '==', u.uid)));
+    const postIds = [...new Set(rows.docs.map(row => row.ref.parent.parent.id))];
+    const posts = new Map((await this.postsById(postIds)).map(post => [post.id, post]));
+    return rows.docs.map(row => ({ ...normalize(row), post: posts.get(row.ref.parent.parent.id) })).filter(row => row.post).sort((a,b) => b.createdAt-a.createdAt);
   },
   watchComments(postId, callback, error) {
     return onSnapshot(query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt'), limit(100)), rows => callback(rows.docs.map(normalize)), error);

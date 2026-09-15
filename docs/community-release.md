@@ -26,3 +26,8 @@ Firebase Authentication의 Google 제공업체를 활성화하고 프로젝트 �
 ## 검증
 
 `npm test`에 피드 전환·정렬·기간 테스트를 포함합니다. `firebase emulators:exec --only firestore --project demo-koinkorae "node --test tests/firestore.test.js"`는 기존 지도 규칙 외에 BP 조작·중복 지급, 피드 점수/작성자 조작, 댓글과 팔로잉 권한을 검사합니다.
+
+
+## Feature restoration update
+
+See [c486b45 restoration](restore-c486b45.md) for the current scope. Reposts, social profile lists, comment history, coin markers and feed statistics are now implemented with Firebase. Arcade games remain free practice; verified battle scoring and BP spending remain pending.

@@ -1350,3 +1350,16 @@ button:disabled { opacity: .55; }
 .arcade-instructions { text-align: center; color: var(--muted); font-size: 12px; }
 .arcade-control { width: 100%; touch-action: manipulation; }
 .arcade-note { text-align: center; line-height: 1.6; }
+.expanded-photo { display: block; width: 100%; max-height: 75dvh; object-fit: contain; }
+.people-list .person-profile { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; text-align: left; background: transparent; padding: 0; }
+.people-list .person-profile b { font-size: 13px; overflow-wrap: anywhere; }
+.profile-comments > article { padding: 14px; background: var(--surface-tint); border-radius: 16px; }
+.profile-comments small { display: block; margin-top: 5px; color: var(--muted); }
+.profile-comments p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.profile-pin-list > div { min-width: 0; }
+.profile-pin-list .secondary { width: 100%; }
+.profile-page-x > .segments { margin: 0 14px 14px; }
+.card-actions button[aria-pressed="true"] { background: var(--surface-tint); color: var(--primary); }
+.post-head .rank { margin-left: auto; }
+.post-head .rank + .coin { margin-left: 0; }
+.profile-page-x .tier-card span { display: block; }
