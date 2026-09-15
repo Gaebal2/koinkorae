@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap");
 :root {
-  color-scheme: light;
+  color-scheme: only light;
   --primary: #7157ff;
   --primary-dark: #5137e8;
   --ink: #10131a;
@@ -8,7 +8,7 @@
   --card-shadow: 0 12px 35px #2730550b;
   font-family: Inter, Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--ink);
-  background: #dfe5e1;
+  background: #f4f6fb;
   --green: var(--primary);
   --muted: #697180;
   --line: #e5e8ef;
