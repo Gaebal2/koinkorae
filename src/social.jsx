@@ -1,3 +1,4 @@
+import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useState } from 'react';
 import { CalendarCheck, Check, Shield, SquarePen, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { data, dayNumber } from './data.js';
@@ -6,14 +7,15 @@ import { filterFeed } from './feed-model.js';
 import { Segments, Coin, Empty, Modal, Field, PageTitle } from './ui.jsx';
 
 export function HomePage({ me, options, setOptions, following, onProfile, compose }) {
-  const [posts, setPosts] = useState([]), [error, setError] = useState(''), [loading, setLoading] = useState(true), [open, setOpen] = useState({}), [comments, setComments] = useState(null);
+  const { confirm, notify } = useFeedback();
+  const [posts, setPosts] = useState([]), [error, setError] = useAppMessage(), [loading, setLoading] = useState(true), [open, setOpen] = useState({}), [comments, setComments] = useState(null);
   useEffect(() => data.watchPosts(value => { setPosts(value); setLoading(false); setError(''); }, () => { setError('피드를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'); setLoading(false); }), []);
   const result = filterFeed(posts, options, following);
   const card = post => <article className="post-card" key={post.id}>
     <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={`${post.author} 프로필 보기`}>{post.author.slice(0, 2)}</button><div><b>{post.author}</b><span>{age(post.createdAt)}</span></div><Coin symbol={post.coin}/></div>
     <p className="post-body">{post.content}</p>{post.image && <img className="social-post-photo" src={post.image} alt="피드 첨부 사진"/>}
     <div className="score-row"><div><small>노출 점수</small><strong>{post.support - post.oppose}</strong></div><div className="card-actions"><button onClick={() => setComments(post)}>댓글</button><button className="battle-btn" disabled title="배틀 서버 연결 준비 중">배틀 준비 중</button></div></div>
-    {post.authorId === me?.id && <button className="text-action danger-text" onClick={async () => { try { await data.deletePost(post.id); } catch { setError('게시물을 삭제하지 못했습니다.'); } }}>내 글 삭제</button>}
+    {post.authorId === me?.id && <button className="text-action danger-text" onClick={async () => { if (!(await confirm('이 게시물을 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '게시물 삭제', confirmLabel: '삭제' }))) return; try { await data.deletePost(post.id); void notify('게시물을 삭제했습니다.', { title: '삭제 완료', kind: 'success' }); } catch { setError('게시물을 삭제하지 못했습니다.'); } }}>내 글 삭제</button>}
   </article>;
   return <main className="home-page"><div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['노출', '최신', '팔로잉', '급상승', '논쟁']} value={options.category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={options.period} onChange={period => setOptions({ ...options, period })}/></div></div>
     {loading && <p className="loading-state" role="status">피드를 불러오는 중…</p>}{error && <p className="error" role="alert">{error}</p>}
@@ -25,16 +27,17 @@ export function HomePage({ me, options, setOptions, following, onProfile, compos
 }
 
 function Comments({ post, me, close }) {
-  const [items, setItems] = useState([]), [content, setContent] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [items, setItems] = useState([]), [content, setContent] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   useEffect(() => data.watchComments(post.id, setItems, () => setError('댓글을 불러오지 못했습니다.')), [post.id]);
   return <Modal title="댓글" onClose={close}><p className="post-body">{post.content}</p><div className="comment-list">{items.map(c => <article key={c.id}><b>{c.author}</b><small>{age(c.createdAt)}</small><p>{c.content}</p></article>)}</div>{me ? <form onSubmit={async e => { e.preventDefault(); setBusy(true); setError(''); try { await data.comment(post.id, content); setContent(''); } catch { setError('댓글을 저장하지 못했습니다.'); } finally { setBusy(false); } }}><Field label="댓글"><textarea required maxLength={1000} value={content} onChange={e => setContent(e.target.value)}/></Field><button className="primary" disabled={busy || !content.trim()}>댓글 게시</button></form> : <p className="form-help">로그인하면 댓글을 남길 수 있습니다.</p>}{error && <p className="error" role="alert">{error}</p>}</Modal>;
 }
 
 export function CheckinPage({ me, balance, login }) {
-  const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const { notify } = useFeedback();
+  const [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const checked = balance.day === dayNumber();
   return <main><PageTitle icon={CalendarCheck} title="오늘의 BP" sub="매일 출석하고 Battle Point를 모으세요"/><section className="balance-card"><span>보유 BP</span><strong>{balance.current}</strong><small>Lifetime Earned · {balance.lifetime.toLocaleString()} BP</small></section>
-    <section className="check-card"><div className="calendar-mark"><CalendarCheck/></div><h2>{checked ? '오늘 출석 완료!' : '매일 출석하고 +10 BP'}</h2><p>{checked ? '내일 다시 만나요' : '한국 시간 자정에 새 출석이 시작됩니다.'}</p><button className="primary" disabled={busy || checked} onClick={async () => { if (!me) { login(); return; } setBusy(true); setError(''); try { await data.checkin(); } catch { setError('출석을 저장하지 못했습니다. 기기 날짜와 인터넷 연결을 확인해 주세요.'); } finally { setBusy(false); } }}>{busy ? '출석 확인 중…' : checked ? <><Check/>지급 완료</> : me ? <><Zap/>출석 체크</> : 'Google 로그인하고 출석하기'}</button></section>
+    <section className="check-card"><div className="calendar-mark"><CalendarCheck/></div><h2>{checked ? '오늘 출석 완료!' : '매일 출석하고 +10 BP'}</h2><p>{checked ? '내일 다시 만나요' : '한국 시간 자정에 새 출석이 시작됩니다.'}</p><button className="primary" disabled={busy || checked} onClick={async () => { if (!me) { login(); return; } setBusy(true); setError(''); try { await data.checkin(); void notify('오늘 출석이 완료됐습니다. 10 BP를 받았습니다.', {kind:'success',title:'출석 완료'}); } catch { setError('출석을 저장하지 못했습니다. 기기 날짜와 인터넷 연결을 확인해 주세요.'); } finally { setBusy(false); } }}>{busy ? '출석 확인 중…' : checked ? <><Check/>지급 완료</> : me ? <><Zap/>출석 체크</> : '로그인하고 출석하기'}</button></section>
     <section className="reward-row"><div><span>REWARDED AD</span><b>광고 보상 준비 중</b><small>광고 서비스 연결 후 이용할 수 있어요</small></div><button disabled>준비 중</button></section>{error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>BP는 커뮤니티 참여 포인트입니다.<br/>배틀 사용 기능은 서버 연결을 준비 중입니다.</p></div>
   </main>;
 }

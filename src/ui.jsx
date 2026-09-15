@@ -1,3 +1,4 @@
+import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from "react";
 import { BarChart3, Check, ChevronDown, ChevronUp, ImagePlus, MapPin, MessageCircle, Repeat2, Search, Shield, Swords, X, Zap } from "lucide-react";
 import initialCoins from './cmc-top100.json';
@@ -55,6 +56,7 @@ export function Segments({ items, value, onChange, compact = false }) {
 
 
 export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDelete, rank }) {
+  const { confirm } = useFeedback();
   const [imageOpen, setImageOpen] = useState(false);
   const total = post.support + post.oppose || 1;
   return (
@@ -99,7 +101,7 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
           </button>
         </div>
       </div>
-      {post.owner && !post.repostId && onDelete && <button className="text-action danger-text" onClick={()=>onDelete(post)}>내 글 삭제</button>}
+      {post.owner && !post.repostId && onDelete && <button className="text-action danger-text" onClick={async () => { if (await confirm('이 게시물을 삭제할까요?', { title: '게시물 삭제', confirmLabel: '삭제' })) onDelete(post); }}>내 글 삭제</button>}
       {imageOpen && <div className="image-lightbox" role="dialog" aria-modal="true" aria-label="첨부 사진" onClick={()=>setImageOpen(false)}><button aria-label="사진 닫기" onClick={()=>setImageOpen(false)}><X/></button><img src={post.image} alt="피드 첨부 사진 전체"/></div>}
     </article>
   );
@@ -107,6 +109,7 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
 
 
 export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, className = "" }) {
+  const { confirm } = useFeedback();
   return (
     <div className={`pin-detail ${className}`}>
       {pin.image && (
@@ -128,13 +131,14 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, class
         {pin.link && <a href={pin.link} target="_blank" rel="noreferrer">{pin.link}</a>}
         {onEdit && <button className="text-action" onClick={()=>onEdit(pin)}>핀 수정</button>}
       </div>
-      {onDelete && <button className="pin-delete" aria-label="핀 삭제" title="핀 삭제" onClick={() => onDelete(pin)}>삭제</button>}
+      {onDelete && <button className="pin-delete" aria-label="핀 삭제" title="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}
     </div>
   );
 }
 
 export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
-  const [error, setError] = useState('');
+  const { notify } = useFeedback();
+  const [error, setError] = useAppMessage();
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -260,7 +264,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
       <button
         className="primary"
         disabled={!valid || busy}
-        onClick={async () => { setBusy(true); setError(''); try { await onSave({ ...form, lat: +form.lat, lng: +form.lng }); } catch(error) { setError(error.message); } finally { setBusy(false); } }}
+        onClick={async () => { setBusy(true); setError(''); try { await onSave({ ...form, lat: +form.lat, lng: +form.lng }); void notify(initial ? '거래 정보를 수정했습니다.' : '지도에 거래 정보를 등록했습니다.', { kind: 'success', title: '저장 완료' }); } catch(error) { setError(error.message); } finally { setBusy(false); } }}
       >
         {busy ? '저장 중…' : initial ? '수정 저장' : pinCost ? `이 위치에 핀 등록 · ${pinCost} BP` : '이 위치에 거래 무료 등록'}
       </button>
@@ -273,7 +277,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
 }
 
 export function Composer({ onClose, onPublish }) {
-  const [error,setError] = useState('');
+  const [error, setError] = useAppMessage();
   const [busy,setBusy] = useState(false);
   const [content, setContent] = useState(""),
     [coin, setCoin] = useState("BTC"),
@@ -401,6 +405,7 @@ export function PageTitle({ icon: Icon, title, sub }) {
 export function Empty({text}){return <div className="empty-state"><BarChart3/><h3>{text}</h3></div>}
 
 export function InstallPrompt(){
+  const { notify } = useFeedback();
   const [installEvent,setInstallEvent]=useState(null);
   const [installing,setInstalling]=useState(false);
   const controller=useRef(null);
@@ -413,7 +418,7 @@ export function InstallPrompt(){
     if(!installEvent||installing)return;
     setInstalling(true);
     try { await installEvent.prompt(); await installEvent.userChoice; dismiss(); }
-    catch { setInstallEvent(null); }
+    catch { setInstallEvent(null); void notify('앱 설치를 완료하지 못했습니다. 브라우저 메뉴에서 홈 화면에 추가를 선택해 주세요.', { title: '설치 안내' }); }
     finally { setInstalling(false); }
   };
   if(!installEvent)return null;

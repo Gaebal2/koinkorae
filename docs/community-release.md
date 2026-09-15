@@ -1,5 +1,7 @@
 # 커뮤니티 메뉴 복원
 
+현재 메뉴 복원 배포에서는 기존 이메일 로그인을 유지합니다. Google 로그인 제공업체의 지원 이메일 설정 완료 후 `GOOGLE_SIGNIN_ENABLED=true`로 Google 화면을 활성화합니다. 공통 알림 동작은 [공통 팝업](common-popups.md)을 참고하세요.
+
 ## 접속 주소
 
 `https://gaebal2.github.io/koinkorae/`를 사용합니다. `gaebla2`는 다른 계정 이름이므로 이 저장소의 Pages 주소가 아닙니다.

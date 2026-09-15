@@ -1,3 +1,4 @@
+import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CalendarCheck, Check, Home, Map as MapIcon, MapPinPlus, Shield, SquarePen, Swords, Trophy, X, Zap, ChevronDown, ChevronUp, CircleUserRound } from 'lucide-react';
 import L from 'leaflet';
@@ -15,13 +16,15 @@ function useResource(loader, deps) {
   return state;
 }
 function Status({ loading, error, retry }) {
+  const [, showError] = useAppMessage();
+  useEffect(() => { showError(error); }, [error, showError]);
   if (loading) return <p className="loading-state" role="status">불러오는 중…</p>;
   if (error) return <div className="connection-error" role="alert"><p>{error}</p><button className="secondary" onClick={retry}>다시 시도</button></div>;
   return null;
 }
 function Auth({ onClose, onLogin }) {
   const [mode, setMode] = useState('로그인'), [username, setUsername] = useState(''), [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   return <Modal title={mode} onClose={onClose}><form onSubmit={async event => {
     event.preventDefault(); setBusy(true); setError('');
     try { const user = await api(`/auth/${mode === '로그인' ? 'login' : 'register'}`, 'POST', { username, password, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }); onLogin(user); }
@@ -55,7 +58,7 @@ function Feed({ options, setOptions, revision, refresh, actions, compose, me }) 
   </main>;
 }
 function Comments({ post, onClose, me, login, refresh }) {
-  const [revision, setRevision] = useState(0), [content, setContent] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [revision, setRevision] = useState(0), [content, setContent] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const resource = useResource(() => api(`/posts/${post.id}/comments`), [post.id, revision]);
   return <Modal title="피드와 댓글" onClose={onClose}><p className="post-body">{post.content}</p><Status {...resource} retry={() => setRevision(x => x + 1)}/><div className="comment-list">{resource.data?.map(comment => <article key={comment.id}><b>@{comment.author}</b><small>{age(comment.created_at)}</small><p>{comment.content}</p></article>)}{resource.data?.length === 0 && <p className="form-help">첫 댓글을 남겨보세요.</p>}</div><form onSubmit={async event => {
     event.preventDefault(); if (!me) { login(); return; } setBusy(true); setError('');
@@ -64,7 +67,7 @@ function Comments({ post, onClose, me, login, refresh }) {
 }
 function Battle({ post, me, config, onClose, onUpdated }) {
   const [session, setSession] = useState(null), [elapsed, setElapsed] = useState(0), [count, setCount] = useState(0), [result, setResult] = useState(null);
-  const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const trace = useRef([]), started = useRef(0), requestKey = useRef(null), startLocked = useRef(false), inputLocked = useRef(false);
   const [side, setSide] = useState(null);
   useEffect(() => {
@@ -119,7 +122,7 @@ function Battle({ post, me, config, onClose, onUpdated }) {
   </div>}{error && <p className="error" role="alert">{error}</p>}</Modal>;
 }
 function Checkin({ me, config, refresh, login }) {
-  const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const check = async () => { if (!me) { login(); return; } setBusy(true); setError(''); try { await api('/checkin', 'POST'); await refresh(); } catch (error) { setError(error.message); } finally { setBusy(false); } };
   return <main><PageTitle icon={CalendarCheck} title="오늘의 BP" sub="참여에 필요한 Battle Point를 모으세요"/><section className="balance-card"><span>사용 가능한 BP</span><strong>{me?.current_bp ?? 0}</strong><small>Lifetime Earned · {(me?.lifetime_bp ?? 0).toLocaleString()} BP</small></section>
     <section className="check-card"><div className="calendar-mark"><CalendarCheck/></div><h2>{me?.checked ? '오늘 출석 완료!' : `매일 출석하고 +${config.checkinReward} BP`}</h2><p>{me?.checked ? '내일 다시 만나요.' : '꾸준한 참여로 커뮤니티 영향력을 키워보세요.'}</p><button className="primary" disabled={busy || me?.checked} onClick={check}>{me?.checked ? <><Check/>지급 완료</> : me ? <><Zap/>출석 체크</> : '로그인하고 출석하기'}</button></section>
@@ -129,7 +132,7 @@ function Checkin({ me, config, refresh, login }) {
 }
 function MapPage({ me, config, revision, refresh, onProfile, login }) {
   const el = useRef(null), map = useRef(null), layer = useRef(null);
-  const [center, setCenter] = useState({ lat: 37.5665, lng: 126.978 }), [selected, setSelected] = useState(null), [form, setForm] = useState(null), [photo, setPhoto] = useState(null), [error, setError] = useState('');
+  const [center, setCenter] = useState({ lat: 37.5665, lng: 126.978 }), [selected, setSelected] = useState(null), [form, setForm] = useState(null), [photo, setPhoto] = useState(null), [error, setError] = useAppMessage();
   const resource = useResource(() => api('/pins'), [revision, me?.id]);
   useEffect(() => {
     const instance = L.map(el.current, { zoomControl: false }).setView([37.5665, 126.978], 14); map.current = instance;
@@ -160,7 +163,7 @@ function MapPage({ me, config, revision, refresh, onProfile, login }) {
   </main>;
 }
 function Profile({ username, me, revision, refresh, actions, login, onLogout }) {
-  const [view, setView] = useState('피드'), [editing, setEditing] = useState(false), [bio, setBio] = useState(''), [photo, setPhoto] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false);
+  const [view, setView] = useState('피드'), [editing, setEditing] = useState(false), [bio, setBio] = useState(''), [photo, setPhoto] = useState(''), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
   const resource = useResource(() => username ? api(`/profiles/${encodeURIComponent(username)}`) : Promise.resolve(null), [username, revision, me?.id]);
   useEffect(() => { setView('피드'); setEditing(false); setError(''); }, [username]);
   if (!username) return <main><Empty text="로그인하고 나의 활동을 확인하세요"/><button className="primary" onClick={login}>로그인 / 회원가입</button></main>;
@@ -181,7 +184,7 @@ function Profile({ username, me, revision, refresh, actions, login, onLogout }) 
 
 export default function App() {
   const [me, setMe] = useState(null), [config, setConfig] = useState(null), [page, setPage] = useState('home'), [revision, setRevision] = useState(0);
-  const [auth, setAuth] = useState(false), [compose, setCompose] = useState(false), [battle, setBattle] = useState(null), [comments, setComments] = useState(null), [profile, setProfile] = useState(null), [error, setError] = useState(''), [loading, setLoading] = useState(true);
+  const [auth, setAuth] = useState(false), [compose, setCompose] = useState(false), [battle, setBattle] = useState(null), [comments, setComments] = useState(null), [profile, setProfile] = useState(null), [error, setError] = useAppMessage(), [loading, setLoading] = useState(true);
   const [options, setOptions] = useState({ feed: '유저 피드', category: '노출', period: '오늘' });
   const refresh = useCallback(async () => {
     try { const user = await api('/me'); setMe(user); setRevision(x => x + 1); } catch (error) { setError(error.message); }

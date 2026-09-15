@@ -1307,3 +1307,19 @@ button:disabled { opacity: .55; }
 .google-login { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; width: 100%; border: 1px solid #747775; border-radius: 24px; color: #1f1f1f; background: #fff; font-size: 15px; font-weight: 500; }
 .google-login svg { width: 20px; height: 20px; flex: none; }
 .social-post-photo { display: block; width: 100%; max-height: 360px; object-fit: contain; border-radius: 14px; background: var(--surface-tint); }
+.feedback-content { min-height: 100dvh; }
+.feedback-backdrop { position: fixed; inset: 0; z-index: 100000; display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom)); background: #15152280; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.feedback-dialog { position: relative; width: min(100%, 360px); max-height: calc(100dvh - 48px); overflow: auto; padding: 28px 24px 24px; border: 1px solid #e5e8ef; border-radius: 26px; background: #fff; color: #10131a; box-shadow: 0 24px 80px #15152240; text-align: center; animation: feedback-in 140ms ease-out; }
+.feedback-close { position: absolute; right: 12px; top: 12px; width: 40px; height: 40px; display: grid; place-items: center; color: #697180; border-radius: 50%; background: transparent; }
+.feedback-close svg { width: 20px; height: 20px; }
+.feedback-symbol { width: 56px; height: 56px; display: grid; place-items: center; margin: 8px auto 18px; background: #f0edff; color: #7157ff; border-radius: 18px; }
+.feedback-symbol svg { width: 28px; height: 28px; }
+.feedback-success .feedback-symbol { background: #baf7d0; color: #155b37; }
+.feedback-dialog h2 { font-size: 20px; line-height: 1.4; margin: 0 0 10px; }
+.feedback-dialog p { color: #697180; font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 24px; }
+.feedback-actions { display: flex; gap: 10px; }
+.feedback-actions button { flex: 1; min-height: 46px; margin: 0; border-radius: 14px; }
+.feedback-actions .secondary { background: #f4f6fb; color: #5137e8; border: 1px solid #e5e8ef; }
+.feedback-dialog button:focus-visible { outline: 3px solid #7157ff; outline-offset: 3px; }
+@keyframes feedback-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .feedback-dialog { animation: none; } }

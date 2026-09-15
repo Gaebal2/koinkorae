@@ -1,7 +1,7 @@
 // Application-facing interface. Replace this adapter when migrating to Supabase.
 import { initializeApp } from 'firebase/app';
 import publicConfig from './firebase-config.json';
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, runTransaction, serverTimestamp, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 
 const config = {
@@ -10,6 +10,7 @@ const config = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || publicConfig.projectId,
   appId: import.meta.env.VITE_FIREBASE_APP_ID || publicConfig.appId,
 };
+export const googleEnabled = import.meta.env.VITE_GOOGLE_SIGNIN_ENABLED === 'true';
 export const configured = Object.values(config).every(Boolean);
 const app = configured ? initializeApp(config) : null;
 const auth = app && getAuth(app), db = app && getFirestore(app);
@@ -21,6 +22,14 @@ export const dayNumber = (time = Date.now()) => Math.floor((time + 9 * 3600000) 
 const normalize = row => ({ ...row.data(), id: row.id, createdAt: row.data().createdAt?.toMillis?.() || 0 });
 export const data = {
   watchAuth(callback) { if (!configured) { callback(null); return () => {}; } return onAuthStateChanged(auth, u => callback(toUser(u))); },
+  async login(email, password) { ready(); return toUser((await signInWithEmailAndPassword(auth, email, password)).user); },
+  async register(email, password, username) {
+    ready(); const { user: u } = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(u, { displayName: username.trim() });
+    await setDoc(doc(db, 'profiles', u.uid), { username: username.trim(), bio: '', profileImage: '' });
+    return toUser(u);
+  },
+  async resetPassword(email) { ready(); await sendPasswordResetEmail(auth, email); },
   async loginGoogle() {
     ready();
     const provider = new GoogleAuthProvider(); provider.setCustomParameters({ prompt: 'select_account' });
