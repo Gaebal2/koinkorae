@@ -10,7 +10,7 @@ const config = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || publicConfig.projectId,
   appId: import.meta.env.VITE_FIREBASE_APP_ID || publicConfig.appId,
 };
-export const googleEnabled = import.meta.env.VITE_GOOGLE_SIGNIN_ENABLED === 'true';
+export const googleEnabled = import.meta.env.VITE_GOOGLE_SIGNIN_ENABLED !== 'false';
 export const configured = Object.values(config).every(Boolean);
 const app = configured ? initializeApp(config) : null;
 const auth = app && getAuth(app), db = app && getFirestore(app);

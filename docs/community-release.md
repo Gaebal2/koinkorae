@@ -1,6 +1,6 @@
 # 커뮤니티 메뉴 복원
 
-현재 메뉴 복원 배포에서는 기존 이메일 로그인을 유지합니다. Google 로그인 제공업체의 지원 이메일 설정 완료 후 `GOOGLE_SIGNIN_ENABLED=true`로 Google 화면을 활성화합니다. 공통 알림 동작은 [공통 팝업](common-popups.md)을 참고하세요.
+Google 로그인 제공업체 설정을 완료하고 `GOOGLE_SIGNIN_ENABLED=true`로 Google 화면을 활성화했습니다. 프로젝트 공개 이름은 Koin Korae이며, 지원 이메일은 소유자가 승인한 Firebase 계정 이메일입니다. 기존 이메일 제공업체는 기존 계정 호환을 위해 유지하지만 기본 앱 화면은 Google 로그인만 제공합니다. 공통 알림 동작은 [공통 팝업](common-popups.md)을 참고하세요.
 
 ## 접속 주소
 
