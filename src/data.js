@@ -54,6 +54,7 @@ export const data = {
   },
   async savePin(value, id) {
     const u = user();
+    if (typeof value.description !== 'string' || value.description.length > 200) throw Error('Pin 설명은 200자 이내로 입력해 주세요.');
     const pin = Object.fromEntries(['title', 'description', 'coin', 'tradeCoins', 'link', 'image', 'category'].map(k => [k, value[k]]));
     Object.assign(pin, { lat: +value.lat, lng: +value.lng, ownerId: u.uid, creator: displayName(u) });
     if (id) {
@@ -109,6 +110,7 @@ export const data = {
   },
   async publish(value) {
     const u = user();
+    if (typeof value.content !== 'string' || value.content.length > 200) throw Error('피드 본문은 200자 이내로 입력해 주세요.');
     await setDoc(doc(collection(db, 'posts')), { authorId: u.uid, author: displayName(u), content: value.content.trim(), coin: value.coin, image: value.image || '', ...(value.pinId ? { pinId: value.pinId } : {}), createdAt: serverTimestamp(), support: 0, oppose: 0 });
   },
   async deletePost(id) { user(); await deleteDoc(doc(db, 'posts', id)); },

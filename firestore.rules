@@ -32,7 +32,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['authorId', 'author', 'content', 'coin', 'image', 'pinId', 'createdAt', 'support', 'oppose'])
         && request.resource.data.authorId == request.auth.uid
         && text(request.resource.data.author, 24)
-        && text(request.resource.data.content, 500) && request.resource.data.content.size() > 0
+        && text(request.resource.data.content, 200) && request.resource.data.content.size() > 0
         && text(request.resource.data.coin, 20) && request.resource.data.coin.matches('[A-Za-z0-9]+')
         && (!('pinId' in request.resource.data) || (text(request.resource.data.pinId, 128) && request.resource.data.pinId.matches('[A-Za-z0-9_-]+') && exists(/databases/$(database)/documents/pins/$(request.resource.data.pinId))))
         && photo(request.resource.data.image) && request.resource.data.createdAt == request.time
@@ -73,7 +73,7 @@ service cloud.firestore {
           && p.ownerId == request.auth.uid && p.slot in ['0', '1', '2']
           && id == request.auth.uid + '_' + p.slot
           && text(p.creator, 24) && text(p.title, 100) && p.title.size() > 0
-          && text(p.description, 2000) && p.description.size() > 0
+          && text(p.description, 200) && p.description.size() > 0
           && text(p.coin, 20) && p.coin.matches('[A-Za-z0-9]+')
           && p.tradeCoins is list && p.tradeCoins.size() <= 110
           && text(p.link, 500) && (p.link == '' || p.link.matches('https?://.*'))

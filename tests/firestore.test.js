@@ -4,7 +4,7 @@ import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebas
 import { doc, setDoc, getDoc, getDocs, collectionGroup, query, where, deleteDoc, serverTimestamp } from 'firebase/firestore';
 let env;
 const pin = { ownerId: 'alice', slot: '0', creator: 'Alice', title: 'BTC 거래', description: '공개 장소에서 만나요', coin: 'BTC', tradeCoins: ['BTC'], link: '', image: '', category: '판매', lat: 37.5, lng: 127 };
-before(async () => { env = await initializeTestEnvironment({ projectId: 'demo-koinkorae', firestore: { rules: await readFile('firestore.rules', 'utf8') } }); });
+before(async () => { env = await initializeTestEnvironment({ projectId: process.env.GCLOUD_PROJECT || 'demo-koinkorae', firestore: { rules: await readFile('firestore.rules', 'utf8') } }); });
 beforeEach(async () => { await env.clearFirestore(); });
 after(async () => { await env?.cleanup(); });
 test('public reads; signed-out writes denied', async () => {
@@ -74,6 +74,15 @@ test('posts can attach existing pins but reject missing or malformed pin referen
   for (const pinId of ['missing', '', '../alice_0', 123, null]) {
     await assertFails(setDoc(doc(db, 'posts', 'invalid'), { ...post, pinId }));
   }
+});
+test('feed body and pin description accept 200 characters and reject 201 on create and edit', async () => {
+  const db = env.authenticatedContext('alice').firestore();
+  const post = { authorId: 'alice', author: 'Alice', coin: 'BTC', content: '가'.repeat(200), image: '', createdAt: serverTimestamp(), support: 0, oppose: 0 };
+  await assertSucceeds(setDoc(doc(db, 'posts', 'limit-ok'), post));
+  await assertFails(setDoc(doc(db, 'posts', 'limit-bad'), { ...post, content: '가'.repeat(201) }));
+  await assertFails(setDoc(doc(db, 'pins', 'alice_0'), { ...pin, description: '가'.repeat(201) }));
+  await assertSucceeds(setDoc(doc(db, 'pins', 'alice_0'), { ...pin, description: '가'.repeat(200) }));
+  await assertFails(setDoc(doc(db, 'pins', 'alice_0'), { ...pin, description: '가'.repeat(201) }));
 });
 test('following lists can only be changed by their owner', async () => {
   const alice = env.authenticatedContext('alice').firestore(), bob = env.authenticatedContext('bob').firestore();

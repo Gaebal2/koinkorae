@@ -117,7 +117,7 @@ export function createService({ filename = ':memory:', config = {}, clock = Date
     getPost(user, id) { return serializedPost(post(id), scoreEvents(id), user); },
     createPost(user, body) {
       need(user); const id = randomUUID();
-      run('INSERT INTO posts (id,user_id,coin_id,content,image,created_at) VALUES (?,?,?,?,?,?)', id, user.id, coin(body.coin).id, text(body.content, '본문', 500), imageValue(body.image), clock());
+      run('INSERT INTO posts (id,user_id,coin_id,content,image,created_at) VALUES (?,?,?,?,?,?)', id, user.id, coin(body.coin).id, text(body.content, '본문', 200), imageValue(body.image), clock());
       return api.getPost(user, id);
     },
     deletePost(user, id) { need(user); if (post(id).user_id !== user.id) fail('본인 글만 삭제할 수 있습니다.', 403); run('UPDATE posts SET deleted_at=? WHERE id=?', clock(), id); return { ok: true }; },
@@ -153,7 +153,7 @@ export function createService({ filename = ':memory:', config = {}, clock = Date
       need(user); const existing = id ? one('SELECT * FROM map_pins WHERE id=?', id) : null;
       if (id && !existing) fail('핀이 없습니다.', 404);
       if (existing && existing.user_id !== user.id) fail('본인 핀만 수정할 수 있습니다.', 403);
-      const title = text(body.title, '제목', 100), description = text(body.description, '설명', 2000), symbol = coin(body.coin).id;
+      const title = text(body.title, '제목', 100), description = text(body.description, '설명', 200), symbol = coin(body.coin).id;
       if (!categories.includes(body.category)) fail('핀 종류를 선택하세요.');
       if (!Number.isFinite(body.lat) || !Number.isFinite(body.lng) || Math.abs(body.lat) > 90 || Math.abs(body.lng) > 180) fail('유효한 위도·경도가 필요합니다.');
       const image = imageValue(body.image), link = body.link ? text(body.link, '링크', 2048) : '';
