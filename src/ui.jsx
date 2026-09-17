@@ -10,16 +10,17 @@ export const asset = name => import.meta.env.BASE_URL + name;
 const fmt = n => new Intl.NumberFormat('ko-KR',{notation: Math.abs(n)>999?'compact':'standard'}).format(n);
 const exposure = p => p.support-p.oppose;
 export const coinColor = symbol => ({BTC:'#f59e0b',ETH:'#627eea',SOL:'#14b8a6',XRP:'#334155',SL:'#7157ff'})[symbol]||'#7157ff';
+export const coinImage = symbol => asset(`coin-icons/${symbol === 'PI' ? 'pi-official.png' : symbol.toLowerCase() + (symbol === 'SL' ? '.png' : '.svg')}`);
 export const profileImage = () => asset('koin-korae-transparent-192.png');
 
 export function Coin({ symbol, size = "md" }) {
   return (
     <span
-      className={`coin coin-${size}`}
+      className={`coin coin-${size} coin-symbol-${symbol}`}
       style={{ "--coin": coinColor(symbol) }}
     >
       <span className="coin-fallback">{symbol.slice(0, 4)}</span>
-      <img src={asset(`coin-icons/${symbol.toLowerCase()}.${["SL", "PSL"].includes(symbol) ? "png" : "svg"}`)} alt={`${symbol} 아이콘`} onError={event=>{event.currentTarget.style.display="none"}} />
+      <img key={symbol} src={coinImage(symbol)} alt={`${symbol} 아이콘`} onError={event=>{event.currentTarget.style.display="none"}} />
     </span>
   );
 }
@@ -130,9 +131,9 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, class
         <b>{pin.title}</b>
         <p>{pin.description}</p>
         {pin.link && <a href={pin.link} target="_blank" rel="noreferrer">{pin.link}</a>}
-        {onEdit && <button className="text-action" onClick={()=>onEdit(pin)}>핀 수정</button>}
       </div>
-      {onDelete && <button className="pin-delete" aria-label="핀 삭제" title="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}
+      {(onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button type="button" onClick={() => onEdit(pin)}>수정</button>}
+      {onDelete && <button className="pin-delete" aria-label="핀 삭제" title="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}</div>}
     </div>
   );
 }
@@ -277,71 +278,39 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
   );
 }
 
-export function Composer({ onClose, onPublish }) {
+export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChange, onPickMap, hidden = false }) {
   const [error, setError] = useAppMessage();
-  const [busy,setBusy] = useState(false);
-  const [content, setContent] = useState(""),
-    [coin, setCoin] = useState("BTC"),
-    [query, setQuery] = useState(""),
-    [image,setImage]=useState("");
-  const fileRef=useRef(null);
-  const chooseImage=async event=>{try{setImage(await readPhoto(event.target.files?.[0]));setError('')}catch(error){setError(error.message)}};
-  const list = cmcCoins
-    .filter((c) =>
-      `${c.name} ${c.symbol} ${c.aliases || ""}`.toLowerCase().includes(query.toLowerCase()),
-    )
-    .slice(0, 12);
-  return (
-    <Modal title="새 피드 작성" onClose={onClose} className="composer-modal">
-      <textarea
-        className="composer-text"
-        autoFocus
-        value={content}
-        maxLength={500}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="커뮤니티에 어떤 이야기를 전할까요?"
-      />
-      <span className="counter">{content.length}/500</span>
-      <div className="feed-image-field">
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={chooseImage}/>
-        {image?<div className="feed-image-preview"><img src={image} alt="피드 이미지 미리보기"/><button type="button" onClick={()=>setImage("")} aria-label="이미지 제거"><X/></button></div>:<button type="button" className="feed-image-picker" aria-label="이미지 추가" title="이미지 추가" onClick={()=>fileRef.current?.click()}><ImagePlus/></button>}
-      </div>
-      <label className="search">
-        <Search />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="지원 코인 검색"
-        />
-      </label>
-      <div className="coin-list">
-        {list.map((c) => (
-          <button
-            className={coin === c.symbol ? "selected" : ""}
-            key={c.id}
-            onClick={() => setCoin(c.symbol)}
-          >
-            <Coin symbol={c.symbol} />
-            <span>
-              <b>{c.name}</b>
-              <small>
-                {c.symbol}{c.cmcRank ? ` · #${c.cmcRank}` : ''}
-              </small>
-            </span>
-            {coin === c.symbol && <Check />}
-          </button>
-        ))}
-      </div>
-      <button
-        className="primary"
-        disabled={!content.trim() || busy}
-        onClick={async()=>{setBusy(true);setError('');try{await onPublish({coin,content:content.trim(),image})}catch(error){setError(error.message)}finally{setBusy(false)}}}
-      >
-        {busy ? '게시 중…' : '게시하기'}
-      </button>
-      {error && <p className="error" role="alert">{error}</p>}
-    </Modal>
-  );
+  const [busy, setBusy] = useState(false), [picker, setPicker] = useState(null);
+  const [content, setContent] = useState(''), [coin, setCoin] = useState('BTC');
+  const [query, setQuery] = useState(''), [image, setImage] = useState('');
+  const fileRef = useRef(null);
+  const chooseImage = async event => { try { setImage(await readPhoto(event.target.files?.[0])); setError(''); } catch (error) { setError(error.message); } };
+  const list = cmcCoins.filter(c => `${c.name} ${c.symbol} ${c.aliases || ''}`.toLowerCase().includes(query.toLowerCase()));
+  if (hidden) return null;
+  if (picker === 'coin') return <Modal title="지원 코인 선택" onClose={() => setPicker(null)}>
+    <label className="search"><Search/><input value={query} onChange={e => setQuery(e.target.value)} placeholder="지원 코인 검색"/></label>
+    <div className="coin-list">{list.map(c => <button key={c.id} className={coin === c.symbol ? 'selected' : ''} onClick={() => { setCoin(c.symbol); setPicker(null); }}><Coin symbol={c.symbol}/><span><b>{c.name}</b><small>{c.symbol}</small></span>{coin === c.symbol && <Check/>}</button>)}</div>
+    {!list.length && <p>검색 결과가 없습니다.</p>}
+  </Modal>;
+  if (picker === 'pin') return <Modal title="Pin 추가" onClose={() => setPicker(null)}>
+    <button className="secondary" onClick={() => { setPicker(null); onPickMap?.(); }}><MapPin/>지도 위에서 선택</button>
+    <h3>내가 생성한 Pin</h3><div className="composer-pin-list">{pins.map(pin => <button key={pin.id} onClick={() => { onPinChange?.(pin); setPicker(null); }}><Coin symbol={pin.coin}/><span>{pin.title}</span>{selectedPin?.id === pin.id && <Check/>}</button>)}</div>
+    {!pins.length && <p>아직 생성한 Pin이 없습니다. 지도에서 Pin을 선택할 수 있습니다.</p>}
+  </Modal>;
+  return <Modal title="새 피드 작성" onClose={onClose} className="composer-modal">
+    <textarea className="composer-text" autoFocus value={content} maxLength={500} onChange={e => setContent(e.target.value)} placeholder="커뮤니티에 어떤 이야기를 전할까요?"/>
+    <span className="counter">{content.length}/500</span>
+    <input ref={fileRef} type="file" accept="image/*" hidden onChange={chooseImage}/>
+    <div className="composer-tools">
+      <button type="button" aria-label={`지원 코인 선택: ${coin}`} title="지원 코인 선택" onClick={() => { setQuery(''); setPicker('coin'); }}><Coin symbol={coin}/><span>{coin}</span></button>
+      <button type="button" aria-label="사진 추가" title="사진 추가" onClick={() => fileRef.current?.click()}><ImagePlus/></button>
+      <button type="button" aria-label="Pin 추가" title="Pin 추가" onClick={() => setPicker('pin')}><MapPin/></button>
+    </div>
+    {image && <div className="feed-image-preview"><img src={image} alt="피드 이미지 미리보기"/><button type="button" onClick={() => setImage('')} aria-label="이미지 제거"><X/></button></div>}
+    {selectedPin && <div className="composer-pin-preview"><Coin symbol={selectedPin.coin}/><span>{selectedPin.title}</span><button type="button" onClick={() => onPinChange?.(null)} aria-label="첨부 Pin 제거"><X/></button></div>}
+    <button className="primary" disabled={!content.trim() || busy} onClick={async () => { setBusy(true); setError(''); try { await onPublish({ coin, content: content.trim(), image, ...(selectedPin ? { pinId: selectedPin.id } : {}) }); } catch (error) { setError(error.message); } finally { setBusy(false); } }}>{busy ? '게시 중…' : '게시하기'}</button>
+    {error && <p className="error" role="alert">{error}</p>}
+  </Modal>;
 }
 
 export function Modal({ title, onClose, children, className = "" }) {

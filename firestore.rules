@@ -29,11 +29,12 @@ service cloud.firestore {
     match /posts/{id} {
       allow read: if true;
       allow create: if signedIn()
-        && request.resource.data.keys().hasOnly(['authorId', 'author', 'content', 'coin', 'image', 'createdAt', 'support', 'oppose'])
+        && request.resource.data.keys().hasOnly(['authorId', 'author', 'content', 'coin', 'image', 'pinId', 'createdAt', 'support', 'oppose'])
         && request.resource.data.authorId == request.auth.uid
         && text(request.resource.data.author, 24)
         && text(request.resource.data.content, 500) && request.resource.data.content.size() > 0
         && text(request.resource.data.coin, 20) && request.resource.data.coin.matches('[A-Za-z0-9]+')
+        && (!('pinId' in request.resource.data) || (text(request.resource.data.pinId, 128) && request.resource.data.pinId.matches('[A-Za-z0-9_-]+') && exists(/databases/$(database)/documents/pins/$(request.resource.data.pinId))))
         && photo(request.resource.data.image) && request.resource.data.createdAt == request.time
         && request.resource.data.support == 0 && request.resource.data.oppose == 0;
       allow delete: if signedIn() && resource.data.authorId == request.auth.uid;

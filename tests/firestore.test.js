@@ -66,6 +66,15 @@ test('posts cannot forge owners, timestamps or battle scores; comments require a
   await assertFails(setDoc(doc(db, 'posts', 'missing', 'comments', 'reply'), comment));
   await assertSucceeds(deleteDoc(ref));
 });
+test('posts can attach existing pins but reject missing or malformed pin references', async () => {
+  const db = env.authenticatedContext('alice').firestore();
+  await setDoc(doc(db, 'pins', 'alice_0'), pin);
+  const post = { authorId: 'alice', author: 'Alice', coin: 'BTC', content: 'Attached pin', image: '', createdAt: serverTimestamp(), support: 0, oppose: 0 };
+  await assertSucceeds(setDoc(doc(db, 'posts', 'attached'), { ...post, pinId: 'alice_0' }));
+  for (const pinId of ['missing', '', '../alice_0', 123, null]) {
+    await assertFails(setDoc(doc(db, 'posts', 'invalid'), { ...post, pinId }));
+  }
+});
 test('following lists can only be changed by their owner', async () => {
   const alice = env.authenticatedContext('alice').firestore(), bob = env.authenticatedContext('bob').firestore();
   await assertSucceeds(setDoc(doc(alice, 'profiles', 'alice', 'following', 'bob'), { createdAt: serverTimestamp() }));

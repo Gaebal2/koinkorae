@@ -48,6 +48,10 @@ export const data = {
     const snapshot = await getDocs(collection(db, 'pins'));
     return snapshot.docs.map(d => ({ ...d.data(), id: d.id, owner: d.data().ownerId === auth.currentUser?.uid }));
   },
+  async getPin(id) {
+    ready(); const row = await getDoc(doc(db, 'pins', id));
+    return row.exists() ? { ...row.data(), id: row.id, owner: row.data().ownerId === auth.currentUser?.uid } : null;
+  },
   async savePin(value, id) {
     const u = user();
     const pin = Object.fromEntries(['title', 'description', 'coin', 'tradeCoins', 'link', 'image', 'category'].map(k => [k, value[k]]));
@@ -105,7 +109,7 @@ export const data = {
   },
   async publish(value) {
     const u = user();
-    await setDoc(doc(collection(db, 'posts')), { authorId: u.uid, author: displayName(u), content: value.content.trim(), coin: value.coin, image: value.image || '', createdAt: serverTimestamp(), support: 0, oppose: 0 });
+    await setDoc(doc(collection(db, 'posts')), { authorId: u.uid, author: displayName(u), content: value.content.trim(), coin: value.coin, image: value.image || '', ...(value.pinId ? { pinId: value.pinId } : {}), createdAt: serverTimestamp(), support: 0, oppose: 0 });
   },
   async deletePost(id) { user(); await deleteDoc(doc(db, 'posts', id)); },
   watchFollowing(uid, callback, error) {

@@ -8,7 +8,9 @@ import { HomePage, CheckinPage } from './social.jsx';
 import { readPhoto } from './api.js';
 import { CommunityProfile } from './community-profile.jsx';
 import { useBackDismiss } from './use-back-dismiss.js';
-import { asset, coinColor } from './ui.jsx';
+import { coinImage, coinColor } from './ui.jsx';
+
+import { readViewState, saveViewState } from './view-state.js';
 
 function Auth(props) { return googleEnabled ? <GoogleAuth {...props}/> : <EmailAuth {...props}/>; }
 
@@ -42,7 +44,7 @@ function GoogleAuth({ close, done }) {
   </Modal>;
 }
 
-function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete }) {
+function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick }) {
   const element = useRef(null), map = useRef(null), markers = useRef(null);
   const [center, setCenter] = useState({ lat: 37.5665, lng: 126.978 }), [locationError, setLocationError] = useAppMessage(), [photo, setPhoto] = useState(null);
   useEffect(() => {
@@ -57,25 +59,31 @@ function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete 
     for (const pin of pins) {
       const content = document.createElement('span'); content.style.setProperty('--pin', coinColor(pin.coin));
       const label = document.createElement('b'); label.style.display = 'grid'; label.textContent = pin.coin; content.append(label);
-      const image = document.createElement('img'); image.src = asset(`coin-icons/${pin.coin.toLowerCase()}.${['SL','PSL'].includes(pin.coin) ? 'png' : 'svg'}`); image.alt = pin.coin; image.onload = () => { label.style.display = 'none'; }; image.onerror = () => { image.style.display = 'none'; label.style.display = 'grid'; }; content.append(image);
+      const image = document.createElement('img'); image.src = coinImage(pin.coin); image.dataset.coin = pin.coin; image.alt = pin.coin; image.onload = () => { label.style.display = 'none'; }; image.onerror = () => { image.style.display = 'none'; label.style.display = 'grid'; }; content.append(image);
       L.marker([pin.lat, pin.lng], { title: pin.title, icon: L.divIcon({ className: 'battle-map-marker', html: content, iconSize: [40, 48], iconAnchor: [20, 45] }) }).addTo(markers.current).on('click', () => select(pin));
     }
   }, [pins]);
   useEffect(() => { if (selected) map.current.setView([selected.lat, selected.lng], 15); }, [selected?.id]);
   return <main className="map-page"><div className="map-stage"><div className="real-map" ref={element}/><div className="map-crosshair" aria-label="거래 등록 위치"/><div className="center-coordinate">{center.lat.toFixed(6)}, {center.lng.toFixed(6)}</div></div>
-    <div className="map-intro"><b>내 주변 P2P 거래</b><small>{configured ? `${pins.length}개의 거래 정보 · 지도를 움직여 위치를 선택하세요` : '거래 서비스를 준비 중입니다 · 지도를 둘러보세요'}</small></div>
+    {picking && <div className="map-pick-banner"><span>첨부할 Pin을 선택하세요</span><button onClick={onCancelPick}>취소</button>{selected && <button onClick={() => onPick(selected)}>이 Pin 선택</button>}</div>}
+    {!picking && <div className="map-intro"><b>내 주변 P2P 거래</b><small>{configured ? `${pins.length}개의 거래 정보 · 지도를 움직여 위치를 선택하세요` : '거래 서비스를 준비 중입니다 · 지도를 둘러보세요'}</small></div>}
     {locationError && <div className="map-message" role="alert">{locationError}</div>}
     <div className="map-toolbar"><span>{me ? `내 거래 ${pins.filter(p => p.owner).length}/3 · 무료 등록` : '로그인하고 거래를 등록하세요'}</span><button aria-label="내 위치" onClick={() => { setLocationError(''); if (!navigator.geolocation) { setLocationError('위치 정보를 지원하지 않는 브라우저입니다.'); return; } navigator.geolocation.getCurrentPosition(p => map.current?.setView([p.coords.latitude, p.coords.longitude], 16), () => setLocationError('위치 권한을 확인하거나 지도를 직접 움직여 주세요.'), { timeout: 10000 }); }}><LocateFixed/></button><button aria-label="거래 등록" disabled={!!me && pins.filter(p => p.owner).length >= 3} onClick={() => me ? edit({ center }) : login()}><MapPinPlus/></button></div>
-    {selected && <PinDetailCard pin={selected} onDelete={selected.owner ? onDelete : undefined} onProfile={() => onProfile(selected.ownerId)} onEdit={selected.owner ? p => edit({ initial: p, center }) : undefined} onImage={p => setPhoto(p.image)}/>}
+    {selected && <PinDetailCard pin={selected} onDelete={selected.owner ? onDelete : undefined} onProfile={picking ? undefined : () => onProfile(selected.ownerId)} onEdit={selected.owner ? p => edit({ initial: p, center }) : undefined} onImage={p => setPhoto(p.image)}/>}
     {photo && <Modal title="거래 사진" onClose={() => setPhoto(null)}><img style={{ width: '100%' }} src={photo} alt="거래 첨부 사진"/></Modal>}
   </main>;
 }
 
 export default function App() {
   const { notify } = useFeedback();
-  const [me, setMe] = useState(null), [page, setPage] = useState('home'), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(null), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
+  const [restored] = useState(() => readViewState());
+  const [me, setMe] = useState(null), [page, setPage] = useState(restored.page), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
   const [compose, setCompose] = useState(false), [following, setFollowing] = useState([]), [balance, setBalance] = useState({ current: 0, lifetime: 0, day: -1 });
-  const [options, setOptions] = useState({ feed: '유저 피드', category: '노출', period: '오늘' });
+  const [options, setOptions] = useState(restored.options);
+  const [pickingPin, setPickingPin] = useState(false), [attachedPin, setAttachedPin] = useState(null);
+  useEffect(() => { saveViewState(undefined, { page: pickingPin ? 'home' : page, profileId, options }); }, [page, profileId, options, pickingPin]);
+  const finishPick = pin => { if (pin) setAttachedPin(pin); setPickingPin(false); setPage('home'); };
+  useBackDismiss(pickingPin, () => finishPick(null));
   useBackDismiss(!!form, () => setForm(null));
   const refresh = async () => { try { setPins(await data.listPins()); } catch { setError('거래 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'); } };
   useEffect(() => data.watchAuth(setMe), []);
@@ -83,16 +91,17 @@ export default function App() {
   useEffect(() => { setFollowing([]); return data.watchFollowing(me?.id, setFollowing, () => setError('팔로잉 정보를 불러오지 못했습니다.')); }, [me?.id]);
   useEffect(() => { select(null); refresh(); const timer = setInterval(refresh, 60000); return () => clearInterval(timer); }, [me?.id]);
   useEffect(() => { let active = true; setProfile(null); setEditing(false); if (profileId) data.profile(profileId).then(p => { if (active) setProfile(p); }).catch(() => { if (active) setError('프로필을 불러오지 못했습니다.'); }); return () => { active = false; }; }, [profileId, me?.username]);
+  const openPin = async id => { try { const pin = await data.getPin(id); if (!pin) { setError('삭제되었거나 더 이상 존재하지 않는 Pin입니다.'); return; } select(pin); setPage('map'); } catch { setError('Pin을 불러오지 못했습니다.'); } };
   const openProfile = id => { setProfileId(id); setPage('profile'); };
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
-  return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar"><div className="logo"><img className="brand-icon" src={profileImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div><button className="text-action" onClick={() => me ? openProfile(me.id) : setAuth(true)}>{me ? `${balance.current} BP · 내 프로필` : '로그인'}</button></header>
+  return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar"><div className="logo"><img className="brand-icon" src={profileImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div><button className="text-action" disabled={pickingPin} onClick={() => me ? openProfile(me.id) : setAuth(true)}>{me ? `${balance.current} BP · 내 프로필` : '로그인'}</button></header>
     {error && <div className="app-error" role="alert">{error}<button aria-label="닫기" onClick={() => setError('')}><X/></button></div>}
-    {page === 'home' && <HomePage me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} compose={() => me ? setCompose(true) : setAuth(true)}/>}
+    {page === 'home' && <HomePage me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
     {page === 'check' && <CheckinPage me={me} balance={balance} login={() => setAuth(true)}/>}
-    {page === 'map' && <MapPage pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
-    {page === 'profile' && <CommunityProfile profileId={profileId} profile={profile} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
-    <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['profile', '프로필', CircleUserRound]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} onClick={() => id === 'profile' ? openProfile(me?.id) : setPage(id)}><Icon/><span>{label}</span></button>)}</nav>
-    {compose && <Composer onClose={() => setCompose(false)} onPublish={async value => { await data.publish(value); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
+    {page === 'map' && <MapPage picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
+    {page === 'profile' && <CommunityProfile onPin={openPin} profileId={profileId} profile={profile} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
+    <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['profile', '프로필', CircleUserRound]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => id === 'profile' ? openProfile(me?.id) : setPage(id)}><Icon/><span>{label}</span></button>)}</nav>
+    {compose && <Composer hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
     {form && <PinForm {...form} pinCost={0} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin); setPage('map'); }}/>}
     {editing && profile && <Modal title="프로필 수정" onClose={() => setEditing(false)}><Field label="소개"><textarea maxLength={200} value={profile.bio} onChange={e => setProfile({ ...profile, bio: e.target.value })}/></Field><Field label="프로필 사진"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => perform(async () => setProfile({ ...profile, profileImage: await readPhoto(e.target.files?.[0]) }))}/></Field>{error && <p role="alert">{error}</p>}<button className="primary" disabled={busy} onClick={() => perform(async () => { await data.saveProfile(profile); setEditing(false); void notify('프로필을 저장했습니다.', { kind: 'success', title: '저장 완료' }); })}>저장</button></Modal>}
     {auth && <Auth close={() => setAuth(false)} done={u => { setMe(u); setAuth(false); if (page === 'profile') setProfileId(u.id); }}/>}

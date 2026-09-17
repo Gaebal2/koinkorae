@@ -1,8 +1,8 @@
-const CACHE = 'korae-community-v13';
+const CACHE = 'korae-community-v14';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['./', './manifest.webmanifest', './koin-korae-transparent-192.png', './koin-korae-transparent-512.png'])));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['./', './manifest.webmanifest', './koin-korae-splash-v4-192.png', './koin-korae-splash-v4-512.png'])));
 });
 self.addEventListener('activate', event => event.waitUntil(Promise.all([
   caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('korae-') && key !== CACHE).map(key => caches.delete(key)))),

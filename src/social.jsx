@@ -8,13 +8,13 @@ import { age } from './api.js';
 import { filterFeed } from './feed-model.js';
 import { Segments, Coin, Empty, Modal, Field, PageTitle } from './ui.jsx';
 
-export function HomePage({ me, options, setOptions, following, onProfile, compose, login }) {
+export function HomePage({ onPin, me, options, setOptions, following, onProfile, compose, login }) {
   const [posts, setPosts] = useState([]), [error, setError] = useAppMessage(), [loading, setLoading] = useState(true), [open, setOpen] = useState({});
   useEffect(() => data.watchPosts(value => { setPosts(value); setLoading(false); setError(''); }, () => { setError('피드를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'); setLoading(false); }), []);
   const result = filterFeed(posts, options, following);
   const { actions, overlays } = useFeedActions(me, login);
   const ranks = coinRanks(filterFeed(posts, { ...options, category: '노출' }).posts);
-  const card = post => <CommunityPost key={post.id} post={post} rank={ranks.get(post.coin)} onProfile={onProfile} {...actions}/>;
+  const card = post => <CommunityPost onPin={onPin} key={post.id} post={post} rank={ranks.get(post.coin)} onProfile={onProfile} {...actions}/>;
   return <main className="home-page"><div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['노출', '최신', '팔로잉', '급상승', '논쟁']} value={options.category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={options.period} onChange={period => setOptions({ ...options, period })}/></div></div>
     {loading && <p className="loading-state" role="status">피드를 불러오는 중…</p>}{error && <p className="error" role="alert">{error}</p>}
     {!loading && !error && !result.posts.length && <Empty text={options.category === '팔로잉' ? '팔로우한 사용자의 게시물이 없습니다' : '첫 번째 이야기를 남겨보세요'}/>}
