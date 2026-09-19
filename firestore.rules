@@ -47,7 +47,8 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if exists(/databases/$(database)/documents/posts/$(id));
         allow create: if signedIn() && exists(/databases/$(database)/documents/posts/$(id))
-          && request.resource.data.keys().hasOnly(['authorId', 'author', 'content', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['authorId', 'author', 'content', 'side', 'createdAt'])
+          && request.resource.data.side in ['support', 'oppose']
           && request.resource.data.authorId == request.auth.uid && text(request.resource.data.author, 24)
           && text(request.resource.data.content, 1000) && request.resource.data.content.size() > 0
           && request.resource.data.createdAt == request.time;

@@ -47,7 +47,7 @@ function Feed({ options, setOptions, revision, refresh, actions, compose, me }) 
   const ranks = new Map(data?.groups.map(g => [g.coin, g.rank]));
   const renderPost = p => <PostCard key={p.id} post={presentationPost(p)} rank={ranks.get(p.coin)} {...actions}/>;
   return <main className="home-page">
-    <div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['노출', '최신', '팔로잉', '급상승', '논쟁']} value={category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={period} onChange={period => setOptions({ ...options, period })}/></div></div>
+    <div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['최신', '노출', '팔로잉', '급상승', '논쟁']} value={category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={period} onChange={period => setOptions({ ...options, period })}/></div></div>
     <Status {...resource} retry={refresh}/>
     {data && !data.posts.length && <Empty text={category === '팔로잉' ? '팔로우한 사용자의 피드가 없습니다' : '선택한 기간의 피드가 없습니다'}/>}
     {data && (feed === '유저 피드' ? <div className="feed">{data.posts.map(renderPost)}</div> : data.groups.map(group => <section className="coin-group" key={group.coin}>
@@ -185,7 +185,7 @@ function Profile({ username, me, revision, refresh, actions, login, onLogout }) 
 export default function App() {
   const [me, setMe] = useState(null), [config, setConfig] = useState(null), [page, setPage] = useState('home'), [revision, setRevision] = useState(0);
   const [auth, setAuth] = useState(false), [compose, setCompose] = useState(false), [battle, setBattle] = useState(null), [comments, setComments] = useState(null), [profile, setProfile] = useState(null), [error, setError] = useAppMessage(), [loading, setLoading] = useState(true);
-  const [options, setOptions] = useState({ feed: '유저 피드', category: '노출', period: '오늘' });
+  const [options, setOptions] = useState({ feed: '유저 피드', category: '최신', period: '오늘' });
   const refresh = useCallback(async () => {
     try { const user = await api('/me'); setMe(user); setRevision(x => x + 1); } catch (error) { setError(error.message); }
   }, []);

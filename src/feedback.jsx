@@ -42,9 +42,11 @@ function FeedbackDialog({ item, close }) {
   const element = useRef(null);
   useEffect(() => {
     const previous = document.body.style.overflow;
+    const siblings = [...document.body.children].filter(node => node !== element.current.parentElement && !['SCRIPT', 'STYLE'].includes(node.tagName)).map(node => [node, node.inert]);
+    siblings.forEach(([node]) => { node.inert = true; });
     document.body.style.overflow = 'hidden';
     element.current.querySelector('[data-initial-focus]')?.focus();
-    return () => { document.body.style.overflow = previous; };
+    return () => { document.body.style.overflow = previous; siblings.forEach(([node, inert]) => { node.inert = inert; }); };
   }, [item]);
   const Icon = item.kind === 'success' ? Check : item.kind === 'error' ? CircleAlert : Info;
   return <div className="feedback-backdrop"><section ref={element} className={`feedback-dialog feedback-${item.kind}`} role="alertdialog" aria-modal="true" aria-labelledby="feedback-title" aria-describedby="feedback-description" onKeyDown={event => {

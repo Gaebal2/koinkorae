@@ -1,5 +1,6 @@
 // Application-facing interface. Replace this adapter when migrating to Supabase.
 import { initializeApp } from 'firebase/app';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import publicConfig from './firebase-config.json';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore, collection, collectionGroup, doc, getDoc, getDocs, setDoc, deleteDoc, runTransaction, serverTimestamp, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
@@ -21,6 +22,8 @@ const toUser = u => u ? { id: u.uid, username: displayName(u) } : null;
 export const dayNumber = (time = Date.now()) => Math.floor((time + 9 * 3600000) / 86400000);
 const normalize = row => ({ ...row.data(), id: row.id, createdAt: row.data().createdAt?.toMillis?.() || 0 });
 export const data = {
+  async startBattle(postId, side, requestId) { user(); return (await httpsCallable(getFunctions(app, 'asia-northeast3'), 'startBattle')({ postId, side, requestId })).data; },
+  async finishBattle(sessionId, inputs) { user(); return (await httpsCallable(getFunctions(app, 'asia-northeast3'), 'finishBattle')({ sessionId, inputs })).data; },
   watchAuth(callback) { if (!configured) { callback(null); return () => {}; } return onAuthStateChanged(auth, u => callback(toUser(u))); },
   async login(email, password) { ready(); return toUser((await signInWithEmailAndPassword(auth, email, password)).user); },
   async register(email, password, username) {
@@ -133,7 +136,8 @@ export const data = {
   },
   async repost(postId, enabled) {
     const u = user(), ref = doc(db, 'posts', postId, 'reposts', u.uid);
-    if (enabled) await setDoc(ref, { createdAt: serverTimestamp() }); else await deleteDoc(ref);
+    if (enabled) await runTransaction(db, async tx => { const existing = await tx.get(ref); if (!existing.exists()) tx.set(ref, { createdAt: serverTimestamp() }); });
+    else await deleteDoc(ref);
   },
   watchCommentCount(postId, callback, error) {
     return onSnapshot(collection(db, 'posts', postId, 'comments'), rows => callback(rows.size), error);
@@ -149,7 +153,8 @@ export const data = {
   watchComments(postId, callback, error) {
     return onSnapshot(query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt'), limit(100)), rows => callback(rows.docs.map(normalize)), error);
   },
-  async comment(postId, content) {
-    const u = user(); await setDoc(doc(collection(db, 'posts', postId, 'comments')), { authorId: u.uid, author: displayName(u), content: content.trim(), createdAt: serverTimestamp() });
+  async comment(postId, content, side) {
+    if (!['support', 'oppose'].includes(side)) throw Error('지지 또는 반대를 선택해 주세요.');
+    const u = user(); await setDoc(doc(collection(db, 'posts', postId, 'comments')), { authorId: u.uid, author: displayName(u), content: content.trim(), side, createdAt: serverTimestamp() });
   },
 };

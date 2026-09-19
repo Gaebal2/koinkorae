@@ -1,5 +1,6 @@
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from 'react-dom';
 import { BarChart3, Check, ChevronDown, ChevronUp, ImagePlus, MapPin, MessageCircle, Repeat2, Search, Shield, Swords, X, Zap } from "lucide-react";
 import initialCoins from './cmc-top100.json';
 import { prioritizeCoins } from './coins.js';
@@ -110,10 +111,11 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
 }
 
 
-export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, className = "", interactionDisabled = false, footer }) {
+export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onMap, className = "", interactionDisabled = false, footer }) {
   const { confirm } = useFeedback();
   return (
     <div className={`pin-detail ${onEdit || onDelete ? 'has-actions' : ''} ${className}`}>
+      {onMap && <div className="pin-card-top"><button type="button" onClick={() => onMap(pin)}><MapPin/>지도에서 보기</button></div>}
       {pin.image && (
         <button disabled={interactionDisabled} className="pin-detail-photo-button" onClick={() => onImage?.(pin)} aria-label="사진 전체 화면으로 보기">
           <img className="pin-detail-photo" src={pin.image} alt="핀 등록 사진" />
@@ -126,14 +128,14 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, class
             <img src={profileImage(pin.creator || "battle_newbie")} alt={`${pin.creator || "battle_newbie"} 프로필`} />
           </button>
           <span>@{pin.creator || "battle_newbie"}</span>
+          {(onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button disabled={interactionDisabled} type="button" onClick={() => onEdit(pin)}>수정</button>}
+          {onDelete && <button disabled={interactionDisabled} type="button" className="pin-delete" aria-label="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}</div>}
         </div>
         <small>{pin.category}{pin.tradeCoins?.length ? ` · 거래 가능한 코인: ${pin.tradeCoins.join(', ')}` : ''}</small>
         <b>{pin.title}</b>
         <p>{pin.description}</p>
         {pin.link && (interactionDisabled ? <span className="pin-inactive-link">{pin.link}</span> : <a href={pin.link} target="_blank" rel="noreferrer">{pin.link}</a>)}
       </div>
-      {(onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button disabled={interactionDisabled} type="button" onClick={() => onEdit(pin)}>수정</button>}
-      {onDelete && <button disabled={interactionDisabled} className="pin-delete" aria-label="핀 삭제" title="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}</div>}
       {footer && <div className="pin-detail-footer">{footer}</div>}
     </div>
   );
@@ -146,7 +148,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    coin: "BTC",
+    coin: "PI",
     tradeCoins: [],
     link: "",
     lat: center.lat,
@@ -177,7 +179,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
   };
   return (
     <Modal title={initial ? '핀 수정' : '지도위에 핀 추가'} onClose={onClose} className="pin-form-modal">
-      <Field label="핀 종류"><select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{['판매','구매 희망','서비스','사업장'].map(value=><option key={value}>{value}</option>)}</select></Field>
+      <Field label="핀 종류"><AppSelect title="핀 종류 선택" value={form.category} onChange={category=>setForm({...form,category})} options={['판매','구매 희망','서비스','사업장'].map(value=>({value,label:value}))}/></Field>
       <div className="pin-location">
         <MapPin />
         <div>
@@ -206,14 +208,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
         </Field>
       </div>
       <Field label="대표 코인 (핀 이미지)">
-        <select
-          value={form.coin}
-          onChange={(e) => setForm({ ...form, coin: e.target.value })}
-        >
-          {coins.map((c) => (
-            <option key={c.id}>{c.symbol}</option>
-          ))}
-        </select>
+        <AppSelect title="대표 코인 선택" value={form.coin} onChange={coin=>setForm({...form,coin})} searchable options={coins.map(c=>({value:c.symbol,label:`${c.symbol} · ${c.name}`,search:c.aliases || '',coin:c.symbol}))}/>
       </Field>
       <Field label="거래 가능한 코인 (복수 선택)">
         <div className="trade-coins">
@@ -275,7 +270,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
         {busy ? '저장 중…' : initial ? '수정 저장' : pinCost ? `이 위치에 핀 등록 · ${pinCost} BP` : '이 위치에 거래 무료 등록'}
       </button>
       {error && <p role="alert" className="error">{error}</p>}
-      <button className="secondary" onClick={onClose}>
+      <button className="secondary pin-form-cancel" type="button" disabled={busy} onClick={onClose}>
         취소
       </button>
     </Modal>
@@ -323,6 +318,11 @@ export function Modal({ title, onClose, children, className = "" }) {
   useEffect(() => {
     const previous = document.activeElement;
     const root = element.current;
+    const backdrop = root.parentElement;
+    const siblings = [...document.body.children].filter(node => node !== backdrop && !['SCRIPT', 'STYLE'].includes(node.tagName)).map(node => [node, node.inert]);
+    siblings.forEach(([node]) => { node.inert = true; });
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const focusable = () => [...root.querySelectorAll('button:not(:disabled),input:not(:disabled):not([type="hidden"]),textarea:not(:disabled),select:not(:disabled),a[href]')].filter(el => el.getClientRects().length);
     (focusable()[0] || root).focus();
     const onKey = event => {
@@ -336,9 +336,9 @@ export function Modal({ title, onClose, children, className = "" }) {
       }
     };
     root.addEventListener('keydown', onKey);
-    return () => { root.removeEventListener('keydown', onKey); previous?.focus(); };
+    return () => { root.removeEventListener('keydown', onKey); siblings.forEach(([node, inert]) => { node.inert = inert; }); document.body.style.overflow = overflow; if (previous?.isConnected) previous.focus(); };
   }, []);
-  return (
+  return createPortal(
     <div className="overlay">
       <section ref={element} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} className={`modal ${className}`}>
         <header>
@@ -349,7 +349,7 @@ export function Modal({ title, onClose, children, className = "" }) {
         </header>
         <div className="modal-body">{children}</div>
       </section>
-    </div>
+    </div>, document.body
   );
 }
 
@@ -360,6 +360,15 @@ export function Field({ label, children }) {
       {children}
     </label>
   );
+}
+
+export function AppSelect({ title, value, options, onChange, searchable = false }) {
+  const [open, setOpen] = useState(false), [query, setQuery] = useState('');
+  const selected = options.find(option => option.value === value);
+  const filtered = options.filter(option => `${option.label} ${option.search || ''}`.toLowerCase().includes(query.toLowerCase()));
+  return <span className="app-select-wrap"><button type="button" className="app-select" aria-label={`${title}: ${selected?.label || value}`} aria-haspopup="dialog" aria-expanded={open} onClick={() => { setQuery(''); setOpen(true); }}>{selected?.coin && <Coin symbol={selected.coin} size="sm"/>}<span>{selected?.label || value}</span><ChevronDown/></button>
+    {open && <Modal title={title} onClose={() => setOpen(false)} className="app-select-modal">{searchable && <label className="search"><Search/><input aria-label={title + ' 검색'} value={query} onChange={e=>setQuery(e.target.value)} placeholder="코인 검색"/></label>}<div className="app-select-options">{filtered.map(option=><button type="button" key={option.value} aria-pressed={option.value === value} className={option.value === value ? 'selected' : ''} onClick={()=>{onChange(option.value);setOpen(false);}}>{option.coin && <Coin symbol={option.coin} size="sm"/>}<span>{option.label}</span>{option.value === value && <Check/>}</button>)}</div>{!filtered.length && <p>검색 결과가 없습니다.</p>}</Modal>}
+  </span>;
 }
 
 export function PageTitle({ icon: Icon, title, sub }) {

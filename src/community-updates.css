@@ -1,0 +1,27 @@
+.pin-form-cancel { border: 1px solid #d8d2ef; background: #f3f0fc; color: #5137e8; border-radius: 12px; margin-top: 10px; }
+.app-select-wrap { display: block; width: 100%; }
+.app-select { width: 100%; min-height: 46px; border: 1px solid var(--line); background: white; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; text-align: left; color: var(--text); }
+.app-select > span:not(.coin) { flex: 1; }
+.app-select > svg { width: 18px; flex: none; }
+.app-select-options { display: flex; flex-direction: column; gap: 6px; }
+.app-select-options button { width: 100%; min-height: 46px; border: 1px solid transparent; border-radius: 12px; background: #f6f5fa; padding: 10px 12px; display: flex; align-items: center; gap: 10px; text-align: left; }
+.app-select-options button > span:not(.coin) { flex: 1; }
+.app-select-options button.selected { background: #eeebff; border-color: var(--primary); color: var(--primary); }
+.pin-detail.feed-pin-card { position: relative; inset: auto; z-index: auto; margin: 12px 0; box-shadow: none; border: 1px solid var(--line); background: #faf9ff; }
+.pin-detail > .pin-card-top { grid-column: 1 / -1; align-items: flex-end; }
+.pin-card-top button { display: flex; align-items: center; gap: 5px; padding: 7px 10px; border: 1px solid #d8d2ef; border-radius: 9px; background: #eeebff; color: var(--primary); font-weight: 700; }
+.pin-card-top svg { width: 15px; height: 15px; }
+.feed-pin-card .pin-detail-content > p { white-space: pre-wrap; }
+.attached-pin-status { padding: 12px; color: var(--muted); font-size: 12px; }
+.comment-columns { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; margin-bottom: 18px; }
+.comment-side { min-width: 0; border-radius: 12px; padding: 10px; background: #f6f3ff; }
+.comment-side.oppose { background: #fff2f4; }
+.comment-side h3 { margin: 0 0 10px; font-size: 14px; color: #6545cb; }
+.comment-side.oppose h3 { color: #c44262; }
+.comment-columns .comment-list { max-height: 320px; overflow-y: auto; }
+.comment-columns .comment-list article { overflow-wrap: anywhere; }
+.comment-columns .comment-list b, .comment-columns .comment-list small { display: block; }
+.comment-columns .comment-list p { white-space: pre-wrap; }
+.legacy-comments h3 { font-size: 13px; color: var(--muted); }
+.side-choice button.selected { outline: 3px solid currentColor; outline-offset: -3px; font-weight: 800; }
+.arcade-score.oppose b, .arcade-overlay strong.negative { color: #c44262; }

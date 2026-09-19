@@ -797,7 +797,7 @@ button:disabled {
 .pin-creator { display: flex; flex-direction: row !important; align-items: center; gap: 6px; margin-bottom: 4px; }
 .pin-creator-profile { width: 26px; height: 26px; border: 0; border-radius: 50%; padding: 0; overflow: hidden; flex: none; background: none; }
 .pin-creator-profile img { width: 100%; height: 100%; display: block; object-fit: cover; }
-.pin-creator > span { flex: 1; font-size: 9px; font-weight: 800; color: #34483d; overflow: hidden; text-overflow: ellipsis; }
+.pin-creator > span { flex: 1; min-width: 0; font-size: 9px; font-weight: 800; color: #34483d; overflow: hidden; text-overflow: ellipsis; }
 .pin-creator .coin { width: 27px; min-width: 27px; height: 27px; min-height: 27px; aspect-ratio: 1; flex: 0 0 27px; }
 .pin-detail > div {
   display: flex;
@@ -812,8 +812,8 @@ button:disabled {
   margin: 1px;
 }
 .pin-detail-content > p { width: 100%; overflow-wrap: anywhere; word-break: break-word; }
-.pin-detail.has-actions { padding-top: 42px; }
-.pin-detail > .pin-detail-actions { position: absolute; top: 10px; right: 12px; width: auto; display: flex; flex-direction: row; gap: 5px; }
+.pin-detail.has-actions { padding-top: 12px; }
+.pin-creator .pin-detail-actions { margin-left: auto; display: flex; gap: 5px; flex: none; }
 .pin-detail-actions button { min-height: 24px; padding: 4px 9px; font-size: 10px; line-height: 1.4; border: 0; border-radius: 7px; background: #edf0f7; color: #314039; font-weight: 700; }
 .pin-detail-actions .pin-delete { background: #314039; color: white; }
 .pin-detail a { display: block; max-width: 100%; font-size: 9px; color: var(--primary); font-weight: 700; overflow-wrap: anywhere; word-break: break-all; }

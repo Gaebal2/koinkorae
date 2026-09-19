@@ -4,6 +4,7 @@ import App from './map-app.jsx';
 import { FeedbackProvider } from './feedback.jsx';
 import 'leaflet/dist/leaflet.css';
 import './styles.css';
+import './community-updates.css';
 createRoot(document.getElementById('root')).render(<FeedbackProvider><App/></FeedbackProvider>);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

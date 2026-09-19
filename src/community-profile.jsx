@@ -14,7 +14,7 @@ function People({ ids, me, following, onFollow, onProfile }) {
   return people === null ? <p role="status">불러오는 중…</p> : !people.length ? <Empty text="아직 사용자가 없습니다"/> : <div className="people-list">{people.map(person => <div key={person.id}><button className="person-profile" onClick={() => onProfile(person.id)}><img src={person.profileImage || profileImage()} alt=""/><span><b>{person.username}</b><small>{person.bio}</small></span></button>{person.id !== me?.id && <button onClick={() => onFollow(person.id)}>{following.includes(person.id) ? '팔로잉 취소' : '팔로우'}</button>}</div>)}</div>;
 }
 
-export function CommunityProfile({ onPin, profileId, profile, me, balance, pins, following, busy, login, onProfile, onEdit, onLogout, onFollow, onMap, onPinEdit, onPinDelete }) {
+export function CommunityProfile({ initialFeed = '작성 피드', onPin, profileId, profile, me, balance, pins, following, busy, login, onProfile, onEdit, onLogout, onFollow, onMap, onPinEdit, onPinDelete }) {
   const [posts, setPosts] = useState([]), [loaded, setLoaded] = useState(false), [edges, setEdges] = useState([]), [view, setView] = useState(null), [feed, setFeed] = useState('작성 피드'), [photo, setPhoto] = useState(null), [comments, setComments] = useState(null);
   const [, setError] = useAppMessage();
   const { actions, overlays } = useFeedActions(me, login);
@@ -24,7 +24,7 @@ export function CommunityProfile({ onPin, profileId, profile, me, balance, pins,
   useEffect(() => { let active = true; setSharedPosts([]); data.postsById(sharedIds ? sharedIds.split(',') : []).then(rows => { if (active) setSharedPosts(rows); }).catch(() => { if (active) setError('리포스트 원문을 불러오지 못했습니다.'); }); return () => { active = false; }; }, [sharedIds, profileId, posts]);
   useEffect(() => data.watchPosts(rows => { setPosts(rows); setLoaded(true); }, () => { setLoaded(true); setError('피드를 불러오지 못했습니다.'); }), []);
   useEffect(() => data.watchRelationships(setEdges, () => setError('팔로우 정보를 불러오지 못했습니다.')), []);
-  useEffect(() => { setView(null); setFeed('작성 피드'); }, [profileId]);
+  useEffect(() => { setView(null); setFeed(initialFeed); }, [profileId, initialFeed]);
   useBackDismiss(!!view, () => setView(null));
   useEffect(() => {
     if (view !== '댓글' || !me || profileId !== me.id) return;

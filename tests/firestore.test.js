@@ -61,11 +61,21 @@ test('posts cannot forge owners, timestamps or battle scores; comments require a
   await assertSucceeds(setDoc(ref, post));
   await assertFails(setDoc(ref, { ...post, support: 100 }));
   await assertFails(deleteDoc(doc(env.authenticatedContext('bob').firestore(), 'posts', 'post-a')));
-  const comment = { authorId: 'alice', author: 'Alice', content: 'Reply', createdAt: serverTimestamp() };
+  const comment = { authorId: 'alice', author: 'Alice', content: 'Reply', side: 'support', createdAt: serverTimestamp() };
   await assertSucceeds(setDoc(doc(db, 'posts', 'post-a', 'comments', 'reply'), comment));
   await assertFails(setDoc(doc(db, 'posts', 'missing', 'comments', 'reply'), comment));
   await assertSucceeds(deleteDoc(ref));
 });
+test('comments require an explicit valid side; clients cannot write battle sessions', async () => {
+  const db = env.authenticatedContext('alice').firestore();
+  await setDoc(doc(db, 'posts', 'p'), {authorId:'alice',author:'Alice',coin:'PI',content:'Test',image:'',createdAt:serverTimestamp(),support:0,oppose:0});
+  const base = {authorId:'alice',author:'Alice',content:'Reply',createdAt:serverTimestamp()};
+  for (const side of ['support','oppose']) await assertSucceeds(setDoc(doc(db,'posts','p','comments',side), {...base,side}));
+  await assertFails(setDoc(doc(db,'posts','p','comments','missing'), base));
+  await assertFails(setDoc(doc(db,'posts','p','comments','invalid'), {...base,side:'anything'}));
+  await assertFails(setDoc(doc(db,'battleSessions','alice'), {score:600,status:'finished'}));
+});
+
 test('posts can attach existing pins but reject missing or malformed pin references', async () => {
   const db = env.authenticatedContext('alice').firestore();
   await setDoc(doc(db, 'pins', 'alice_0'), pin);
@@ -102,7 +112,7 @@ test('public relationship queries include existing follow records without migrat
 test('profile comment history query is restricted to the signed-in author', async () => {
   const alice = env.authenticatedContext('alice').firestore(), bob = env.authenticatedContext('bob').firestore();
   await setDoc(doc(alice,'posts','p'), { authorId:'alice',author:'Alice',coin:'PI',content:'Test',image:'',createdAt:serverTimestamp(),support:0,oppose:0 });
-  await setDoc(doc(alice,'posts','p','comments','c'), { authorId:'alice',author:'Alice',content:'Reply',createdAt:serverTimestamp() });
+  await setDoc(doc(alice,'posts','p','comments','c'), { authorId:'alice',author:'Alice',content:'Reply',side:'support',createdAt:serverTimestamp() });
   await assertSucceeds(getDocs(query(collectionGroup(alice,'comments'),where('authorId','==','alice'))));
   await assertFails(getDocs(query(collectionGroup(bob,'comments'),where('authorId','==','alice'))));
 });
