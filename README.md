@@ -1,5 +1,7 @@
 # Koin Korae
 
+Supabase DB·배틀 서버 이전 구현과 운영 전환 절차는 [Supabase 이전 문서](docs/supabase-migration.md)를 참고하세요. 기존 Firebase 인증과 회원 ID를 유지합니다.
+
 현재 배포는 홈·지도·체크인·프로필 네 메뉴와 Google 로그인입니다. Firebase Google 제공업체 설정과 GitHub Actions 변수 `GOOGLE_SIGNIN_ENABLED=true`를 적용했습니다. 로그인 버튼에서 Google 계정을 선택하면 됩니다. 필요하면 명시적으로 `false`를 설정해 기존 이메일 로그인 화면으로 되돌릴 수 있습니다.
 
 현재 서비스는 **홈·지도·체크인·프로필**을 제공하는 코인 커뮤니티 PWA입니다. 호스팅은 GitHub Pages, 인증·DB는 Firebase입니다. 로그인 화면은 Google 로그인으로 변경했습니다. 홈 피드·글 작성·댓글·팔로잉과 하루 1회 출석(+10 BP)을 Firebase에 연결했습니다. 배틀 검증·광고 보상은 온라인 서버 연결 준비 중입니다.

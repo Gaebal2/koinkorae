@@ -9,3 +9,5 @@ coverage/
 
 firebase-debug.log
 firestore-debug.log
+supabase/.temp/
+supabase/.branches/

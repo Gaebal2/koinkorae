@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Legacy clients can read during cutover; all new writes go to Supabase.
+    match /{path=**}/following/{id} { allow read: if true; }
+    match /{path=**}/reposts/{id} { allow read: if true; }
+    match /{path=**}/comments/{id} { allow read: if request.auth != null && resource.data.authorId == request.auth.uid; }
+    match /profiles/{id} { allow read: if true; }
+    match /pins/{id} { allow read: if true; }
+    match /posts/{id} {
+      allow read: if true;
+      match /comments/{commentId} { allow read: if exists(/databases/$(database)/documents/posts/$(id)); }
+    }
+    match /balances/{id} { allow read: if request.auth != null && request.auth.uid == id; }
+  }
+}

@@ -1,0 +1,5 @@
+project_id = "koinkorae"
+
+[functions.community]
+# Firebase JWTs are verified inside the function (issuer, audience, signature, expiry).
+verify_jwt = false

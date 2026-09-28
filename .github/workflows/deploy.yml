@@ -28,6 +28,9 @@ jobs:
       - run: npm run build
         env:
           VITE_GOOGLE_SIGNIN_ENABLED: ${{ vars.GOOGLE_SIGNIN_ENABLED }}
+          VITE_DATA_BACKEND: ${{ vars.DATA_BACKEND }}
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
           VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
