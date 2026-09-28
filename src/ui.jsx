@@ -58,7 +58,7 @@ export function Segments({ items, value, onChange, compact = false }) {
 }
 
 
-export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDelete, rank }) {
+export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDelete }) {
   const { confirm } = useFeedback();
   const [imageOpen, setImageOpen] = useState(false);
   const total = post.support + post.oppose || 1;
@@ -70,7 +70,6 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
           <b>@{post.author}</b>
           <span>{post.age}</span>
         </div>
-        {rank && <span className="rank">#{rank}</span>}
         <Coin symbol={post.coin} />
       </div>
       <p className="post-body">{post.content}</p>
@@ -83,7 +82,7 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
       </div>
       <div className="score-row">
         <div>
-          <small>노출 점수</small>
+          <small>지지 점수</small>
           <strong className={exposure(post) < 0 ? "negative" : ""}>
             {exposure(post) > 0 ? "+" : ""}
             {fmt(exposure(post))}
@@ -111,29 +110,33 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
 }
 
 
-export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onMap, className = "", interactionDisabled = false, footer }) {
+export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onActivate, topAction, className = "", interactionDisabled = false, footer }) {
   const { confirm } = useFeedback();
+  const passive = interactionDisabled || !!onActivate;
+  const Photo = passive ? 'span' : 'button';
+  const Avatar = passive ? 'span' : 'button';
   return (
-    <div className={`pin-detail ${onEdit || onDelete ? 'has-actions' : ''} ${className}`}>
+    <div className={`pin-detail ${onEdit || onDelete ? 'has-actions' : ''} ${onActivate ? 'pin-card-link' : ''} ${className}`} role={onActivate ? 'button' : undefined} tabIndex={onActivate ? 0 : undefined} aria-label={onActivate ? `${pin.title} 지도에서 보기` : undefined} onClick={onActivate ? () => onActivate(pin) : undefined} onKeyDown={onActivate ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(pin); } } : undefined}>
       {pin.image && (
-        <button disabled={interactionDisabled} className="pin-detail-photo-button" onClick={() => onImage?.(pin)} aria-label="사진 전체 화면으로 보기">
+        <Photo className="pin-detail-photo-button" onClick={!passive ? () => onImage?.(pin) : undefined} aria-label={!passive ? '사진 전체 화면으로 보기' : undefined}>
           <img className="pin-detail-photo" src={pin.image} alt="핀 등록 사진" />
-        </button>
+        </Photo>
       )}
       <div className="pin-detail-content">
         <div className="pin-creator">
           <Coin symbol={pin.coin} size="sm" />
-          <button disabled={interactionDisabled} type="button" className="pin-creator-profile" onClick={() => onProfile?.(pin.creator || "battle_newbie")} aria-label="핀 생성자 프로필 보기">
+          <Avatar className="pin-creator-profile" onClick={!passive ? () => onProfile?.(pin.creator || "battle_newbie") : undefined} aria-label={!passive ? '핀 생성자 프로필 보기' : undefined}>
             <img src={profileImage(pin.creator || "battle_newbie")} alt={`${pin.creator || "battle_newbie"} 프로필`} />
-          </button>
+          </Avatar>
           <span>@{pin.creator || "battle_newbie"}</span>
-          {(onMap || onEdit || onDelete) && <div className="pin-detail-actions">{onMap && <button disabled={interactionDisabled} type="button" onClick={() => onMap(pin)}>지도</button>}{onEdit && <button disabled={interactionDisabled} type="button" onClick={() => onEdit(pin)}>수정</button>}
+          {topAction && <div className="pin-detail-actions">{topAction}</div>}
+          {!passive && (onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button type="button" onClick={() => onEdit(pin)}>수정</button>}
           {onDelete && <button disabled={interactionDisabled} type="button" className="pin-delete" aria-label="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}</div>}
         </div>
         <small>{pin.category}{pin.tradeCoins?.length ? ` · 거래 가능한 코인: ${pin.tradeCoins.join(', ')}` : ''}</small>
         <b>{pin.title}</b>
         <p>{pin.description}</p>
-        {pin.link && (interactionDisabled ? <span className="pin-inactive-link">{pin.link}</span> : <a href={pin.link} target="_blank" rel="noreferrer">{pin.link}</a>)}
+        {pin.link && (passive ? <span className="pin-inactive-link">{pin.link}</span> : <a href={pin.link} target="_blank" rel="noreferrer">{pin.link}</a>)}
       </div>
       {footer && <div className="pin-detail-footer">{footer}</div>}
     </div>
@@ -147,7 +150,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    coin: "PI",
+    coin: cmcCoins[0].symbol,
     tradeCoins: [],
     link: "",
     lat: center.lat,
@@ -166,7 +169,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
         : [...f.tradeCoins, s],
     }));
   const valid =
-    form.title.trim() &&
+    form.title.trim() && form.title.length <= 50 &&
     form.description.trim() && form.description.length <= 200 &&
     form.coin &&
     form.category &&
@@ -227,10 +230,13 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
       </Field>
       <Field label="제목">
         <input
+          maxLength={50}
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           placeholder="핀 제목을 입력하세요"
         />
+        <span className="counter">{form.title.length}/50</span>
+        {form.title.length > 50 && <small role="alert">제목을 50자 이내로 줄여 주세요.</small>}
       </Field>
       <Field label="설명">
         <textarea
@@ -279,20 +285,20 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
 export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChange, onPickMap, hidden = false }) {
   const [error, setError] = useAppMessage();
   const [busy, setBusy] = useState(false), [picker, setPicker] = useState(null);
-  const [content, setContent] = useState(''), [coin, setCoin] = useState('BTC');
+  const [content, setContent] = useState(''), [coin, setCoin] = useState(cmcCoins[0].symbol);
   const [query, setQuery] = useState(''), [image, setImage] = useState('');
   const fileRef = useRef(null);
   const chooseImage = async event => { try { setImage(await readPhoto(event.target.files?.[0])); setError(''); } catch (error) { setError(error.message); } };
   const list = cmcCoins.filter(c => `${c.name} ${c.symbol} ${c.aliases || ''}`.toLowerCase().includes(query.toLowerCase()));
   if (hidden) return null;
-  if (picker === 'coin') return <Modal title="지원 코인 선택" onClose={() => setPicker(null)}>
-    <label className="search"><Search/><input value={query} onChange={e => setQuery(e.target.value)} placeholder="지원 코인 검색"/></label>
+  if (picker === 'coin') return <Modal title="지지 코인 선택" onClose={() => setPicker(null)}>
+    <label className="search"><Search/><input value={query} onChange={e => setQuery(e.target.value)} placeholder="지지 코인 검색"/></label>
     <div className="coin-list">{list.map(c => <button key={c.id} className={coin === c.symbol ? 'selected' : ''} onClick={() => { setCoin(c.symbol); setPicker(null); }}><Coin symbol={c.symbol}/><span><b>{c.name}</b><small>{c.symbol}</small></span>{coin === c.symbol && <Check/>}</button>)}</div>
     {!list.length && <p>검색 결과가 없습니다.</p>}
   </Modal>;
   if (picker === 'pin') return <Modal title="Pin 추가" onClose={() => setPicker(null)}>
     <button className="pin-map-picker" onClick={() => { setPicker(null); onPickMap?.(); }}><MapPin/><span>지도 위에서 선택</span></button>
-    <h3>내가 생성한 Pin</h3><div className="composer-pin-list">{pins.map(pin => <PinDetailCard key={pin.id} pin={pin} interactionDisabled className={`composer-pin-card ${selectedPin?.id === pin.id ? 'selected' : ''}`} footer={<button className="pin-list-select" onClick={() => { onPinChange?.(pin); setPicker(null); }}>{selectedPin?.id === pin.id && <Check/>}선택</button>}/>)}</div>
+    <h3>내가 생성한 Pin</h3><div className="composer-pin-list">{pins.map(pin => <PinDetailCard key={pin.id} pin={pin} interactionDisabled className={`composer-pin-card ${selectedPin?.id === pin.id ? 'selected' : ''}`} topAction={<button className="pin-list-select" onClick={() => { onPinChange?.(pin); setPicker(null); }}>{selectedPin?.id === pin.id && <Check/>}선택</button>}/>)}</div>
     {!pins.length && <p>아직 생성한 Pin이 없습니다. 지도에서 Pin을 선택할 수 있습니다.</p>}
   </Modal>;
   return <Modal title="새 피드 작성" onClose={onClose} className="composer-modal">
@@ -300,12 +306,12 @@ export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChan
     <span className="counter">{content.length}/200</span>
     <input ref={fileRef} type="file" accept="image/*" hidden onChange={chooseImage}/>
     <div className="composer-tools">
-      <button type="button" aria-label={`지원 코인 선택: ${coin}`} title="지원 코인 선택" onClick={() => { setQuery(''); setPicker('coin'); }}><Coin symbol={coin}/><span>{coin}</span></button>
+      <button type="button" aria-label={`지지 코인 선택: ${coin}`} title="지지 코인 선택" onClick={() => { setQuery(''); setPicker('coin'); }}><Coin symbol={coin}/><span>{coin}</span></button>
       <button type="button" aria-label="사진 추가" title="사진 추가" onClick={() => fileRef.current?.click()}><ImagePlus/></button>
       <button type="button" aria-label="Pin 추가" title="Pin 추가" onClick={() => setPicker('pin')}><MapPin/></button>
     </div>
     {image && <div className="feed-image-preview"><img src={image} alt="피드 이미지 미리보기"/><button type="button" onClick={() => setImage('')} aria-label="이미지 제거"><X/></button></div>}
-    {selectedPin && <div className="composer-pin-preview"><Coin symbol={selectedPin.coin}/><span>{selectedPin.title}</span><button type="button" onClick={() => onPinChange?.(null)} aria-label="첨부 Pin 제거"><X/></button></div>}
+    {selectedPin && <div className="composer-pin-attachment"><PinDetailCard pin={selectedPin} interactionDisabled className="composer-pin-card"/><button className="attachment-remove" type="button" onClick={() => onPinChange?.(null)} aria-label="첨부 Pin 제거"><X/></button></div>}
     <button className="primary" disabled={!content.trim() || content.length > 200 || busy} onClick={async () => { setBusy(true); setError(''); try { await onPublish({ coin, content: content.trim(), image, ...(selectedPin ? { pinId: selectedPin.id } : {}) }); } catch (error) { setError(error.message); } finally { setBusy(false); } }}>{busy ? '게시 중…' : '게시하기'}</button>
     {error && <p className="error" role="alert">{error}</p>}
   </Modal>;

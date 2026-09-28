@@ -8,7 +8,7 @@ const posts = [
   { id: 'c', coin: 'BTC', authorId: 'bob', createdAt: now - 1000, support: 1, oppose: 0 },
 ];
 test('switching user/coin views preserves filters and resulting membership', () => {
-  for (const category of ['노출', '최신', '팔로잉', '급상승', '논쟁']) {
+  for (const category of ['지지', '최신', '팔로잉', '급상승', '논쟁']) {
     const options = { category, period: '오늘' };
     const a = filterFeed(posts, { ...options, feed: '유저 피드' }, ['bob'], now);
     const b = filterFeed(posts, { ...options, feed: '코인 피드' }, ['bob'], now);
@@ -19,6 +19,7 @@ test('switching user/coin views preserves filters and resulting membership', () 
 test('ranking metrics, following and Korean date boundaries', () => {
   const run = category => filterFeed(posts, { category, period: '전체' }, ['alice'], now);
   assert.equal(run('노출').posts[0].id, 'a');
+  assert.deepEqual(run('지지'), run('노출'));
   assert.equal(run('최신').posts[0].id, 'c');
   assert.equal(run('급상승').posts[0].id, 'b');
   assert.equal(run('논쟁').posts[0].id, 'b');

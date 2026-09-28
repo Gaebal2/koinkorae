@@ -1,7 +1,6 @@
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from 'react';
 import { CommunityPost, useFeedActions } from './community-feed.jsx';
-import { coinRanks } from './community-model.js';
 import { CalendarCheck, Check, Shield, SquarePen, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { data, dayNumber } from './data.js';
 import { age } from './api.js';
@@ -13,24 +12,32 @@ export function HomePage({ onPin, onReposted, me, options, setOptions, following
   useEffect(() => data.watchPosts(value => { setPosts(value); setLoading(false); setError(''); }, () => { setError('피드를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'); setLoading(false); }), []);
   const result = filterFeed(posts, options, following);
   const { actions, overlays } = useFeedActions(me, login, onReposted);
-  const ranks = coinRanks(filterFeed(posts, { ...options, category: '노출' }).posts);
-  const card = post => <CommunityPost onPin={onPin} key={post.id} post={post} rank={ranks.get(post.coin)} onProfile={onProfile} {...actions}/>;
-  return <main className="home-page"><div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['최신', '노출', '팔로잉', '급상승', '논쟁']} value={options.category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={options.period} onChange={period => setOptions({ ...options, period })}/></div></div>
+  const card = post => <CommunityPost onPin={onPin} key={post.id} post={post} onProfile={onProfile} {...actions}/>;
+  return <main className="home-page"><div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['최신', '지지', '팔로잉', '급상승', '논쟁']} value={options.category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={options.period} onChange={period => setOptions({ ...options, period })}/></div></div>
     {loading && <p className="loading-state" role="status">피드를 불러오는 중…</p>}{error && <p className="error" role="alert">{error}</p>}
     {!loading && !error && !result.posts.length && <Empty text={options.category === '팔로잉' ? '팔로우한 사용자의 게시물이 없습니다' : '첫 번째 이야기를 남겨보세요'}/>}
-    {options.feed === '유저 피드' ? <div className="feed">{result.posts.map(card)}</div> : result.groups.map((group, index) => <section className="coin-group" key={group.coin}><button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>#{ranks.get(group.coin)} {group.coin}</b><small>{options.category === '최신' ? age(group.score) : `${options.category === '논쟁' ? '논쟁' : options.category === '급상승' ? '급상승' : '코인 노출'} ${group.score.toLocaleString()}`} · {group.items.length}개의 피드</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>{open[group.coin] && group.items.map(card)}</section>)}
+    {options.feed === '유저 피드' ? <div className="feed">{result.posts.map(card)}</div> : result.groups.map((group, index) => <section className="coin-group" key={group.coin}><button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>{group.coin}</b><small>{options.category === '최신' ? age(group.score) : `${options.category === '논쟁' ? '논쟁' : options.category === '급상승' ? '급상승' : '코인 지지'} ${group.score.toLocaleString()}`} · {group.items.length}개의 피드</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>{open[group.coin] && group.items.map(card)}</section>)}
     <button className="fab" onClick={compose} aria-label="새 피드 작성"><SquarePen/></button>
     {overlays}
   </main>;
 }
 
 export function Comments({ post, me, close }) {
+  const { confirm } = useFeedback();
+  const [deleting, setDeleting] = useState(null);
   const [items, setItems] = useState([]), [content, setContent] = useState(''), [reply, setReply] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const timer = useRef(null), origin = useRef(null), nodes = useRef(new Map()), sending = useRef(false), input = useRef(null);
   const cancelPress = () => clearTimeout(timer.current);
   useEffect(() => data.watchComments(post.id, setItems, () => setError('댓글을 불러오지 못했습니다.')), [post.id]);
   useEffect(() => () => clearTimeout(timer.current), []);
-  const selectReply = c => { if (me) { setReply(c); input.current?.focus(); } };
+  const selectReply = c => { if (me && !sending.current) { setReply(c); input.current?.focus(); } };
+  const remove = async c => {
+    if (deleting || !(await confirm('이 댓글을 삭제할까요?', {title:'댓글 삭제', confirmLabel:'삭제'}))) return;
+    setDeleting(c.id);
+    try { await data.deleteComment(post.id, c.id); if (reply?.id === c.id) setReply(null); }
+    catch { setError('댓글을 삭제하지 못했습니다.'); }
+    finally { setDeleting(null); }
+  };
   const jump = id => {
     const node = nodes.current.get(id);
     if (!node) { setError('원댓글을 현재 목록에서 찾을 수 없습니다.'); return; }
@@ -45,19 +52,17 @@ export function Comments({ post, me, close }) {
     finally { sending.current = false; setBusy(false); }
   };
   return <Modal title="댓글" onClose={close} className="comments-modal">
-    <p className="chat-post">{post.content}</p>
-    <div className="chat-directions"><span>지지</span><span>반대</span></div>
     <div className="chat-messages" aria-label="댓글 대화">
       {!items.length && <p className="form-help">첫 댓글을 남겨보세요.</p>}
       {items.map(c => <article key={c.id} ref={node => { if (node) nodes.current.set(c.id, node); else nodes.current.delete(c.id); }} tabIndex={-1} className={'chat-message ' + (c.side || 'neutral')}>
-        <b>{c.author}</b>
-        <div className="chat-bubble" tabIndex={0} aria-label={c.author + ' 댓글. 길게 누르거나 Enter 키로 답글 작성'}
+        <div className="chat-message-head"><b>{c.author}</b>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label="내 댓글 삭제">×</button>}</div>
+        <div className="chat-bubble" tabIndex={0} aria-label={c.author + (c.side === 'support' ? ' 지지' : c.side === 'oppose' ? ' 반대' : '') + ' 댓글. 길게 누르거나 Enter 키로 답글 작성'}
           onPointerDown={e => { if (e.button !== 0) return; cancelPress(); origin.current = { x:e.clientX, y:e.clientY }; timer.current = setTimeout(() => selectReply(c), 550); }}
           onPointerMove={e => { if (origin.current && Math.hypot(e.clientX-origin.current.x,e.clientY-origin.current.y)>10) cancelPress(); }}
           onPointerUp={cancelPress} onPointerCancel={cancelPress} onPointerLeave={cancelPress}
           onContextMenu={e => { e.preventDefault(); cancelPress(); selectReply(c); }}
           onKeyDown={e => { if (e.target === e.currentTarget && e.key === 'Enter') { e.preventDefault(); selectReply(c); } }}>
-          {c.replyTo && <button type="button" className="chat-quote" aria-label="원댓글 보기: 두 번 누르기" onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><b>{c.replyTo.author}</b><span>{c.replyTo.content}</span></button>}
+          {c.replyTo && (items.some(parent => parent.id === c.replyTo.id) ? <button type="button" className="chat-quote" aria-label="원댓글 보기: 두 번 누르기" onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><b>{c.replyTo.author}</b><span>{c.replyTo.content}</span></button> : <div className="chat-quote">삭제된 댓글입니다.</div>)}
           <p>{c.content}</p>
         </div><small>{age(c.createdAt)}{!c.side && ' · 입장 미선택'}</small>
       </article>)}

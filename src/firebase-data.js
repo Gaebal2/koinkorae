@@ -57,6 +57,7 @@ export const data = {
   },
   async savePin(value, id) {
     const u = user();
+    if (typeof value.title !== 'string' || !value.title.trim() || value.title.length > 50) throw Error('Pin 제목은 1~50자로 입력해 주세요.');
     if (typeof value.description !== 'string' || value.description.length > 200) throw Error('Pin 설명은 200자 이내로 입력해 주세요.');
     const pin = Object.fromEntries(['title', 'description', 'coin', 'tradeCoins', 'link', 'image', 'category'].map(k => [k, value[k]]));
     Object.assign(pin, { lat: +value.lat, lng: +value.lng, ownerId: u.uid, creator: displayName(u) });
@@ -84,7 +85,10 @@ export const data = {
     return { id, username: auth.currentUser?.uid === id ? auth.currentUser.displayName || '회원' : '회원', bio: '', profileImage: '', ...row.data() };
   },
   async saveProfile(value) {
-    const u = user(); await setDoc(doc(db, 'profiles', u.uid), { username: displayName(u), bio: value.bio, profileImage: value.profileImage });
+    const u = user(), username = (value.username ?? displayName(u)).trim();
+    if (!username || username.length > 24) throw Error('이름은 1~24자로 입력해 주세요.');
+    await setDoc(doc(db, 'profiles', u.uid), { username, bio: value.bio || '', profileImage: value.profileImage || '' });
+    await updateProfile(u, {displayName:username});
   },
   watchBalance(uid, callback, error) {
     if (!configured || !uid) { callback({ current: 0, lifetime: 0, day: -1 }); return () => {}; }
@@ -161,4 +165,5 @@ export const data = {
     const replyTo = parent ? { id: parent.id, author: parent.data().author, content: parent.data().content.slice(0,120) } : null;
     await setDoc(doc(collection(db, 'posts', postId, 'comments')), { authorId: u.uid, author: displayName(u), content: content.trim(), side, ...(replyTo ? {replyTo} : {}), createdAt: serverTimestamp() });
   },
+  async deleteComment(postId, id) { user(); await deleteDoc(doc(db, 'posts', postId, 'comments', id)); },
 };

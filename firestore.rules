@@ -45,6 +45,7 @@ service cloud.firestore {
         allow delete: if signedIn() && request.auth.uid == uid;
       }
       match /comments/{commentId} {
+        allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
         allow read: if exists(/databases/$(database)/documents/posts/$(id));
         allow create: if signedIn() && exists(/databases/$(database)/documents/posts/$(id))
           && request.resource.data.keys().hasOnly(['authorId', 'author', 'content', 'side', 'createdAt', 'replyTo'])
@@ -80,7 +81,7 @@ service cloud.firestore {
         return p.keys().hasOnly(['ownerId', 'slot', 'creator', 'title', 'description', 'coin', 'tradeCoins', 'link', 'image', 'category', 'lat', 'lng'])
           && p.ownerId == request.auth.uid && p.slot in ['0', '1', '2']
           && id == request.auth.uid + '_' + p.slot
-          && text(p.creator, 24) && text(p.title, 100) && p.title.size() > 0
+          && text(p.creator, 24) && text(p.title, 50) && p.title.size() > 0
           && text(p.description, 200) && p.description.size() > 0
           && text(p.coin, 20) && p.coin.matches('[A-Za-z0-9]+')
           && p.tradeCoins is list && p.tradeCoins.size() <= 110

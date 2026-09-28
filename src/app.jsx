@@ -44,14 +44,13 @@ function Feed({ options, setOptions, revision, refresh, actions, compose, me }) 
   const resource = useResource(() => api(`/posts?${new URLSearchParams({ category, period, zone })}`), [category, period, zone, revision, me?.id]);
   const [open, setOpen] = useState({});
   const data = resource.data;
-  const ranks = new Map(data?.groups.map(g => [g.coin, g.rank]));
-  const renderPost = p => <PostCard key={p.id} post={presentationPost(p)} rank={ranks.get(p.coin)} {...actions}/>;
+  const renderPost = p => <PostCard key={p.id} post={presentationPost(p)} {...actions}/>;
   return <main className="home-page">
-    <div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['최신', '노출', '팔로잉', '급상승', '논쟁']} value={category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={period} onChange={period => setOptions({ ...options, period })}/></div></div>
+    <div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['최신', '지지', '팔로잉', '급상승', '논쟁']} value={category === '노출' ? '지지' : category} onChange={category => setOptions({ ...options, category: category === '지지' ? '노출' : category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={period} onChange={period => setOptions({ ...options, period })}/></div></div>
     <Status {...resource} retry={refresh}/>
     {data && !data.posts.length && <Empty text={category === '팔로잉' ? '팔로우한 사용자의 피드가 없습니다' : '선택한 기간의 피드가 없습니다'}/>}
     {data && (feed === '유저 피드' ? <div className="feed">{data.posts.map(renderPost)}</div> : data.groups.map(group => <section className="coin-group" key={group.coin}>
-      <button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>#{group.rank} {group.coin}</b><small>{category === '최신' ? `최근 게시 ${age(group.score)}` : `${category} 점수 ${Math.round(group.score).toLocaleString()}`}</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>
+      <button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>{group.coin}</b><small>{category === '최신' ? `최근 게시 ${age(group.score)}` : `${category} 점수 ${Math.round(group.score).toLocaleString()}`}</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>
       {open[group.coin] && group.items.map(renderPost)}
     </section>))}
     <button className="fab" onClick={compose} aria-label="새 피드 작성"><SquarePen/></button>
@@ -107,7 +106,7 @@ function Battle({ post, me, config, onClose, onUpdated }) {
   };
   return <Modal title="배틀 참여" onClose={close}>{!session ? <>
     <p className="battle-question">이 피드를 지지합니까? 반대합니까?</p>
-    <div className="battle-explain"><span><Shield/>지지 점수는 노출 점수에 더해집니다.</span><span><Swords/>반대 점수는 노출 점수에서 빠집니다.</span></div>
+    <div className="battle-explain"><span><Shield/>지지 점수는 지지 점수에 더해집니다.</span><span><Swords/>반대 점수는 지지 점수에서 빠집니다.</span></div>
     <p className="form-help">시작 시 {config.battleCost} BP를 사용합니다. 도중에 나가도 사용한 BP는 반환되지 않습니다. 게임은 무작위로 배정됩니다.</p>
     <div className="side-choice"><button disabled={busy || me.current_bp < config.battleCost} onClick={() => start('support')}>지지</button><button disabled={busy || me.current_bp < config.battleCost} onClick={() => start('oppose')}>반대</button></div>
     {me.current_bp < config.battleCost && <p className="error">BP가 부족합니다. 체크인으로 BP를 받아보세요.</p>}

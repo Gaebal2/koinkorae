@@ -52,6 +52,7 @@ export const data={
   ownComments:()=>call('ownComments'),
   watchComments:(postId,callback,error)=>watch('comments',{postId},callback,error),
   comment:(postId,content,side,replyToId)=>call('comment',{postId,content,side,replyToId}),
+  deleteComment:(postId,id)=>call('deleteComment',{postId,id}),
   startBattle:(postId,side,requestId)=>call('startBattle',{postId,side,requestId}),
   finishBattle:(sessionId,inputs)=>call('finishBattle',{sessionId,inputs}),
 };

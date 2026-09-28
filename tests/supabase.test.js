@@ -22,6 +22,11 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
     for(const action of ['savePin','publish','checkin','startBattle','finishBattle','ownComments','balance']) await assert.rejects(dispatch(db,null,action),/로그인/);
     await dispatch(db,a,'ensureProfile');await dispatch(db,a,'saveProfile',{value:{bio:'hello',profileImage:''}});await dispatch(db,a,'ensureProfile');
     assert.equal((await dispatch(db,null,'profile',{id:'alice'})).bio,'hello');
+    await dispatch(db,a,'saveProfile',{value:{username:'New Alice',bio:'updated',profileImage:''}});
+    await dispatch(db,a,'ensureProfile');
+    assert.equal((await dispatch(db,null,'profile',{id:'alice'})).username,'New Alice');
+    assert.equal((await dispatch(db,null,'profile',{id:'alice'})).bio,'updated');
+    await assert.rejects(dispatch(db,a,'saveProfile',{value:{username:' ',bio:'',profileImage:''}}));
     await Promise.all(Array.from({length:5},()=>dispatch(db,a,'checkin')));
     assert.equal((await dispatch(db,a,'balance',{uid:'alice'})).current,10);
     await assert.rejects(dispatch(db,b,'balance',{uid:'alice'}),/본인/);
@@ -34,6 +39,7 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
     await dispatch(db,b,'deletePin',{id:p.id});assert.ok(await db.one('pins',p.id));
     await dispatch(db,a,'publish',{value:{content:'hello',coin:'PI',support:999,authorId:'bob'}});
     const post=(await dispatch(db,null,'posts'))[0];assert.equal(post.support,0);assert.equal(post.authorId,'alice');
+    assert.equal(post.author,'New Alice');
     const s=await dispatch(db,a,'startBattle',{postId:post.id,side:'support',requestId:'r1'});
     assert.deepEqual(await dispatch(db,a,'startBattle',{postId:post.id,side:'support',requestId:'r1'}),s);
     await assert.rejects(dispatch(db,b,'finishBattle',{sessionId:'r1',inputs:[]}),/다른 배틀/);
@@ -65,6 +71,13 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
     await dispatch(db,b,'repost',{postId:post.id,enabled:true});await dispatch(db,b,'repost',{postId:post.id,enabled:true});
     assert.equal((await db.list('reposts')).length,1);
     assert.equal((await dispatch(db,b,'ownComments'))[0].post.id,post.id);
+    await assert.rejects(dispatch(db,null,'deleteComment',{postId:post.id,id:original.id}),/로그인/);
+    await assert.rejects(dispatch(db,a,'deleteComment',{postId:post.id,id:original.id}),/본인/);
+    await assert.rejects(dispatch(db,b,'deleteComment',{postId:other.id,id:original.id}),/본인/);
+    assert.ok(await db.one('comments',original.id,post.id));
+    await dispatch(db,b,'deleteComment',{postId:post.id,id:original.id});
+    assert.equal(await db.one('comments',original.id,post.id),null);
+    assert.ok(await db.one('comments',reply.id,post.id));
     await assert.rejects(dispatch(db,b,'deletePost',{id:post.id}),/삭제/);
     await dispatch(db,a,'deletePost',{id:post.id});assert.equal((await db.list('comments')).length,0);assert.equal((await db.list('reposts')).length,0);
     await db.put({kind:'comments',id:'orphan',parent:post.id,owner:'alice',body:{content:'orphan'}});
@@ -81,6 +94,8 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
 
 test('Pin payload rejects unsafe coordinates, categories, images and links',()=>{
   const value={title:'Pin',description:'Sale',coin:'PI',tradeCoins:[],image:'',link:'',category:'판매',lat:0,lng:0};
+  assert.equal(pin({...value,title:'가'.repeat(50)}).title.length,50);
+  assert.throws(()=>pin({...value,title:'가'.repeat(51)}));
   for(const changes of [{lat:Infinity},{lat:91},{lng:-181},{category:'x'},{image:'https://bad'},{link:'javascript:alert(1)'},{tradeCoins:['bad coin']}]) assert.throws(()=>pin({...value,...changes}));
 });
 

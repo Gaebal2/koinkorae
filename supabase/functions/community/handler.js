@@ -8,7 +8,9 @@ const newest = (a,b) => (b.createdAt || 0) - (a.createdAt || 0);
 // db exposes only server-side queries. Identity comes from verified Firebase tokens.
 export async function dispatch(db, identity, action, args = {}) {
   if (!publicActions.has(action) && !identity) throw Object.assign(Error('로그인이 필요합니다.'), { status: 401 });
-  const uid = identity?.uid, name = (identity?.name || '회원').slice(0,24);
+  const uid = identity?.uid;
+  const storedProfile = uid ? present(await db.one('profiles',uid,'')) : null;
+  const name = (storedProfile?.username || identity?.name || '회원').slice(0,24);
   const get = async (kind, key, parent = '') => present(await db.one(kind, id(key), parent));
   const list = async (kind, filter = {}) => (await db.list(kind, filter)).map(present);
   const mutate = (op, key = '', value = {}) => db.mutate(op, uid, key, value);
@@ -35,7 +37,7 @@ export async function dispatch(db, identity, action, args = {}) {
     case 'ensureProfile': {
       await put('profiles',uid,{username:name,bio:'',profileImage:''},'',true); return null;
     }
-    case 'saveProfile': await put('profiles',uid,{username:name,bio:text(args.value?.bio,200),profileImage:photo(args.value?.profileImage)}); return null;
+    case 'saveProfile': await put('profiles',uid,{username:args.value?.username === undefined ? name : text(args.value.username,24,true),bio:text(args.value?.bio,200),profileImage:photo(args.value?.profileImage)}); return null;
     case 'savePin': return mutate('savePin',args.id ? id(args.id) : '',{...pin(args.value || {}),creator:name});
     case 'deletePin': await db.remove('pins',id(args.id),'',uid); return null;
     case 'checkin': return mutate('checkin');
@@ -56,6 +58,11 @@ export async function dispatch(db, identity, action, args = {}) {
       const parent = args.replyToId ? await get('comments',args.replyToId,id(args.postId)) : null;
       if (args.replyToId && !parent) throw Error('원댓글을 찾을 수 없습니다.');
       return mutate('comment',crypto.randomUUID(),{postId:id(args.postId),author:name,content:text(args.content,1000,true),side:side(args.side),...(parent ? {replyTo:{id:parent.id,author:parent.author,content:parent.content.slice(0,120)}} : {})});
+    }
+    case 'deleteComment': {
+      const comment=await get('comments',args.id,id(args.postId));
+      if (!comment || comment.authorId !== uid) throw Object.assign(Error('본인 댓글만 삭제할 수 있습니다.'),{status:403});
+      await db.remove('comments',id(args.id),id(args.postId),uid); return null;
     }
     case 'ownComments': {
       const rows=await db.list('comments',{owner:uid});

@@ -5,7 +5,7 @@ import L from 'leaflet';
 import { data, configured, googleEnabled } from './data.js';
 import { Modal, Field, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage } from './ui.jsx';
 import { HomePage, CheckinPage } from './social.jsx';
-import { readPhoto } from './api.js';
+import { ProfileEditor } from './profile-editor.jsx';
 import { CommunityProfile } from './community-profile.jsx';
 import { useBackDismiss } from './use-back-dismiss.js';
 import { coinImage, coinColor } from './ui.jsx';
@@ -44,7 +44,7 @@ function GoogleAuth({ close, done }) {
   </Modal>;
 }
 
-function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick }) {
+export function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick }) {
   const element = useRef(null), map = useRef(null), markers = useRef(null);
   const [center, setCenter] = useState({ lat: 37.5665, lng: 126.978 }), [locationError, setLocationError] = useAppMessage(), [photo, setPhoto] = useState(null);
   useEffect(() => {
@@ -57,7 +57,7 @@ function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete,
   useEffect(() => {
     markers.current?.remove(); markers.current = L.layerGroup().addTo(map.current);
     for (const pin of pins) {
-      const content = document.createElement('span'); content.style.setProperty('--pin', coinColor(pin.coin));
+      const content = document.createElement('span'); content.dataset.coin = pin.coin; content.style.setProperty('--pin', coinColor(pin.coin));
       const label = document.createElement('b'); label.style.display = 'grid'; label.textContent = pin.coin; content.append(label);
       const image = document.createElement('img'); image.src = coinImage(pin.coin); image.dataset.coin = pin.coin; image.alt = pin.coin; image.onload = () => { label.style.display = 'none'; }; image.onerror = () => { image.style.display = 'none'; label.style.display = 'grid'; }; content.append(image);
       L.marker([pin.lat, pin.lng], { title: pin.title, icon: L.divIcon({ className: 'battle-map-marker', html: content, iconSize: [40, 48], iconAnchor: [20, 45] }) }).addTo(markers.current).on('click', () => select(pin));
@@ -105,7 +105,8 @@ export default function App() {
     <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['profile', '프로필', CircleUserRound]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => id === 'profile' ? openProfile(me?.id) : setPage(id)}><Icon/><span>{label}</span></button>)}</nav>
     {compose && <Composer hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
     {form && <PinForm {...form} pinCost={0} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin); setPage('map'); }}/>}
-    {editing && profile && <Modal title="프로필 수정" onClose={() => setEditing(false)}><Field label="소개"><textarea maxLength={200} value={profile.bio} onChange={e => setProfile({ ...profile, bio: e.target.value })}/></Field><Field label="프로필 사진"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => perform(async () => setProfile({ ...profile, profileImage: await readPhoto(e.target.files?.[0]) }))}/></Field>{error && <p role="alert">{error}</p>}<button className="primary" disabled={busy} onClick={() => perform(async () => { await data.saveProfile(profile); setEditing(false); void notify('프로필을 저장했습니다.', { kind: 'success', title: '저장 완료' }); })}>저장</button></Modal>}
+    {editing && profile && profileId === me?.id && <ProfileEditor profile={profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}
+
     {auth && <Auth close={() => setAuth(false)} done={u => { setMe(u); setAuth(false); if (page === 'profile') setProfileId(u.id); }}/>}
     {!auth && !form && !editing && !compose && <InstallPrompt/>}
   </div>;

@@ -29,6 +29,6 @@ export function pin(value) {
   if (!Array.isArray(value.tradeCoins) || value.tradeCoins.length > 110) throw Error('거래 코인을 확인해 주세요.');
   const link = text(value.link || '', 500);
   if (link && !/^https?:\/\//.test(link)) throw Error('HTTP 또는 HTTPS 링크를 입력해 주세요.');
-  return { title: text(value.title,100,true), description: text(value.description,200,true), coin: coin(value.coin),
+  return { title: text(value.title,50,true), description: text(value.description,200,true), coin: coin(value.coin),
     tradeCoins: value.tradeCoins.map(coin), image: photo(value.image), link, category: value.category, lat, lng };
 }
