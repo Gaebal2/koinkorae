@@ -151,10 +151,14 @@ export const data = {
     return rows.docs.map(row => ({ ...normalize(row), post: posts.get(row.ref.parent.parent.id) })).filter(row => row.post).sort((a,b) => b.createdAt-a.createdAt);
   },
   watchComments(postId, callback, error) {
-    return onSnapshot(query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt'), limit(100)), rows => callback(rows.docs.map(normalize)), error);
+    return onSnapshot(query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt')), rows => callback(rows.docs.map(normalize)), error);
   },
-  async comment(postId, content, side) {
+  async comment(postId, content, side, replyToId) {
     if (!['support', 'oppose'].includes(side)) throw Error('지지 또는 반대를 선택해 주세요.');
-    const u = user(); await setDoc(doc(collection(db, 'posts', postId, 'comments')), { authorId: u.uid, author: displayName(u), content: content.trim(), side, createdAt: serverTimestamp() });
+    const u = user();
+    const parent = replyToId ? await getDoc(doc(db, 'posts', postId, 'comments', replyToId)) : null;
+    if (parent && !parent.exists()) throw Error('원댓글을 찾을 수 없습니다.');
+    const replyTo = parent ? { id: parent.id, author: parent.data().author, content: parent.data().content.slice(0,120) } : null;
+    await setDoc(doc(collection(db, 'posts', postId, 'comments')), { authorId: u.uid, author: displayName(u), content: content.trim(), side, ...(replyTo ? {replyTo} : {}), createdAt: serverTimestamp() });
   },
 };

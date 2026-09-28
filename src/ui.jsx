@@ -115,7 +115,6 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onMap
   const { confirm } = useFeedback();
   return (
     <div className={`pin-detail ${onEdit || onDelete ? 'has-actions' : ''} ${className}`}>
-      {onMap && <div className="pin-card-top"><button type="button" onClick={() => onMap(pin)}><MapPin/>지도에서 보기</button></div>}
       {pin.image && (
         <button disabled={interactionDisabled} className="pin-detail-photo-button" onClick={() => onImage?.(pin)} aria-label="사진 전체 화면으로 보기">
           <img className="pin-detail-photo" src={pin.image} alt="핀 등록 사진" />
@@ -128,7 +127,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onMap
             <img src={profileImage(pin.creator || "battle_newbie")} alt={`${pin.creator || "battle_newbie"} 프로필`} />
           </button>
           <span>@{pin.creator || "battle_newbie"}</span>
-          {(onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button disabled={interactionDisabled} type="button" onClick={() => onEdit(pin)}>수정</button>}
+          {(onMap || onEdit || onDelete) && <div className="pin-detail-actions">{onMap && <button disabled={interactionDisabled} type="button" onClick={() => onMap(pin)}>지도</button>}{onEdit && <button disabled={interactionDisabled} type="button" onClick={() => onEdit(pin)}>수정</button>}
           {onDelete && <button disabled={interactionDisabled} type="button" className="pin-delete" aria-label="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}</div>}
         </div>
         <small>{pin.category}{pin.tradeCoins?.length ? ` · 거래 가능한 코인: ${pin.tradeCoins.join(', ')}` : ''}</small>

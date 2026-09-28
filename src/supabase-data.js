@@ -51,7 +51,7 @@ export const data={
   watchCommentCount:(postId,callback,error)=>watch('commentCount',{postId},callback,error),
   ownComments:()=>call('ownComments'),
   watchComments:(postId,callback,error)=>watch('comments',{postId},callback,error),
-  comment:(postId,content,side)=>call('comment',{postId,content,side}),
+  comment:(postId,content,side,replyToId)=>call('comment',{postId,content,side,replyToId}),
   startBattle:(postId,side,requestId)=>call('startBattle',{postId,side,requestId}),
   finishBattle:(sessionId,inputs)=>call('finishBattle',{sessionId,inputs}),
 };

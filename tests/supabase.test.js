@@ -53,6 +53,15 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
     await db.mutate('finishBattle','bob','r3',{side:'oppose',score:3,delta:-3,sessionSeed:s3.seed,sessionStartedAt:s3.startedAt,postId:post.id});
     assert.equal((await db.one('posts',post.id)).body.oppose,3);
     await dispatch(db,b,'comment',{postId:post.id,content:'hi',side:'oppose'});
+    const original=(await dispatch(db,null,'comments',{postId:post.id}))[0];
+    await dispatch(db,a,'comment',{postId:post.id,content:'reply',side:'support',replyToId:original.id});
+    const reply=(await dispatch(db,null,'comments',{postId:post.id})).find(c=>c.content==='reply');
+    assert.deepEqual(reply.replyTo,{id:original.id,author:'Bob',content:'hi'});
+    assert.equal(reply.side,'support');
+    await assert.rejects(dispatch(db,a,'comment',{postId:post.id,content:'invalid',side:'support',replyToId:'missing'}));
+    await dispatch(db,a,'publish',{value:{content:'another post',coin:'PI'}});
+    const other=(await dispatch(db,null,'posts')).find(p=>p.id!==post.id);
+    await assert.rejects(dispatch(db,a,'comment',{postId:other.id,content:'wrong parent',side:'oppose',replyToId:original.id}));
     await dispatch(db,b,'repost',{postId:post.id,enabled:true});await dispatch(db,b,'repost',{postId:post.id,enabled:true});
     assert.equal((await db.list('reposts')).length,1);
     assert.equal((await dispatch(db,b,'ownComments'))[0].post.id,post.id);

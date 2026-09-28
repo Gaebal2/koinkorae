@@ -27,7 +27,7 @@ export async function dispatch(db, identity, action, args = {}) {
     case 'relationships': return (await db.list('following')).map(row=>({from:row.parent,to:row.id}));
     case 'reposts': return (await db.list('reposts')).map(row=>({...present(row),userId:row.id,postId:row.parent}));
     case 'commentCount': return await get('posts',args.postId) ? db.count('comments',id(args.postId)) : 0;
-    case 'comments': return await get('posts',args.postId) ? (await list('comments',{parent:id(args.postId),oldest:true,limit:100})).sort((a,b)=>a.createdAt-b.createdAt) : [];
+    case 'comments': return await get('posts',args.postId) ? (await list('comments',{parent:id(args.postId),oldest:true})).sort((a,b)=>a.createdAt-b.createdAt) : [];
     case 'balance': {
       if (args.uid !== uid) throw Object.assign(Error('본인 BP만 조회할 수 있습니다.'),{status:403});
       return await get('balances',uid) || {current:0,lifetime:0,day:-1};
@@ -52,7 +52,11 @@ export async function dispatch(db, identity, action, args = {}) {
       return null;
     }
     case 'repost': return mutate('repost','',{postId:id(args.postId),enabled:enabled(args.enabled)});
-    case 'comment': return mutate('comment',crypto.randomUUID(),{postId:id(args.postId),author:name,content:text(args.content,1000,true),side:side(args.side)});
+    case 'comment': {
+      const parent = args.replyToId ? await get('comments',args.replyToId,id(args.postId)) : null;
+      if (args.replyToId && !parent) throw Error('원댓글을 찾을 수 없습니다.');
+      return mutate('comment',crypto.randomUUID(),{postId:id(args.postId),author:name,content:text(args.content,1000,true),side:side(args.side),...(parent ? {replyTo:{id:parent.id,author:parent.author,content:parent.content.slice(0,120)}} : {})});
+    }
     case 'ownComments': {
       const rows=await db.list('comments',{owner:uid});
       const ids=[...new Set(rows.map(row=>row.parent))];

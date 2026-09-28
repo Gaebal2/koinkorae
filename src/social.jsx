@@ -1,5 +1,5 @@
 import { useAppMessage, useFeedback } from './feedback.jsx';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CommunityPost, useFeedActions } from './community-feed.jsx';
 import { coinRanks } from './community-model.js';
 import { CalendarCheck, Check, Shield, SquarePen, Zap, ChevronDown, ChevronUp } from 'lucide-react';
@@ -25,16 +25,47 @@ export function HomePage({ onPin, onReposted, me, options, setOptions, following
 }
 
 export function Comments({ post, me, close }) {
-  const [items, setItems] = useState([]), [content, setContent] = useState(''), [side, setSide] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
+  const [items, setItems] = useState([]), [content, setContent] = useState(''), [reply, setReply] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
+  const timer = useRef(null), origin = useRef(null), nodes = useRef(new Map()), sending = useRef(false), input = useRef(null);
+  const cancelPress = () => clearTimeout(timer.current);
   useEffect(() => data.watchComments(post.id, setItems, () => setError('댓글을 불러오지 못했습니다.')), [post.id]);
-  const renderComment = c => <article key={c.id}><b>{c.author}</b><small>{age(c.createdAt)}</small><p>{c.content}</p></article>;
-  const legacy = items.filter(c => !c.side);
-  return <Modal title="댓글" onClose={close} className="comments-modal"><p className="post-body">{post.content}</p>
-    <div className="comment-columns">{[['support','지지하기'],['oppose','반대하기']].map(([value,label])=><section key={value} className={'comment-side ' + value}><h3>{label}</h3><div className="comment-list">{items.filter(c=>c.side===value).map(renderComment)}{!items.some(c=>c.side===value) && <p className="form-help">아직 댓글이 없습니다.</p>}</div></section>)}</div>
-    {!!legacy.length && <section className="legacy-comments"><h3>이전 댓글 · 입장 미선택</h3><div className="comment-list">{legacy.map(renderComment)}</div></section>}
-    {me ? <form onSubmit={async e => { e.preventDefault(); if (!side || busy) return; setBusy(true); setError(''); try { await data.comment(post.id, content, side); setContent(''); } catch { setError('댓글을 저장하지 못했습니다.'); } finally { setBusy(false); } }}>
-      <div className="side-choice">{[['support','피드 지지하기'],['oppose','피드 반대하기']].map(([value,label])=><button type="button" key={value} disabled={busy} className={side===value ? 'selected' : ''} aria-pressed={side===value} onClick={()=>setSide(value)}>{label}</button>)}</div>
-      <Field label="댓글"><textarea required maxLength={1000} value={content} onChange={e => setContent(e.target.value)} placeholder="입장을 선택하고 댓글을 작성하세요"/></Field><button className="primary" disabled={busy || !side || !content.trim()}>{busy ? '게시 중…' : '댓글 게시'}</button>
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const selectReply = c => { if (me) { setReply(c); input.current?.focus(); } };
+  const jump = id => {
+    const node = nodes.current.get(id);
+    if (!node) { setError('원댓글을 현재 목록에서 찾을 수 없습니다.'); return; }
+    node.scrollIntoView({ behavior: 'smooth', block: 'center' }); node.focus({ preventScroll: true });
+    node.animate([{ backgroundColor: '#ffe480' }, { backgroundColor: 'transparent' }], { duration: 1600 });
+  };
+  const send = async side => {
+    if (sending.current || !content.trim()) return;
+    sending.current = true; setBusy(true); setError('');
+    try { await data.comment(post.id, content, side, reply?.id); setContent(''); setReply(null); }
+    catch { setError('댓글을 저장하지 못했습니다.'); }
+    finally { sending.current = false; setBusy(false); }
+  };
+  return <Modal title="댓글" onClose={close} className="comments-modal">
+    <p className="chat-post">{post.content}</p>
+    <div className="chat-directions"><span>지지</span><span>반대</span></div>
+    <div className="chat-messages" aria-label="댓글 대화">
+      {!items.length && <p className="form-help">첫 댓글을 남겨보세요.</p>}
+      {items.map(c => <article key={c.id} ref={node => { if (node) nodes.current.set(c.id, node); else nodes.current.delete(c.id); }} tabIndex={-1} className={'chat-message ' + (c.side || 'neutral')}>
+        <b>{c.author}</b>
+        <div className="chat-bubble" tabIndex={0} aria-label={c.author + ' 댓글. 길게 누르거나 Enter 키로 답글 작성'}
+          onPointerDown={e => { if (e.button !== 0) return; cancelPress(); origin.current = { x:e.clientX, y:e.clientY }; timer.current = setTimeout(() => selectReply(c), 550); }}
+          onPointerMove={e => { if (origin.current && Math.hypot(e.clientX-origin.current.x,e.clientY-origin.current.y)>10) cancelPress(); }}
+          onPointerUp={cancelPress} onPointerCancel={cancelPress} onPointerLeave={cancelPress}
+          onContextMenu={e => { e.preventDefault(); cancelPress(); selectReply(c); }}
+          onKeyDown={e => { if (e.target === e.currentTarget && e.key === 'Enter') { e.preventDefault(); selectReply(c); } }}>
+          {c.replyTo && <button type="button" className="chat-quote" aria-label="원댓글 보기: 두 번 누르기" onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><b>{c.replyTo.author}</b><span>{c.replyTo.content}</span></button>}
+          <p>{c.content}</p>
+        </div><small>{age(c.createdAt)}{!c.side && ' · 입장 미선택'}</small>
+      </article>)}
+    </div>
+    {me ? <form className="chat-composer" onSubmit={e => e.preventDefault()}>
+      {reply && <div className="chat-reply-preview"><div><b>{reply.author}에게 답글</b><span>{reply.content}</span></div><button type="button" disabled={busy} onClick={() => setReply(null)} aria-label="답글 취소">×</button></div>}
+      <div className="chat-input-row"><button type="button" className="chat-send support" disabled={busy || !content.trim()} onClick={() => send('support')}>지지</button><textarea ref={input} aria-label="댓글" disabled={busy} maxLength={1000} value={content} onChange={e => setContent(e.target.value)} placeholder="댓글을 입력하세요"/><button type="button" className="chat-send oppose" disabled={busy || !content.trim()} onClick={() => send('oppose')}>반대</button></div>
+      <small>댓글을 길게 눌러 답글 · 인용문을 두 번 눌러 원댓글 보기</small>
     </form> : <p className="form-help">로그인하면 댓글을 남길 수 있습니다.</p>}{error && <p className="error" role="alert">{error}</p>}</Modal>;
 }
 
