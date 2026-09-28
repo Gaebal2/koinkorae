@@ -4,6 +4,14 @@
 
 Firebase Authentication은 유지하고 DB·배틀 서버를 Supabase로 이전한다. 회원 ID와 기존 Google/이메일 로그인을 유지하므로 비밀번호 이전이나 계정 재가입이 필요 없다.
 
+## 2026-09-28 적용 결과
+
+- 운영 이전 완료: 프로필 2, 핀 2, 게시물 8, 잔액 1, 댓글 11 — 총 24건. 모든 문서 필드를 SQL로 비교했고 불일치는 0건이었다.
+- 기존 Firestore는 `firebase.readonly.json` 설정으로 읽기 전용 전환했다. 원본과 로컬 백업을 보존했다.
+- 실제 API에서 임시 계정으로 프로필·핀·게시물·댓글·리포스트·출석 중복 방지·배틀 검증 및 중복 완료를 확인했다. 테스트 계정과 테스트 DB 행은 정리했다.
+- 로컬 45개 테스트, 빌드, GitHub Actions 테스트·Pages 배포 성공. 운영 브라우저에서 기존 피드와 지도 핀 2개 표시를 확인했다.
+- 스키마는 SQL Editor/Management API로 적용했다. 이후 CLI migration push를 도입할 때 최초 버전의 적용 이력을 먼저 맞춰야 한다.
+
 ## 구성
 
 - `src/data.js`: 기본값은 Supabase. 명시적인 `VITE_DATA_BACKEND=firebase`는 통제된 롤백용이다.
