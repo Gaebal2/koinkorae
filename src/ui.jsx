@@ -122,24 +122,23 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
   const Avatar = passive ? 'span' : 'button';
   return (
     <div className={`pin-detail ${onEdit || onDelete ? 'has-actions' : ''} ${onActivate ? 'pin-card-link' : ''} ${className}`} role={onActivate ? 'button' : undefined} tabIndex={onActivate ? 0 : undefined} aria-label={onActivate ? `${pin.title} 지도에서 보기` : undefined} onClick={onActivate ? () => onActivate(pin) : undefined} onKeyDown={onActivate ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(pin); } } : undefined}>
-      {pin.image && (
-        <Photo className="pin-detail-photo-button" onClick={!passive ? () => onImage?.(pin) : undefined} aria-label={!passive ? '사진 전체 화면으로 보기' : undefined}>
-          <span className="pin-category-badge">{normalizePinCategory(pin.category) === '상점 등록' ? '상점' : normalizePinCategory(pin.category)}</span>
-          <img className="pin-detail-photo" src={pin.image} alt="핀 등록 사진" />
-        </Photo>
-      )}
-      <div className="pin-detail-content">
         <div className="pin-creator">
+          <span className="pin-category-badge">{normalizePinCategory(pin.category) === '상점 등록' ? '상점' : normalizePinCategory(pin.category)}</span>
           <Coin symbol={pin.coin} size="sm" />
           <Avatar className="pin-creator-profile" onClick={!passive ? () => onProfile?.(pin.creator || "battle_newbie") : undefined} aria-label={!passive ? '핀 생성자 프로필 보기' : undefined}>
             <img src={creator?.profileImage || profileImage()} alt={`${creatorName} 프로필`} />
           </Avatar>
-          <span>@{creatorName}</span>
+          <span className="pin-creator-name">@{creatorName}</span>
           {topAction && <div className="pin-detail-actions">{topAction}</div>}
           {!passive && (onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button type="button" onClick={() => onEdit(pin)}>수정</button>}
           {onDelete && <button disabled={interactionDisabled} type="button" className="pin-delete" aria-label="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}</div>}
         </div>
-        {!pin.image && <small>{normalizePinCategory(pin.category) === '상점 등록' ? '상점' : normalizePinCategory(pin.category)}</small>}
+      {pin.image && (
+        <Photo className="pin-detail-photo-button" onClick={!passive ? () => onImage?.(pin) : undefined} aria-label={!passive ? '사진 전체 화면으로 보기' : undefined}>
+          <img className="pin-detail-photo" src={pin.image} alt="핀 등록 사진" />
+        </Photo>
+      )}
+      <div className="pin-detail-content">
         {!!pin.tradeCoins?.length && <div className="pin-trade-coins"><small>거래 가능한 코인:</small>{pin.tradeCoins.map(symbol => <Coin key={symbol} symbol={symbol} size="trade"/>)}</div>}
         <b>{pin.title}</b>
         <p>{pin.description}</p>

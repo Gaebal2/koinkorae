@@ -60,7 +60,7 @@ function packet(progress,autoplay=false){
 test('checkpoint replay supports long play and rejects forged, out-of-order and post-death input',()=>{
  let progress=newBattleProgress('runner',1234);
  for(let i=0;i<8;i++){const p=packet(progress,true);assert.equal(p.game.ended,false);progress=advanceBattle(progress,p.inputs,p.ticks,100000);assert.deepEqual(progress.game,p.game);}
- assert.ok(progress.game.time>60);assert.ok(progress.game.score>600);
+ assert.ok(progress.game.time>60);assert.ok(progress.game.score>40);assert.ok(progress.game.score<80);
  assert.throws(()=>advanceBattle(progress,[],1201,100000));assert.throws(()=>advanceBattle(progress,[2,1],3,100000));assert.throws(()=>advanceBattle(progress,[],1,0));
  const p=packet(newBattleProgress('runner',5));const ended=advanceBattle(newBattleProgress('runner',5),p.inputs,p.ticks,10000);
  assert.ok(ended.game.ended);assert.throws(()=>advanceBattle(ended,[],1,10000));

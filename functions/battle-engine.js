@@ -12,7 +12,7 @@ export function jump(game) {
   if(game.kind==='stack') {
     const left=Math.max(game.x,game.baseX),right=Math.min(game.x+game.width,game.baseX+game.width);
     if(right-left<8){game.ended=true;game.reason='collision';return;}
-    game.width=right-left;game.baseX=left;game.score+=10;game.blocks.push({x:left,w:game.width});game.blocks=game.blocks.slice(-10);game.x=game.direction>0?WIDTH-game.width:0;game.direction*=-1;return;
+    game.width=right-left;game.baseX=left;game.score+=1;game.blocks.push({x:left,w:game.width});game.blocks=game.blocks.slice(-10);game.x=game.direction>0?WIDTH-game.width:0;game.direction*=-1;return;
   }
   if(game.kind==='tower'){if(!game.airborne){game.airborne=true;game.flight=0;}return;}
   if(game.kind==='dodge'){game.lane=1-game.lane;return;}
@@ -24,18 +24,18 @@ export function step(game, dt, random = Math.random) {
   if (game.ended) return game;
   game.time += dt;
   if(game.kind==='stack') {
-    game.x+=game.direction*(95+Math.min(game.score,180)*.5)*dt;
+    game.x+=game.direction*(95+Math.min(game.score,18)*5)*dt;
     if(game.x<0){game.x=-game.x;game.direction=1;}if(game.x>WIDTH-game.width){game.x=2*(WIDTH-game.width)-game.x;game.direction=-1;}
     return game;
   }
   if(game.kind==='tower') {
-    game.x=180+Math.sin(game.time*(1.5+Math.min(game.score,200)/200)+game.phase)*112;
-    if(game.airborne){game.flight+=dt;if(game.flight>=.8){game.airborne=false;if(Math.abs(game.x-180)>49){game.ended=true;game.reason='collision';}else{game.score+=10;game.phase=random()*Math.PI*2;}}}
+    game.x=180+Math.sin(game.time*(1.5+Math.min(game.score,20)/20)+game.phase)*112;
+    if(game.airborne){game.flight+=dt;if(game.flight>=.8){game.airborne=false;if(Math.abs(game.x-180)>49){game.ended=true;game.reason='collision';}else{game.score+=1;game.phase=random()*Math.PI*2;}}}
     return game;
   }
   if(game.kind==='dodge') {
-    if(game.time>=game.nextObstacle){game.obstacles.push({lane:random()<.5?0:1,y:-30,passed:false});game.nextObstacle=game.time+Math.max(.75,1.4-game.score*.002);}
-    for(const obstacle of game.obstacles){obstacle.y+=(150+Math.min(130,game.time*2))*dt;if(obstacle.lane===game.lane&&obstacle.y+30>330&&obstacle.y<358){game.ended=true;game.reason='collision';}if(!obstacle.passed&&obstacle.y>358){obstacle.passed=true;game.score+=10;}}
+    if(game.time>=game.nextObstacle){game.obstacles.push({lane:random()<.5?0:1,y:-30,passed:false});game.nextObstacle=game.time+Math.max(.8,1.15-game.time*.004);}
+    for(const obstacle of game.obstacles){obstacle.y+=(220+Math.min(120,game.time*2))*dt;if(obstacle.lane===game.lane&&obstacle.y+30>330&&obstacle.y<358){game.ended=true;game.reason='collision';}if(!obstacle.passed&&obstacle.y>358){obstacle.passed=true;game.score+=1;}}
     game.obstacles=game.obstacles.filter(o=>o.y<HEIGHT+30);return game;
   }
   const bird = game.kind === 'flappy';
@@ -54,10 +54,12 @@ export function step(game, dt, random = Math.random) {
     if (bird) {
       collision ||= overlap(player, { x: obstacle.x, y: 0, w: obstacle.w, h: obstacle.gap - 76 }) || overlap(player, { x: obstacle.x, y: obstacle.gap + 76, w: obstacle.w, h: GROUND - obstacle.gap - 76 });
       if (!obstacle.passed && obstacle.x + obstacle.w < player.x) { obstacle.passed = true; game.score++; }
-    } else collision ||= overlap(player, { x: obstacle.x + 3, y: GROUND - obstacle.h + 3, w: obstacle.w - 6, h: obstacle.h - 3 });
+    } else {
+      collision ||= overlap(player, { x: obstacle.x + 3, y: GROUND - obstacle.h + 3, w: obstacle.w - 6, h: obstacle.h - 3 });
+      if (!obstacle.passed && obstacle.x + obstacle.w < player.x) { obstacle.passed = true; game.score++; }
+    }
   }
   game.obstacles = game.obstacles.filter(o => o.x + o.w > -10);
-  if (!bird) game.score = Math.floor(game.time * 10);
   if (collision) { game.ended = true; game.reason = 'collision'; }
   return game;
 }

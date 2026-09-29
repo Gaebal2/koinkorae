@@ -158,3 +158,16 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .pin-category-badge { position: absolute; z-index: 1; top: 5px; left: 4px; right: 4px; width: fit-content; max-width: calc(100% - 8px); padding: 4px 5px; border-radius: 6px; color: white; background: #151522cc; font-size: 10px; font-weight: 700; line-height: 1.3; text-align: center; }
 .pin-trade-coins { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .pin-trade-coins .coin-trade { width: 13.5px; min-width: 13.5px; height: 13.5px; min-height: 13.5px; flex: 0 0 13.5px; border-width: 0; font-size: 4px; }
+
+/* Use the list's coin artwork on every surface without shadow or clipped borders. */
+.coin { border: 0; box-shadow: none; background: white; color: #34483d; isolation: isolate; }
+.coin > img { border-radius: 50%; box-shadow: none; }
+.battle-map-marker span { background: white; color: #34483d; box-shadow: none; }
+.battle-map-marker img { border-radius: 50%; background: white; box-shadow: none; }
+.battle-map-marker span[data-coin="SL"]::before { content: none; }
+.battle-map-marker img[data-coin="SL"] { width: 30px; height: 30px; padding: 16%; box-sizing: border-box; border-radius: 50%; background: white; }
+.pin-detail > .pin-creator { grid-column: 1 / -1; justify-content: flex-end; flex-wrap: nowrap; min-width: 0; gap: 5px; margin: 0; }
+.pin-detail .pin-creator > .pin-category-badge { position: static; flex: 0 0 auto; width: auto; max-width: none; padding: 4px 5px; color: #5137a0; background: #eee9fa; white-space: nowrap; }
+.pin-detail .pin-creator > .pin-creator-name { flex: 0 1 auto; max-width: 90px; white-space: nowrap; }
+.pin-creator .pin-detail-actions { margin-left: 0; }
+.pin-detail-actions button { padding-inline: 6px; white-space: nowrap; }
