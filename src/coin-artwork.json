@@ -1,0 +1,12 @@
+{
+  "PI": {
+    "outline": true
+  },
+  "PSL": {
+    "outline": true
+  },
+  "SL": {
+    "outline": true,
+    "inset": true
+  }
+}

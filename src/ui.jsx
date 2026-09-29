@@ -9,22 +9,23 @@ import { watchInstallPrompt } from './install-prompt.js';
 import { readPhoto } from './api.js';
 import { useLiveProfile } from './live-profile.js';
 import { pinCategories, normalizePinCategory } from './pin-categories.js';
+import { coinClassName, coinImage } from './coin-artwork.js';
+export { coinImage } from './coin-artwork.js';
 export const cmcCoins = prioritizeCoins(initialCoins);
 export const asset = name => import.meta.env.BASE_URL + name;
 const fmt = n => new Intl.NumberFormat('ko-KR',{notation: Math.abs(n)>999?'compact':'standard'}).format(n);
 const exposure = p => p.support-p.oppose;
 export const coinColor = symbol => ({BTC:'#f59e0b',ETH:'#627eea',SOL:'#14b8a6',XRP:'#334155',SL:'#7157ff'})[symbol]||'#7157ff';
-export const coinImage = symbol => asset(`coin-icons/${symbol === 'PI' ? 'pi-official.png' : symbol.toLowerCase() + (symbol === 'SL' ? '.png' : '.svg')}`);
 export const profileImage = () => asset('koin-korae-transparent-192.png');
 
 export function Coin({ symbol, size = "md" }) {
   return (
     <span
-      className={`coin coin-${size} coin-symbol-${symbol}`}
+      className={coinClassName(symbol, size)}
       style={{ "--coin": coinColor(symbol) }}
     >
       <span className="coin-fallback">{symbol.slice(0, 4)}</span>
-      <img key={symbol} src={coinImage(symbol)} alt={`${symbol} 아이콘`} onError={event=>{event.currentTarget.style.display="none"}} />
+      <img key={symbol} src={coinImage(symbol)} alt={`${symbol} 아이콘`} onError={event=>{event.currentTarget.style.display="none"; event.currentTarget.parentElement.classList.add('coin-outline');}} />
     </span>
   );
 }

@@ -37,9 +37,6 @@
 .arcade-score.oppose b, .arcade-overlay strong.negative { color: #c44262; }
 /* Suppress browser tap flash while preserving keyboard focus indicators. */
 html { -webkit-tap-highlight-color: transparent; }
-.battle-map-marker span > img, .battle-map-marker span > b { grid-area: 1 / 1; }
-.battle-map-marker span[data-coin="SL"]::before { content: ''; grid-area: 1 / 1; width: 28px; height: 28px; border-radius: 50%; background: white; }
-.battle-map-marker img[data-coin="SL"] { width: 18px; height: 18px; max-width: none; padding: 0; border-radius: 0; background: transparent; object-fit: contain; }
 .comments-modal .modal-body { display: flex; flex-direction: column; height: min(760px, calc(92dvh - 57px)); padding: 0; overflow: hidden; background: white; }
 .chat-messages { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 18px; }
 .chat-message { width: fit-content; max-width: 82%; align-self: flex-start; scroll-margin-block: 20px; border-radius: 12px; }
@@ -125,7 +122,8 @@ html { -webkit-tap-highlight-color: transparent; }
 .direct-composer { display: block; padding: 10px 12px; }
 .direct-composer .chat-input-row { width: 100%; }
 .direct-composer .primary { background: #5278b5; }
-.profile-settings-button { display: grid; place-items: center; border: 1px solid #e4dff0; border-radius: 12px; width: 40px; height: 40px; background: #f5f2fb; color: #65518e; }
+.profile-settings-button { display: inline-flex; align-items: center; justify-content: center; padding: 0; flex: 0 0 40px; line-height: 1; appearance: none; -webkit-appearance: none; border: 1px solid #e4dff0; border-radius: 12px; width: 40px; height: 40px; background: #f5f2fb; color: #65518e; }
+.profile-settings-button svg { display: block; width: 22px; height: 22px; flex: none; margin: 0; }
 .profile-settings-menu { display: grid; gap: 10px; }
 .profile-settings-menu button { padding: 16px; text-align: left; border: 1px solid var(--line); background: #faf9fd; border-radius: 12px; font-weight: 700; }
 .profile-settings-menu button:last-child { color: #b13c55; }
@@ -161,13 +159,17 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 
 /* Use the list's coin artwork on every surface without shadow or clipped borders. */
 .coin { border: 0; box-shadow: none; background: white; color: #34483d; isolation: isolate; }
-.coin > img { border-radius: 50%; box-shadow: none; }
-.battle-map-marker span { background: white; color: #34483d; box-shadow: none; }
-.battle-map-marker img { border-radius: 50%; background: white; box-shadow: none; }
-.battle-map-marker span[data-coin="SL"]::before { content: none; }
-.battle-map-marker img[data-coin="SL"] { width: 30px; height: 30px; padding: 16%; box-sizing: border-box; border-radius: 50%; background: white; }
-.pin-detail > .pin-creator { grid-column: 1 / -1; justify-content: flex-end; flex-wrap: nowrap; min-width: 0; gap: 5px; margin: 0; }
-.pin-detail .pin-creator > .pin-category-badge { position: static; flex: 0 0 auto; width: auto; max-width: none; padding: 4px 5px; color: #5137a0; background: #eee9fa; white-space: nowrap; }
-.pin-detail .pin-creator > .pin-creator-name { flex: 0 1 auto; max-width: 90px; white-space: nowrap; }
-.pin-creator .pin-detail-actions { margin-left: 0; }
-.pin-detail-actions button { padding-inline: 6px; white-space: nowrap; }
+.coin > img { border-radius: 0; box-shadow: none; padding: 0; object-fit: contain; }
+.coin.coin-inset > img { padding: 16%; box-sizing: border-box; }
+.coin.coin-outline::after { content: ''; position: absolute; inset: 0; border: 1px solid #111; border-radius: 50%; pointer-events: none; z-index: 1; }
+.battle-map-marker > .map-pin-shell { width: 38px; height: 38px; border: 3px solid white; border-radius: 50% 50% 50% 8px; transform: rotate(-45deg); display: grid; place-items: center; background: white; }
+.map-pin-shell > .coin-map { width: 30px; height: 30px; transform: rotate(45deg); }
+.map-pin-shell .coin-fallback { font-size: 7px; }
+.pin-detail > .pin-creator { grid-column: 1 / -1; justify-content: flex-start; align-items: center; flex-wrap: nowrap; min-width: 0; gap: 6px; margin: 0; padding-bottom: 9px; border-bottom: 1px solid #eeeaf4; }
+.pin-detail .pin-creator > .pin-category-badge { position: static; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; height: 28px; width: auto; max-width: none; padding: 0 7px; border-radius: 8px; color: #5137a0; background: #f0ecfa; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
+.pin-creator .coin, .pin-creator > .pin-creator-profile { width: 28px; min-width: 28px; height: 28px; min-height: 28px; flex: 0 0 28px; }
+.pin-detail .pin-creator > .pin-creator-name { flex: 0 1 auto; min-width: 0; max-width: 110px; font-size: 11px; font-weight: 600; line-height: 1.3; white-space: nowrap; }
+.pin-creator .pin-detail-actions { margin-left: auto; gap: 4px; }
+.pin-detail-actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 7px; border-radius: 8px; font-size: 10px; line-height: 1; white-space: nowrap; }
+.pin-trade-coins .coin-trade { width: 14px; min-width: 14px; height: 14px; min-height: 14px; flex-basis: 14px; }
+@media (max-width: 360px) { .pin-detail > .pin-creator { gap: 4px; } .pin-detail .pin-creator > .pin-category-badge { padding-inline: 5px; font-size: 9px; } .pin-detail-actions button { padding-inline: 5px; } }

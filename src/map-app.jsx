@@ -1,3 +1,4 @@
+import { coinMarker } from './coin-artwork.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from 'react';
 import { Home, CalendarCheck, Map as MapIcon, MessageCircle, MapPinPlus, LocateFixed, Settings, X } from 'lucide-react';
@@ -59,9 +60,7 @@ export function MapPage({ pins, selected, select, me, login, edit, onProfile, on
   useEffect(() => {
     markers.current?.remove(); markers.current = L.layerGroup().addTo(map.current);
     for (const pin of pins) {
-      const content = document.createElement('span'); content.dataset.coin = pin.coin; content.style.setProperty('--pin', coinColor(pin.coin));
-      const label = document.createElement('b'); label.style.display = 'grid'; label.textContent = pin.coin; content.append(label);
-      const image = document.createElement('img'); image.src = coinImage(pin.coin); image.dataset.coin = pin.coin; image.alt = pin.coin; image.onload = () => { label.style.display = 'none'; }; image.onerror = () => { image.style.display = 'none'; label.style.display = 'grid'; }; content.append(image);
+      const content = coinMarker(pin.coin);
       L.marker([pin.lat, pin.lng], { title: pin.title, icon: L.divIcon({ className: 'battle-map-marker', html: content, iconSize: [40, 48], iconAnchor: [20, 45] }) }).addTo(markers.current).on('click', () => select(pin));
     }
   }, [pins]);

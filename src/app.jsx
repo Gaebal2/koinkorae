@@ -1,3 +1,4 @@
+import { coinMarker } from './coin-artwork.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CalendarCheck, Check, Home, Map as MapIcon, MapPinPlus, Shield, SquarePen, Swords, Trophy, X, Zap, ChevronDown, ChevronUp, CircleUserRound } from 'lucide-react';
@@ -144,10 +145,7 @@ function MapPage({ me, config, revision, refresh, onProfile, login }) {
     layer.current?.remove(); layer.current = L.layerGroup().addTo(map.current);
     for (const pin of resource.data) {
       // Use DOM textContent, never interpolate user-controlled titles into map HTML.
-      const marker = document.createElement('span'); marker.style.setProperty('--pin', coinColor(pin.coin));
-      const img = document.createElement('img'); img.src = `${import.meta.env.BASE_URL}coin-icons/${pin.coin.toLowerCase()}.svg`; img.alt = pin.coin;
-      const fallback = document.createElement('b'); fallback.textContent = pin.coin;
-      img.onerror = () => { img.style.display = 'none'; fallback.style.display = 'grid'; }; marker.append(img, fallback);
+      const marker = coinMarker(pin.coin);
       const icon = L.divIcon({ className: 'battle-map-marker', html: marker, iconSize: [40, 48], iconAnchor: [20, 45] });
       L.marker([pin.lat, pin.lng], { icon }).addTo(layer.current).on('click', event => { L.DomEvent.stopPropagation(event.originalEvent); setSelected(pin); });
     }
