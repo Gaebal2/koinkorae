@@ -113,3 +113,27 @@ html { -webkit-tap-highlight-color: transparent; }
 .direct-composer { display: flex; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
 .direct-composer textarea { flex: 1; min-width: 0; height: 48px; resize: none; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 16px; }
 .direct-composer .primary { width: 48px; min-width: 48px; padding: 10px; margin: 0; }
+.friend-conversation { padding: 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+.friend-chat-head { padding: 10px 12px; background: #fff; }
+.direct-messages { padding: 20px 16px; gap: 18px; background: #fff; }
+.direct-message .chat-bubble { background: #f3f5f8; color: #354257; border-color: #dfe5ed; }
+.direct-message.mine .chat-bubble { background: #eaf2ff; color: #31588e; border-color: #c8daf4; border-radius: 16px 4px 16px 16px; }
+.direct-message .chat-bubble p,.direct-message.mine .chat-bubble p { background: transparent; color: inherit; padding: 0; }
+.direct-composer { display: block; padding: 10px 12px; }
+.direct-composer .chat-input-row { width: 100%; }
+.direct-composer .primary { background: #5278b5; }
+.profile-settings-button { display: grid; place-items: center; border: 1px solid #e4dff0; border-radius: 12px; width: 40px; height: 40px; background: #f5f2fb; color: #65518e; }
+.profile-settings-menu { display: grid; gap: 10px; }
+.profile-settings-menu button { padding: 16px; text-align: left; border: 1px solid var(--line); background: #faf9fd; border-radius: 12px; font-weight: 700; }
+.profile-settings-menu button:last-child { color: #b13c55; }
+.profile-page-x .profile-head { display: grid; grid-template-columns: 64px 1fr; column-gap: 14px; row-gap: 5px; text-align: left; padding: 18px; margin: 0 0 12px; border: 1px solid #e6e0f2; border-radius: 20px; background: linear-gradient(135deg,#f6f2ff,#fff); }
+.profile-page-x .profile-head .profile-avatar { width: 64px; height: 64px; margin: 0; grid-row: 1 / 3; }
+.profile-page-x .profile-head h1 { font-size: 20px; margin: 3px 0 0; align-self: end; overflow-wrap: anywhere; }
+.profile-page-x .profile-head p { margin: 0; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.profile-page-x .profile-social { grid-column: 1 / -1; margin-top: 8px; padding-top: 12px; border-top: 1px solid #e6e0f2; gap: 0; }
+.profile-page-x .profile-social button { flex: 1; padding: 5px; font-size: 12px; }
+.profile-page-x .profile-social button + button { border-left: 1px solid #e6e0f2; }
+.profile-page-x .profile-social b { font-size: 16px; margin-right: 5px; }
+.profile-page-x .tier-card { padding: 16px; margin: 0 0 12px; border-radius: 18px; }
+.profile-page-x .profile-links { margin: 10px 0; gap: 8px; }
+.profile-pin-map { width: 100%; padding: 12px; border: 1px solid #d9cff4; border-radius: 11px; background: #eee8fc; color: #5a3ea3; font-weight: 700; font-size: 13px; }

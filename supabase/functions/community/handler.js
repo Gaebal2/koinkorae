@@ -1,3 +1,4 @@
+import { chooseGame } from '../_shared/battle-engine.js';
 import { text, id, photo, coin, side, enabled, pin } from './validation.js';
 import { replayBattle, scoreResult } from '../_shared/battle-validation.js';
 import { newBattleProgress, advanceBattle, continueBattleProgress } from '../_shared/battle-progress.js';
@@ -103,7 +104,7 @@ export async function dispatch(db, identity, action, args = {}) {
     }
     case 'startBattle': {
       const seed=crypto.getRandomValues(new Uint32Array(1))[0];
-      const kind=seed<2147483648?'flappy':'runner';
+      const kind=args.protocol===2 && args.gameVersion===2 ? chooseGame(seed/4294967296) : seed<2147483648?'flappy':'runner';
       const session=await mutate('startBattle',id(args.requestId),{postId:id(args.postId),side:side(args.side),kind,seed,...(args.protocol===2 ? {protocol:2,progress:newBattleProgress(kind,seed)} : {})});
       return {id:session.id,kind:session.kind,seed:session.seed,side:session.side,...(session.progress ? {progress:session.progress} : {})};
     }

@@ -27,23 +27,23 @@ function Conversation({friend,me,onClose}) {
     try{const previous=await data.olderMessages(friend.id,rows[0].createdAt);setOlder(all=>[...previous,...all]);setMore(previous.length===100);requestAnimationFrame(()=>{if(scroll.current)scroll.current.scrollTop=beforeTop+scroll.current.scrollHeight-beforeHeight;});}catch(e){setError(e.message);}finally{setBusy(false);}
   };
   return <main className="friend-conversation"><header className="friend-chat-head"><button onClick={onClose} aria-label="친구 목록으로"><ArrowLeft/></button><img src={(profile ? profile.profileImage : friend.profileImage) || profileImage()} alt=""/><b>{profile?.username || friend.username}</b></header>
-    <div className="direct-messages" ref={scroll} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<80;}} aria-label="친구와의 대화">
+    <div className="chat-messages direct-messages" ref={scroll} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<80;}} aria-label="친구와의 대화">
       {more&&<button className="text-action" disabled={busy} onClick={loadOlder}>이전 메시지 보기</button>}
       {loading ? <p role="status">대화를 불러오는 중…</p> : !rows.length && <Empty text="친구에게 첫 메시지를 보내보세요."/>}
-      {rows.map(row=><article key={row.id} className={'direct-message '+(row.senderId===me.id?'mine':'theirs')}><p>{row.content}</p><small>{new Date(row.createdAt).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small></article>)}<div ref={end}/>
+      {rows.map(row=><article key={row.id} className={'chat-message direct-message '+(row.senderId===me.id?'mine':'theirs')}><div className="chat-message-head"><b>{row.senderId===me.id?'나':profile?.username||friend.username}</b></div><div className="chat-bubble"><p>{row.content}</p></div><small>{new Date(row.createdAt).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small></article>)}<div ref={end}/>
     </div>{error&&<p role="alert" className="error">{error}</p>}
-    <form className="direct-composer" onSubmit={send}><textarea aria-label="메시지" maxLength={1000} disabled={busy} value={content} onChange={e=>setContent(e.target.value)} placeholder="메시지를 입력하세요"/><button className="primary" disabled={busy||!content.trim()} aria-label="메시지 보내기"><Send/></button></form>
+    <form className="chat-composer direct-composer" onSubmit={send}><div className="chat-input-row"><textarea aria-label="메시지" maxLength={1000} disabled={busy} value={content} onChange={e=>setContent(e.target.value)} placeholder="메시지를 입력하세요"/><button className="primary" disabled={busy||!content.trim()} aria-label="메시지 보내기"><Send/></button></div></form>
   </main>;
 }
 function SignedInChat({me}) {
   const [friends,setFriends]=useState(null),[selected,setSelected]=useState(null),[error,setError]=useState('');
   useEffect(()=>data.watchFriends(setFriends,e=>setError(e.message)),[me.id]);
   useEffect(()=>{if(selected&&friends&&!friends.some(friend=>friend.id===selected.id))setSelected(null);},[friends,selected]);
-  useBackDismiss(!!selected,()=>setSelected(null));
+  useBackDismiss(!!selected,()=>setSelected(null),40);
   if(selected)return <Conversation key={selected.id} friend={selected} me={me} onClose={()=>setSelected(null)}/>;
-  return <main><PageTitle icon={MessageCircle} title="채팅" sub="친구와 이야기를 나누세요"/>{error&&<p className="error" role="alert">{error}</p>}{friends===null?<p role="status">친구를 불러오는 중…</p>:!friends.length?<Empty text="등록 된 친구가 없습니다."/>:<div className="chat-friends">{friends.map(friend=><button key={friend.id} onClick={()=>setSelected(friend)}><img src={friend.profileImage||profileImage()} alt=""/><span><b>{friend.username}</b><small>{friend.bio}</small></span><MessageCircle/></button>)}</div>}</main>;
+  return <main><PageTitle icon={MessageCircle} title="맞팔 친구와 채팅" sub="친구와 이야기를 나누세요"/>{error&&<p className="error" role="alert">{error}</p>}{friends===null?<p role="status">친구를 불러오는 중…</p>:!friends.length?<Empty text="등록 된 친구가 없습니다."/>:<div className="chat-friends">{friends.map(friend=><button key={friend.id} onClick={()=>setSelected(friend)}><img src={friend.profileImage||profileImage()} alt=""/><span><b>{friend.username}</b><small>{friend.bio}</small></span><MessageCircle/></button>)}</div>}</main>;
 }
 export function FriendChat({me,login}) {
-  if(!me)return <main><PageTitle icon={MessageCircle} title="채팅"/><p>로그인하고 친구와 채팅하세요.</p><button className="primary" onClick={login}>로그인</button></main>;
+  if(!me)return <main><PageTitle icon={MessageCircle} title="맞팔 친구와 채팅"/><p>로그인하고 친구와 채팅하세요.</p><button className="primary" onClick={login}>로그인</button></main>;
   return <SignedInChat key={me.id} me={me}/>;
 }

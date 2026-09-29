@@ -1,3 +1,4 @@
+import { useBackDismiss } from './use-back-dismiss.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from 'react-dom';
@@ -323,6 +324,7 @@ export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChan
 }
 
 export function Modal({ title, onClose, children, className = "" }) {
+  useBackDismiss(true,onClose);
   const element = useRef(null), close = useRef(onClose);
   close.current = onClose;
   useEffect(() => {

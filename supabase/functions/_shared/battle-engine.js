@@ -1,10 +1,21 @@
 export const WIDTH = 360, HEIGHT = 440, GROUND = 396;
-export const chooseGame = value => value < 0.5 ? 'flappy' : 'runner';
+export const GAME_KINDS = ['flappy','runner','stack','tower','dodge'];
+export const chooseGame = value => GAME_KINDS[Math.min(4,Math.max(0,Math.floor(value*5)))];
 export function newGame(kind) {
+  if(kind==='stack')return {kind,time:0,score:0,ended:false,reason:'',baseX:90,width:180,x:0,direction:1,blocks:[]};
+  if(kind==='tower')return {kind,time:0,score:0,ended:false,reason:'',x:180,phase:0,flight:0,airborne:false};
+  if(kind==='dodge')return {kind,time:0,score:0,ended:false,reason:'',lane:0,obstacles:[],nextObstacle:1};
   return { kind, time: 0, score: 0, y: kind === 'flappy' ? 190 : GROUND - 34, velocity: 0, obstacles: [], nextObstacle: kind === 'flappy' ? 1.3 : 1.4, ended: false, reason: '' };
 }
 export function jump(game) {
   if (game.ended) return;
+  if(game.kind==='stack') {
+    const left=Math.max(game.x,game.baseX),right=Math.min(game.x+game.width,game.baseX+game.width);
+    if(right-left<8){game.ended=true;game.reason='collision';return;}
+    game.width=right-left;game.baseX=left;game.score+=10;game.blocks.push({x:left,w:game.width});game.blocks=game.blocks.slice(-10);game.x=game.direction>0?WIDTH-game.width:0;game.direction*=-1;return;
+  }
+  if(game.kind==='tower'){if(!game.airborne){game.airborne=true;game.flight=0;}return;}
+  if(game.kind==='dodge'){game.lane=1-game.lane;return;}
   if (game.kind === 'flappy') game.velocity = -295;
   else if (game.y >= GROUND - 34 - 0.1) game.velocity = -540;
 }
@@ -12,6 +23,21 @@ const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h 
 export function step(game, dt, random = Math.random) {
   if (game.ended) return game;
   game.time += dt;
+  if(game.kind==='stack') {
+    game.x+=game.direction*(95+Math.min(game.score,180)*.5)*dt;
+    if(game.x<0){game.x=-game.x;game.direction=1;}if(game.x>WIDTH-game.width){game.x=2*(WIDTH-game.width)-game.x;game.direction=-1;}
+    return game;
+  }
+  if(game.kind==='tower') {
+    game.x=180+Math.sin(game.time*(1.5+Math.min(game.score,200)/200)+game.phase)*112;
+    if(game.airborne){game.flight+=dt;if(game.flight>=.8){game.airborne=false;if(Math.abs(game.x-180)>49){game.ended=true;game.reason='collision';}else{game.score+=10;game.phase=random()*Math.PI*2;}}}
+    return game;
+  }
+  if(game.kind==='dodge') {
+    if(game.time>=game.nextObstacle){game.obstacles.push({lane:random()<.5?0:1,y:-30,passed:false});game.nextObstacle=game.time+Math.max(.75,1.4-game.score*.002);}
+    for(const obstacle of game.obstacles){obstacle.y+=(150+Math.min(130,game.time*2))*dt;if(obstacle.lane===game.lane&&obstacle.y+30>330&&obstacle.y<358){game.ended=true;game.reason='collision';}if(!obstacle.passed&&obstacle.y>358){obstacle.passed=true;game.score+=10;}}
+    game.obstacles=game.obstacles.filter(o=>o.y<HEIGHT+30);return game;
+  }
   const bird = game.kind === 'flappy';
   game.velocity += (bird ? 900 : 1600) * dt;
   game.y += game.velocity * dt;
