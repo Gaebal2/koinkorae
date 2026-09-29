@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Trophy } from 'lucide-react';
+import { PointsPolicy } from './points-policy.jsx';
 import { data } from './data.js';
 import { age } from './api.js';
 import { Empty, Modal, PinDetailCard, profileImage, Segments } from './ui.jsx';
@@ -21,6 +22,7 @@ function People({ ids, me, following, onFollow, onProfile }) {
 function ProfileContent({ initialFeed = '작성 피드', onPin, profileId, profile, me, balance, pins, following, busy, login, onProfile, onEdit, onLogout, onFollow, onMap, onPinEdit, onPinDelete }) {
   const [posts, setPosts] = useState([]), [loaded, setLoaded] = useState(false), [edges, setEdges] = useState([]), [view, setView] = useState(null), [feed, setFeed] = useState('작성 피드'), [photo, setPhoto] = useState(null), [comments, setComments] = useState(null);
   const [, setError] = useAppMessage();
+  const [policy, setPolicy] = useState(false);
   const { actions, overlays } = useFeedActions(me, login);
   const [authored, setAuthored] = useState([]), [sharedPosts, setSharedPosts] = useState([]);
   useEffect(() => { setAuthored([]); return data.watchAuthorPosts(profileId, setAuthored, () => setError('작성한 피드를 불러오지 못했습니다.')); }, [profileId]);
@@ -41,10 +43,11 @@ function ProfileContent({ initialFeed = '작성 피드', onPin, profileId, profi
   const shown = feed === '작성 피드' ? authored : sharedPosts;
   const peopleIds = { '팔로워': graph.followers, '팔로잉': graph.following, '맞팔친구': graph.friends };
   return <main className="profile-page-x"><section className="profile-head"><img className="profile-avatar" src={profile.profileImage || profileImage()} alt={`${profile.username} 프로필`}/><h1>{profile.username}</h1><p>{profile.bio || '내 주변에서 코인 이야기를 나누세요.'}</p><div className="profile-social"><button onClick={() => setView('팔로워')}><b>{graph.followers.length}</b> 팔로워</button><button onClick={() => setView('팔로잉')}><b>{graph.following.length}</b> 팔로잉</button></div></section>
-    {own ? <><section className="tier-card"><Trophy/><div><small>현재 등급 · 누적 {balance.lifetime.toLocaleString()} BP</small><b>{tier.tier}</b><span>보유 {balance.current.toLocaleString()} BP · PIN {mine.length}/3</span><span>{tier.next ? `다음 등급까지 ${Math.max(0,tier.next-balance.lifetime).toLocaleString()} BP` : '최고 등급입니다'}</span></div><i style={{width:`${tier.progress}%`}}/></section></> : <div className="profile-links"><button disabled={busy} onClick={() => onFollow(profileId)}>{following.includes(profileId) ? '팔로잉 취소' : '팔로우'}</button></div>}
+    {own ? <><button type="button" className="tier-card" onClick={() => setPolicy(true)} aria-haspopup="dialog"><Trophy/><div><small>현재 등급 · 누적 {balance.lifetime.toLocaleString()} BP</small><b>{tier.tier}</b><span>보유 {balance.current.toLocaleString()} BP · PIN {mine.length}/3</span><span>{tier.next ? `다음 등급까지 ${Math.max(0,tier.next-balance.lifetime).toLocaleString()} BP` : '최고 등급입니다'}</span></div><i style={{width:`${tier.progress}%`}}/></button></> : <div className="profile-links"><button disabled={busy} onClick={() => onFollow(profileId)}>{following.includes(profileId) ? '팔로잉 취소' : '팔로우'}</button></div>}
     <div className="profile-links"><button onClick={() => setView('맞팔친구')}>맞팔친구 {graph.friends.length}</button><button onClick={() => setView('PIN')}>PIN {mine.length}</button>{own && <button onClick={() => setView('댓글')}>내 댓글</button>}</div>
     <h2 className="profile-feed-title">{own ? '내 Feed' : `${profile.username}님의 Feed`}</h2><Segments items={['작성 피드','리포스트']} value={feed} onChange={setFeed}/><div className="feed">{!loaded ? <p role="status">피드를 불러오는 중…</p> : shown.length ? shown.map(post => <CommunityPost onPin={onPin} key={post.id} post={post} onProfile={onProfile} {...actions}/>) : <Empty text={feed === '작성 피드' ? '아직 작성한 피드가 없습니다' : '아직 리포스트가 없습니다'}/>}</div>
     {view && <Modal title={view} onClose={() => setView(null)}>{peopleIds[view] ? <People ids={peopleIds[view]} me={me} following={following} onFollow={onFollow} onProfile={id => { setView(null); onProfile(id); }}/> : view === 'PIN' ? <div className="profile-pin-list">{mine.length ? mine.map(pin => <div key={pin.id}><PinDetailCard pin={pin} className="profile-pin-card" onProfile={() => { setView(null); onProfile(pin.ownerId); }} onImage={p => setPhoto(p.image)} onEdit={pin.owner ? onPinEdit : undefined} onDelete={pin.owner ? onPinDelete : undefined} footer={<button className="profile-pin-map" onClick={() => { setView(null); onMap(pin); }}>지도에서 보기</button>}/></div>) : <Empty text="등록한 PIN이 없습니다"/>}</div> : <div className="profile-comments">{comments === null ? <p role="status">댓글을 불러오는 중…</p> : comments.length ? comments.map(comment => <article key={`${comment.post.id}_${comment.id}`}><b>{comment.post.author} · {comment.post.coin}</b><small>{age(comment.createdAt)}</small><p>{comment.content}</p><button className="text-action" onClick={() => actions.onComment(comment.post)}>원문과 댓글 보기</button></article>) : <Empty text="아직 작성한 댓글이 없습니다"/>}</div>}</Modal>}
+    {policy && <PointsPolicy onClose={() => setPolicy(false)}/>}
     {photo && <Modal title="거래 사진" onClose={() => setPhoto(null)}><img className="expanded-photo" src={photo} alt="거래 첨부 사진"/></Modal>}{overlays}
   </main>;
 }
