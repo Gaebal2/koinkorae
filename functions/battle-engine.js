@@ -32,6 +32,6 @@ export function step(game, dt, random = Math.random) {
   }
   game.obstacles = game.obstacles.filter(o => o.x + o.w > -10);
   if (!bird) game.score = Math.floor(game.time * 10);
-  if (collision || game.time >= 60) { game.ended = true; game.reason = collision ? 'collision' : 'complete'; }
+  if (collision) { game.ended = true; game.reason = 'collision'; }
   return game;
 }

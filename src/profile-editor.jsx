@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { data } from './data.js';
 import { readPhoto } from './api.js';
 import { Field, Modal, profileImage } from './ui.jsx';
+import { publishProfile } from './live-profile.js';
 
 export function ProfileEditor({ profile, onClose, onSaved }) {
   const [draft, setDraft] = useState({ username: profile.username || '', bio: profile.bio || '', profileImage: profile.profileImage || '' });
@@ -18,7 +19,7 @@ export function ProfileEditor({ profile, onClose, onSaved }) {
   const save = async e => {
     e.preventDefault(); if (busy || !draft.username.trim()) return;
     setBusy(true); setError('');
-    try { await data.saveProfile(draft); const saved = await data.profile(profile.id); onSaved(saved); }
+    try { await data.saveProfile(draft); const saved = await data.profile(profile.id); publishProfile(saved); onSaved(saved); }
     catch (error) { setError(error.message); }
     finally { setBusy(false); }
   };

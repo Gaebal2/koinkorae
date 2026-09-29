@@ -15,6 +15,7 @@ const db = {
       let query=table().select('*').eq('kind',kind);
       if(filter.owner) query=query.eq('owner',filter.owner);
       if(filter.parent) query=query.eq('parent',filter.parent);
+      if(filter.before !== undefined) query=query.lt('body->createdAt',filter.before);
       if(filter.recent || filter.oldest) query=query.order('body->createdAt',{ascending:!!filter.oldest});
       query=query.order('parent').order('id');
       const size=filter.limit ? Math.min(500,filter.limit-offset) : 500;

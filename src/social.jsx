@@ -6,6 +6,12 @@ import { data, dayNumber } from './data.js';
 import { age } from './api.js';
 import { filterFeed } from './feed-model.js';
 import { Segments, Coin, Empty, Modal, Field, PageTitle } from './ui.jsx';
+import { useLiveProfile } from './live-profile.js';
+
+function CommentAuthor({ id, name }) {
+  const profile = useLiveProfile(id);
+  return <span className="comment-author">{profile?.profileImage && <img src={profile.profileImage} alt=""/>}<b>{profile?.username || name}</b></span>;
+}
 
 export function HomePage({ onPin, onReposted, me, options, setOptions, following, onProfile, compose, login }) {
   const [posts, setPosts] = useState([]), [error, setError] = useAppMessage(), [loading, setLoading] = useState(true), [open, setOpen] = useState({});
@@ -25,11 +31,16 @@ export function HomePage({ onPin, onReposted, me, options, setOptions, following
 export function Comments({ post, me, close }) {
   const { confirm } = useFeedback();
   const [deleting, setDeleting] = useState(null);
+  const [pendingScroll, setPendingScroll] = useState(null);
   const [items, setItems] = useState([]), [content, setContent] = useState(''), [reply, setReply] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const timer = useRef(null), origin = useRef(null), nodes = useRef(new Map()), sending = useRef(false), input = useRef(null);
   const cancelPress = () => clearTimeout(timer.current);
   useEffect(() => data.watchComments(post.id, setItems, () => setError('댓글을 불러오지 못했습니다.')), [post.id]);
   useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => {
+    const node=nodes.current.get(pendingScroll);
+    if (node) { node.scrollIntoView({behavior:'smooth',block:'nearest'}); setPendingScroll(null); }
+  }, [items,pendingScroll]);
   const selectReply = c => { if (me && !sending.current) { setReply(c); input.current?.focus(); } };
   const remove = async c => {
     if (deleting || !(await confirm('이 댓글을 삭제할까요?', {title:'댓글 삭제', confirmLabel:'삭제'}))) return;
@@ -47,7 +58,7 @@ export function Comments({ post, me, close }) {
   const send = async side => {
     if (sending.current || !content.trim()) return;
     sending.current = true; setBusy(true); setError('');
-    try { await data.comment(post.id, content, side, reply?.id); setContent(''); setReply(null); }
+    try { const saved=await data.comment(post.id, content, side, reply?.id); setPendingScroll(saved.id); setContent(''); setReply(null); }
     catch { setError('댓글을 저장하지 못했습니다.'); }
     finally { sending.current = false; setBusy(false); }
   };
@@ -55,14 +66,14 @@ export function Comments({ post, me, close }) {
     <div className="chat-messages" aria-label="댓글 대화">
       {!items.length && <p className="form-help">첫 댓글을 남겨보세요.</p>}
       {items.map(c => <article key={c.id} ref={node => { if (node) nodes.current.set(c.id, node); else nodes.current.delete(c.id); }} tabIndex={-1} className={'chat-message ' + (c.side || 'neutral')}>
-        <div className="chat-message-head"><b>{c.author}</b>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label="내 댓글 삭제">×</button>}</div>
+        <div className="chat-message-head"><CommentAuthor id={c.authorId} name={c.author}/>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label="내 댓글 삭제">×</button>}</div>
         <div className="chat-bubble" tabIndex={0} aria-label={c.author + (c.side === 'support' ? ' 지지' : c.side === 'oppose' ? ' 반대' : '') + ' 댓글. 길게 누르거나 Enter 키로 답글 작성'}
           onPointerDown={e => { if (e.button !== 0) return; cancelPress(); origin.current = { x:e.clientX, y:e.clientY }; timer.current = setTimeout(() => selectReply(c), 550); }}
           onPointerMove={e => { if (origin.current && Math.hypot(e.clientX-origin.current.x,e.clientY-origin.current.y)>10) cancelPress(); }}
           onPointerUp={cancelPress} onPointerCancel={cancelPress} onPointerLeave={cancelPress}
           onContextMenu={e => { e.preventDefault(); cancelPress(); selectReply(c); }}
           onKeyDown={e => { if (e.target === e.currentTarget && e.key === 'Enter') { e.preventDefault(); selectReply(c); } }}>
-          {c.replyTo && (items.some(parent => parent.id === c.replyTo.id) ? <button type="button" className="chat-quote" aria-label="원댓글 보기: 두 번 누르기" onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><b>{c.replyTo.author}</b><span>{c.replyTo.content}</span></button> : <div className="chat-quote">삭제된 댓글입니다.</div>)}
+          {c.replyTo && (items.some(parent => parent.id === c.replyTo.id) ? <button type="button" className={'chat-quote quote-' + (items.find(parent => parent.id === c.replyTo.id)?.side || 'neutral')} aria-label="원댓글 보기: 두 번 누르기" onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><CommentAuthor id={items.find(parent => parent.id === c.replyTo.id)?.authorId} name={c.replyTo.author}/><span>{c.replyTo.content}</span></button> : <div className="chat-quote">삭제된 댓글입니다.</div>)}
           <p>{c.content}</p>
         </div><small>{age(c.createdAt)}{!c.side && ' · 입장 미선택'}</small>
       </article>)}

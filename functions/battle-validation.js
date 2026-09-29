@@ -11,6 +11,8 @@ export function replayBattle(kind, seed, inputs, elapsedMs) {
   while (!game.ended && tick <= 7200) {
     if (inputs[index] === tick) { jump(game); index++; }
     step(game, TICK, random); tick++;
+    // Compatibility for clients started before the unlimited-game protocol.
+    if (game.time >= 60 && !game.ended) { game.ended=true;game.reason='complete'; }
   }
   if (index !== inputs.length || !game.ended || game.time * 1000 > elapsedMs + 250) throw Error('게임 시간과 기록이 일치하지 않습니다.');
   return { score: game.score, duration: game.time, reason: game.reason };

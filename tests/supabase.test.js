@@ -30,7 +30,7 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
     await Promise.all(Array.from({length:5},()=>dispatch(db,a,'checkin')));
     assert.equal((await dispatch(db,a,'balance',{uid:'alice'})).current,10);
     await assert.rejects(dispatch(db,b,'balance',{uid:'alice'}),/본인/);
-    const value={title:'Pin',description:'Sale',coin:'PI',tradeCoins:['BTC'],link:'',image:'',category:'판매',lat:37,lng:127,ownerId:'bob'};
+    const value={title:'Pin',description:'Sale',coin:'PI',tradeCoins:['BTC'],link:'',image:'',category:'P2P 판매',lat:37,lng:127,ownerId:'bob'};
     const p=await dispatch(db,a,'savePin',{value});
     assert.equal(p.ownerId,'alice');
     await dispatch(db,a,'savePin',{value});await dispatch(db,a,'savePin',{value});
@@ -62,7 +62,7 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
     const original=(await dispatch(db,null,'comments',{postId:post.id}))[0];
     await dispatch(db,a,'comment',{postId:post.id,content:'reply',side:'support',replyToId:original.id});
     const reply=(await dispatch(db,null,'comments',{postId:post.id})).find(c=>c.content==='reply');
-    assert.deepEqual(reply.replyTo,{id:original.id,author:'Bob',content:'hi'});
+    assert.deepEqual(reply.replyTo,{id:original.id,author:'Bob',content:'hi',side:'oppose',authorId:'bob'});
     assert.equal(reply.side,'support');
     await assert.rejects(dispatch(db,a,'comment',{postId:post.id,content:'invalid',side:'support',replyToId:'missing'}));
     await dispatch(db,a,'publish',{value:{content:'another post',coin:'PI'}});
@@ -93,7 +93,7 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
 });
 
 test('Pin payload rejects unsafe coordinates, categories, images and links',()=>{
-  const value={title:'Pin',description:'Sale',coin:'PI',tradeCoins:[],image:'',link:'',category:'판매',lat:0,lng:0};
+  const value={title:'Pin',description:'Sale',coin:'PI',tradeCoins:[],image:'',link:'',category:'P2P 판매',lat:0,lng:0};
   assert.equal(pin({...value,title:'가'.repeat(50)}).title.length,50);
   assert.throws(()=>pin({...value,title:'가'.repeat(51)}));
   for(const changes of [{lat:Infinity},{lat:91},{lng:-181},{category:'x'},{image:'https://bad'},{link:'javascript:alert(1)'},{tradeCoins:['bad coin']}]) assert.throws(()=>pin({...value,...changes}));
@@ -108,5 +108,5 @@ test('client refreshes expired tokens and suppresses callbacks after unsubscribe
 });
 
 test('deployed battle replay files match the game engine',async()=>{
-  for(const file of ['battle-engine.js','battle-validation.js']) assert.equal(await readFile(`functions/${file}`,'utf8'),await readFile(`supabase/functions/_shared/${file}`,'utf8'));
+  for(const file of ['battle-engine.js','battle-validation.js','battle-progress.js']) assert.equal(await readFile(`functions/${file}`,'utf8'),await readFile(`supabase/functions/_shared/${file}`,'utf8'));
 });

@@ -84,6 +84,7 @@ export const data = {
     const row = await getDoc(doc(db, 'profiles', id));
     return { id, username: auth.currentUser?.uid === id ? auth.currentUser.displayName || '회원' : '회원', bio: '', profileImage: '', ...row.data() };
   },
+  watchProfile(id, callback, error) { return onSnapshot(doc(db, 'profiles', id), row => callback({id, ...row.data()}), error); },
   async saveProfile(value) {
     const u = user(), username = (value.username ?? displayName(u)).trim();
     if (!username || username.length > 24) throw Error('이름은 1~24자로 입력해 주세요.');
@@ -163,7 +164,9 @@ export const data = {
     const parent = replyToId ? await getDoc(doc(db, 'posts', postId, 'comments', replyToId)) : null;
     if (parent && !parent.exists()) throw Error('원댓글을 찾을 수 없습니다.');
     const replyTo = parent ? { id: parent.id, author: parent.data().author, content: parent.data().content.slice(0,120) } : null;
-    await setDoc(doc(collection(db, 'posts', postId, 'comments')), { authorId: u.uid, author: displayName(u), content: content.trim(), side, ...(replyTo ? {replyTo} : {}), createdAt: serverTimestamp() });
+    const ref=doc(collection(db, 'posts', postId, 'comments'));
+    await setDoc(ref, { authorId: u.uid, author: displayName(u), content: content.trim(), side, ...(replyTo ? {replyTo} : {}), createdAt: serverTimestamp() });
+    return {id:ref.id};
   },
   async deleteComment(postId, id) { user(); await deleteDoc(doc(db, 'posts', postId, 'comments', id)); },
 };

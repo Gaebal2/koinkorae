@@ -6,6 +6,8 @@ import initialCoins from './cmc-top100.json';
 import { prioritizeCoins } from './coins.js';
 import { watchInstallPrompt } from './install-prompt.js';
 import { readPhoto } from './api.js';
+import { useLiveProfile } from './live-profile.js';
+import { pinCategories, normalizePinCategory } from './pin-categories.js';
 export const cmcCoins = prioritizeCoins(initialCoins);
 export const asset = name => import.meta.env.BASE_URL + name;
 const fmt = n => new Intl.NumberFormat('ko-KR',{notation: Math.abs(n)>999?'compact':'standard'}).format(n);
@@ -112,6 +114,8 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
 
 export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onActivate, topAction, className = "", interactionDisabled = false, footer }) {
   const { confirm } = useFeedback();
+  const creator = useLiveProfile(pin.ownerId);
+  const creatorName = creator?.username || pin.creator || '회원';
   const passive = interactionDisabled || !!onActivate;
   const Photo = passive ? 'span' : 'button';
   const Avatar = passive ? 'span' : 'button';
@@ -126,14 +130,14 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
         <div className="pin-creator">
           <Coin symbol={pin.coin} size="sm" />
           <Avatar className="pin-creator-profile" onClick={!passive ? () => onProfile?.(pin.creator || "battle_newbie") : undefined} aria-label={!passive ? '핀 생성자 프로필 보기' : undefined}>
-            <img src={profileImage(pin.creator || "battle_newbie")} alt={`${pin.creator || "battle_newbie"} 프로필`} />
+            <img src={creator?.profileImage || profileImage()} alt={`${creatorName} 프로필`} />
           </Avatar>
-          <span>@{pin.creator || "battle_newbie"}</span>
+          <span>@{creatorName}</span>
           {topAction && <div className="pin-detail-actions">{topAction}</div>}
           {!passive && (onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button type="button" onClick={() => onEdit(pin)}>수정</button>}
           {onDelete && <button disabled={interactionDisabled} type="button" className="pin-delete" aria-label="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}</div>}
         </div>
-        <small>{pin.category}{pin.tradeCoins?.length ? ` · 거래 가능한 코인: ${pin.tradeCoins.join(', ')}` : ''}</small>
+        <small>{normalizePinCategory(pin.category)}{pin.tradeCoins?.length ? ` · 거래 가능한 코인: ${pin.tradeCoins.join(', ')}` : ''}</small>
         <b>{pin.title}</b>
         <p>{pin.description}</p>
         {pin.link && (passive ? <span className="pin-inactive-link">{pin.link}</span> : <a href={pin.link} target="_blank" rel="noreferrer">{pin.link}</a>)}
@@ -156,8 +160,9 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
     lat: center.lat,
     lng: center.lng,
     image: "",
-    category: '판매',
+    category: pinCategories[0],
     ...initial,
+    ...(initial ? {category:normalizePinCategory(initial.category)} : {}),
   });
   const fileRef = useRef(null);
   const coins = cmcCoins;
@@ -181,7 +186,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
   };
   return (
     <Modal title={initial ? '핀 수정' : '지도위에 핀 추가'} onClose={onClose} className="pin-form-modal">
-      <Field label="핀 종류"><AppSelect title="핀 종류 선택" value={form.category} onChange={category=>setForm({...form,category})} options={['판매','구매 희망','서비스','사업장'].map(value=>({value,label:value}))}/></Field>
+      <Field label="핀 종류"><AppSelect title="핀 종류 선택" value={form.category} onChange={category=>setForm({...form,category})} options={pinCategories.map(value=>({value,label:value}))}/></Field>
       <div className="pin-location">
         <MapPin />
         <div>

@@ -6,6 +6,7 @@ import { Coin, Modal, PinDetailCard } from './ui.jsx';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import { BattleGames } from './battle-games.jsx';
 import { Comments } from './social.jsx';
+import { useLiveProfile } from './live-profile.js';
 
 export function useFeedActions(me, login, onReposted) {
   const { confirm, notify } = useFeedback();
@@ -49,12 +50,14 @@ function AttachedPin({ id, onPin }) {
 }
 
 export function CommunityPost({ onPin, post, onProfile, me, reposts, busy, repostNavigates, onBattle, onComment, onRepost, onPhoto, onDelete }) {
+  const authorProfile = useLiveProfile(post.authorId);
+  const authorName = authorProfile?.username || post.author;
   const [count, setCount] = useState(null);
   useEffect(() => { setCount(null); return data.watchCommentCount(post.id, setCount, () => setCount(null)); }, [post.id]);
   const total = post.support + post.oppose, score = post.support - post.oppose;
   const shared = reposts.filter(r => r.postId === post.id), isShared = shared.some(r => r.userId === me?.id);
   return <article className="post-card">
-    <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={`${post.author} 프로필 보기`}>{post.author.slice(0,2)}</button><div><b>{post.author}</b><span>{age(post.createdAt)}</span></div><Coin symbol={post.coin}/></div>
+    <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={`${authorName} 프로필 보기`}>{authorProfile?.profileImage ? <img src={authorProfile.profileImage} alt=""/> : authorName.slice(0,2)}</button><div><b>{authorName}</b><span>{age(post.createdAt)}</span></div><Coin symbol={post.coin}/></div>
     <p className="post-body">{post.content}</p>{post.image && <button className="post-image" onClick={() => onPhoto(post.image)} aria-label="피드 이미지 크게 보기"><img src={post.image} alt="피드 첨부 사진"/></button>}
     {post.pinId && <AttachedPin id={post.pinId} onPin={onPin} onProfile={onProfile} onPhoto={onPhoto}/>}
     <div className="battle-meter"><i style={{width:`${total ? post.support / total * 100 : 50}%`}}/><span>지지 {post.support.toLocaleString()}</span><span>반대 {post.oppose.toLocaleString()}</span></div>

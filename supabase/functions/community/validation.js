@@ -25,7 +25,7 @@ export function enabled(value) {
 export function pin(value) {
   const lat = Number(value.lat), lng = Number(value.lng);
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) throw Error('지도 위치를 확인해 주세요.');
-  if (!['판매','구매 희망','서비스','사업장'].includes(value.category)) throw Error('거래 분류를 선택해 주세요.');
+  if (!['P2P 판매','P2P 구매 희망','상점 등록'].includes(value.category)) throw Error('거래 분류를 선택해 주세요.');
   if (!Array.isArray(value.tradeCoins) || value.tradeCoins.length > 110) throw Error('거래 코인을 확인해 주세요.');
   const link = text(value.link || '', 500);
   if (link && !/^https?:\/\//.test(link)) throw Error('HTTP 또는 HTTPS 링크를 입력해 주세요.');

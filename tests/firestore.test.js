@@ -3,7 +3,7 @@ import { before, after, beforeEach, test } from 'node:test';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
 import { doc, setDoc, getDoc, getDocs, collectionGroup, query, where, deleteDoc, serverTimestamp } from 'firebase/firestore';
 let env;
-const pin = { ownerId: 'alice', slot: '0', creator: 'Alice', title: 'BTC 거래', description: '공개 장소에서 만나요', coin: 'BTC', tradeCoins: ['BTC'], link: '', image: '', category: '판매', lat: 37.5, lng: 127 };
+const pin = { ownerId: 'alice', slot: '0', creator: 'Alice', title: 'BTC 거래', description: '공개 장소에서 만나요', coin: 'BTC', tradeCoins: ['BTC'], link: '', image: '', category: 'P2P 판매', lat: 37.5, lng: 127 };
 before(async () => { env = await initializeTestEnvironment({ projectId: process.env.GCLOUD_PROJECT || 'demo-koinkorae', firestore: { rules: await readFile('firestore.rules', 'utf8') } }); });
 beforeEach(async () => { await env.clearFirestore(); });
 after(async () => { await env?.cleanup(); });
