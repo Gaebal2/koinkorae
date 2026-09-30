@@ -1,6 +1,7 @@
 import { createRemoteJWKSet, jwtVerify } from 'npm:jose@6';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { dispatch, publicActions } from './handler.js';
+import { changeStream } from './stream.ts';
 
 const project = Deno.env.get('FIREBASE_PROJECT_ID') || 'koinkorae-map';
 const jwks = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
@@ -8,13 +9,18 @@ const client = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABAS
 const table = () => client.from('korae_documents');
 async function result(query: any) { const {data,error}=await query; if(error) throw Error(error.message); return data; }
 const db = {
-  one: (kind:string,id:string,parent='') => result(table().select('*').eq('kind',kind).eq('id',id).eq('parent',parent).maybeSingle()),
+  one: (kind:string,id:string,parent='') => result(table().select('id,body').eq('kind',kind).eq('id',id).eq('parent',parent).maybeSingle()),
+  many: (kind:string,ids:string[]) => ids.length ? result(table().select('id,body').eq('kind',kind).eq('parent','').in('id',ids)) : Promise.resolve([]),
+  page: (uid:string|null,options:any,cursor:any,limit:number) => result(client.rpc('korae_page',{p_uid:uid,p_options:options,p_cursor:cursor,p_limit:limit})),
+  friends: (uid:string) => result(client.rpc('korae_friends',{p_uid:uid})),
+  counts: (ids:string[]) => result(client.rpc('korae_comment_counts',{p_ids:ids})),
   async list(kind:string,filter:any={}) {
     const rows:any[]=[];
     for(let offset=0;;offset+=500) {
-      let query=table().select('*').eq('kind',kind);
+      let query=table().select(kind==='following' ? 'id,parent' : 'id,parent,body').eq('kind',kind);
       if(filter.owner) query=query.eq('owner',filter.owner);
       if(filter.parent) query=query.eq('parent',filter.parent);
+      if(filter.related) query=query.or(`parent.eq.${filter.related},id.eq.${filter.related}`);
       if(filter.before !== undefined) query=query.lt('body->createdAt',filter.before);
       if(filter.recent || filter.oldest) query=query.order('body->createdAt',{ascending:!!filter.oldest});
       query=query.order('parent').order('id');
@@ -23,7 +29,7 @@ const db = {
       if(batch.length<size || (filter.limit && rows.length>=filter.limit)) return rows;
     }
   },
-  async count(kind:string,parent:string) { const {count,error}=await table().select('*',{head:true,count:'exact'}).eq('kind',kind).eq('parent',parent); if(error) throw error; return count; },
+  async count(kind:string,parent:string) { const {count,error}=await table().select('id',{head:true,count:'exact'}).eq('kind',kind).eq('parent',parent); if(error) throw error; return count; },
   put: (row:any,ignore=false) => result(table().upsert(row,{onConflict:'kind,parent,id',ignoreDuplicates:ignore})),
   remove: (kind:string,id:string,parent:string,owner:string) => result(table().delete().eq('kind',kind).eq('id',id).eq('parent',parent).eq('owner',owner)),
   mutate: (action:string,uid:string,id:string,value:any) => result(client.rpc('korae_mutate',{p_action:action,p_uid:uid,p_id:id,p_value:value})),
@@ -48,6 +54,7 @@ Deno.serve(async request=>{
         identity={uid:payload.sub,name:typeof payload.name==='string'?payload.name:'회원'};
       } catch { return reply({error:'로그인이 만료되었습니다. 다시 로그인해 주세요.'},401); }
     }
+    if(action==='subscribe') return await changeStream(request,identity?.uid || null,cors);
     if(!identity && !publicActions.has(action)) return reply({error:'로그인이 필요합니다.'},401);
     return reply({data:await dispatch(db,identity,action,args)});
   } catch(error:any) {

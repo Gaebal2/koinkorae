@@ -20,7 +20,7 @@ Firebase Authentication은 유지하고 DB·배틀 서버를 Supabase로 이전�
 - Edge Function은 Firebase JWT의 서명(RS256), issuer, audience, 만료, 발행 시각과 인증 시각을 검증한다. 요청 본문의 사용자 ID를 인증 근거로 사용하지 않는다.
 - 프로필·핀·피드·댓글·팔로우·리포스트·출석을 새 DB에서 처리한다. 배틀은 서버에서 입력 기록을 재생하고 점수를 계산한다. 중복 완료는 한 번만 반영한다.
 - 출석은 서버의 한국 시간 날짜를 사용한다. 사용자 단위 트랜잭션 잠금으로 중복 지급과 PIN 3개 초과 생성을 막는다.
-- 화면 데이터는 30초마다 갱신하고 본인 쓰기 성공 직후에도 갱신한다. 댓글 수처럼 같은 데이터 구독은 이후 이용량에 따라 합칠 수 있다.
+- 화면 조회 방식은 아래 2026-09-30 구현으로 대체했다. 새 SQL과 Edge Function을 배포한 뒤 프런트엔드를 배포해야 한다.
 - 기존 정책 유지: 배틀 무료, PIN 3개 무료. BP 차감·등급별 유료 PIN 정책을 임의로 도입하지 않는다.
 - 광고 제공업체 미연결 상태이므로 광고 보상은 활성화하지 않는다.
 
@@ -44,3 +44,34 @@ CLI 인증이 없으면 `npx supabase login`을 먼저 실행한다. 브라우�
 ## 롤백
 
 전환 이후 새 쓰기가 생겼다면 먼저 Supabase 데이터를 백업·역이전해야 한다. 단순히 이전 Firebase DB로 전환하면 새 데이터가 화면에서 사라진다. 데이터 차이를 정리한 뒤 기존 `firestore.rules`와 `DATA_BACKEND=firebase`로 복귀한다.
+
+## 2026-09-30 조회 최적화 구현
+
+- 메모리: 동일 요청·구독 공유, 일반 조회 5분 캐시, 쓰기 및 변경 신호 수신 시 무효화. 잔액·메시지 응답에는 TTL 캐시를 사용하지 않는다.
+- IndexedDB: 공개 프로필·Pin·목록 응답을 계정별로 구분해 최대 100개/24시간 보관한다. 먼저 이전 화면을 복원하고 온라인 결과로 갱신한다. 토큰·잔액·채팅·본인 댓글 모음은 저장하지 않으며 계정 전환 시 이전 계정 저장분을 정리한다. 저장 실패는 온라인 이용을 막지 않는다.
+- 화면: 조회한 페이지·코인 펼침 상태·홈 스크롤을 메모리에서 복원하고, 필터·지도 위치는 sessionStorage에서 복원한다. 화면 자체를 숨겨 계속 구독하는 방식 대신 조회 상태를 보존하고 구독은 해제한다.
+- 타이밍: 검색 입력과 지도 이동은 300ms 디바운스, 연속 변경 알림은 150ms 간격으로 합친다.
+- 페이지: 피드·코인 집계·작성자 피드·리포스트·지도 Pin·댓글·내 댓글을 기본 20개 커서로 조회한다. 점수/시각/ID로 동점을 구분한다. 코인 합계와 순위는 현재 로딩된 20개가 아닌 전체 필터 결과에서 서버가 계산한다.
+- SQL: 목록에 작성자 정보·댓글 수·리포스트 상태를 JOIN/집계해 포함한다. 사용자/댓글 수 일괄 API, 친구 JOIN, 작성자 일괄 조회를 사용한다. 지도 마커 응답에는 사진·설명을 보내지 않고 카드 선택 시 상세를 요청한다. 범위·소유자 조건과 컬럼 projection을 적용한다.
+- Push: `korae_documents` 트리거가 Supabase Realtime의 **비공개 Broadcast 채널**에 변경 종류를 보낸다. Edge Function은 Firebase JWT로 본인을 확인하고 서버 자격으로 공개 변경 채널과 본인 채널만 구독한다. 브라우저에는 SSE로 신호만 전달하며 DB 직접 읽기 권한은 열지 않는다. 잔액·채팅 본문은 Broadcast하지 않는다.
+- 일반 DB 조회 폴링은 제거했다. 스트림 heartbeat는 DB 조회를 하지 않는다. 백그라운드에서는 연결을 끊고, 복귀·재접속 시 누락 가능성을 보정하기 위해 활성 조회를 갱신한다. Edge 실행 수명에 맞춰 약 120초마다 연결을 교체하며 오류 시 1~30초 backoff로 **연결만** 재시도한다.
+- Firebase 롤백 어댑터와 사용하지 않는 구형 `src/app.jsx`는 이번 Supabase 변경의 적용 대상이 아니다.
+
+### 배포 순서
+
+1. `npm test`, `npm run build`, `node scripts/bundle-edge.mjs` 실행.
+2. 운영 DB에서 `supabase/migrations/202609300001_read_optimization.sql`을 한 번 적용한다. 기존 두 migration 이후에 적용하며 이전 migration을 다시 실행하지 않는다. 기존 데이터를 지우거나 공개 RLS 읽기 권한을 추가하지 않는다.
+3. `community` Edge Function을 배포한다. `stream.ts`가 포함되어야 하며 단일 파일 배포 시 위 번들 결과를 사용한다. Firebase JWT는 함수 내부에서 검증하므로 기존 `verify_jwt=false` 구성을 유지한다.
+4. 공개 `page`, `profiles`, `commentCounts` 요청 및 인증된 `subscribe` 스트림의 `ready` 수신을 확인한다. 두 세션으로 게시물·댓글 변경 반영과 다른 사용자의 잔액/채팅 신호가 전달되지 않는 것을 확인한다.
+5. 프런트엔드를 배포한다. SQL/서버보다 먼저 새 프런트엔드를 배포하면 새 API를 호출할 수 없다.
+
+로컬 SQL 테스트는 PGlite에서 실제 migration과 쿼리를 실행하며, `realtime.send`만 기록용 함수로 대체한다. 운영 Supabase Broadcast 전달 자체는 배포 후 별도 검증 대상이다. 비용 절감률은 운영 요청 수/DB 사용량을 비교해 측정해야 한다.
+
+### 운영 서버 적용 기록 (2026-09-30)
+
+- `202609300001_read_optimization.sql` 및 `community` 서버 배포 완료.
+- 운영 API: 피드 11개, 코인 그룹 4개, Pin 4개 조회 성공. 사용자/댓글 수 일괄 API 성공 및 비로그인 잔액 조회 401 확인.
+- 운영 Realtime 비공개 채널 구독 전 서비스 역할 토큰을 명시적으로 설정하도록 보완했다. SSE `ready`와 DB `realtime.send` 진단 신호의 실제 수신을 확인했다. 기존 게시물·댓글·계정 데이터는 변경하지 않았다.
+- 프런트엔드는 이 변경이 포함된 `main` 푸시로 GitHub Pages 워크플로가 배포한다.
+
+참고: [Supabase Database Broadcast](https://supabase.com/docs/guides/realtime/broadcast), [Realtime Authorization](https://supabase.com/docs/guides/realtime/authorization).

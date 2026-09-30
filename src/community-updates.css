@@ -157,19 +157,29 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .pin-trade-coins { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .pin-trade-coins .coin-trade { width: 13.5px; min-width: 13.5px; height: 13.5px; min-height: 13.5px; flex: 0 0 13.5px; border-width: 0; font-size: 4px; }
 
-/* Use the list's coin artwork on every surface without shadow or clipped borders. */
-.coin { border: 0; box-shadow: none; background: white; color: #34483d; isolation: isolate; }
+/* Use the list's coin artwork on every surface with a shared outer shadow. */
+.coin { border: 0; box-shadow: 0 0 6px #17233638; background: white; color: #34483d; isolation: isolate; }
 .coin > img { border-radius: 0; box-shadow: none; padding: 0; object-fit: contain; }
 .coin.coin-inset > img { padding: 16%; box-sizing: border-box; }
-.coin.coin-outline::after { content: ''; position: absolute; inset: 0; border: 1px solid #111; border-radius: 50%; pointer-events: none; z-index: 1; }
+.coin.coin-outline::after { content: none; }
 .battle-map-marker > .map-pin-shell { width: 38px; height: 38px; border: 3px solid white; border-radius: 50% 50% 50% 8px; transform: rotate(-45deg); display: grid; place-items: center; background: white; }
 .map-pin-shell > .coin-map { width: 30px; height: 30px; transform: rotate(45deg); }
 .map-pin-shell .coin-fallback { font-size: 7px; }
 .pin-detail > .pin-creator { grid-column: 1 / -1; justify-content: flex-start; align-items: center; flex-wrap: nowrap; min-width: 0; gap: 6px; margin: 0; padding-bottom: 9px; border-bottom: 1px solid #eeeaf4; }
-.pin-detail .pin-creator > .pin-category-badge { position: static; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; height: 28px; width: auto; max-width: none; padding: 0 7px; border-radius: 8px; color: #5137a0; background: #f0ecfa; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
+.pin-detail .pin-creator > .pin-category-badge { position: static; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 92px; height: 28px; width: 92px; max-width: 92px; padding: 0 7px; border-radius: 8px; color: #5137a0; background: #f0ecfa; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
 .pin-creator .coin, .pin-creator > .pin-creator-profile { width: 28px; min-width: 28px; height: 28px; min-height: 28px; flex: 0 0 28px; }
 .pin-detail .pin-creator > .pin-creator-name { flex: 0 1 auto; min-width: 0; max-width: 110px; font-size: 11px; font-weight: 600; line-height: 1.3; white-space: nowrap; }
-.pin-creator .pin-detail-actions { margin-left: auto; gap: 4px; }
+.pin-creator > .coin { margin-left: auto; }
+.pin-creator .pin-detail-actions { margin-left: 0; gap: 4px; }
 .pin-detail-actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 7px; border-radius: 8px; font-size: 10px; line-height: 1; white-space: nowrap; }
 .pin-trade-coins .coin-trade { width: 14px; min-width: 14px; height: 14px; min-height: 14px; flex-basis: 14px; }
 @media (max-width: 360px) { .pin-detail > .pin-creator { gap: 4px; } .pin-detail .pin-creator > .pin-category-badge { padding-inline: 5px; font-size: 9px; } .pin-detail-actions button { padding-inline: 5px; } }
+
+.map-pin-card-anchor { position: absolute; z-index: 8; left: 14px; right: 14px; }
+.map-pin-card-anchor > .pin-detail { position: relative; inset: auto; width: 100%; max-height: calc(100dvh - 190px); overflow-y: auto; }
+.attached-pin-placeholder { min-height: 170px; }
+.more-results { padding: 16px; text-align: center; min-height: 48px; }
+.more-results button, .map-results button { border: 0; border-radius: 10px; padding: 9px 14px; background: #f0ecfa; color: #5137a0; font-weight: 700; }
+.map-results { position: absolute; top: 104px; left: 14px; right: 14px; z-index: 6; pointer-events: none; font-size: 11px; }
+.map-results > * { pointer-events: auto; }
+.map-results p, .map-results > span { background: white; border-radius: 10px; padding: 8px; }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Repeat2, Swords } from 'lucide-react';
 import { data } from './data.js';
 import { age } from './api.js';
@@ -8,11 +8,11 @@ import { BattleGames } from './battle-games.jsx';
 import { Comments } from './social.jsx';
 import { useLiveProfile } from './live-profile.js';
 
-export function useFeedActions(me, login, onReposted) {
+export function useFeedActions(me, login, onReposted, enriched = false) {
   const { confirm, notify } = useFeedback();
   const [, setError] = useAppMessage();
   const [battle, setBattle] = useState(null), [comments, setComments] = useState(null), [photo, setPhoto] = useState(null), [reposts, setReposts] = useState([]), [busy, setBusy] = useState(false);
-  useEffect(() => data.watchReposts(setReposts, () => setError('리포스트를 불러오지 못했습니다.')), []);
+  useEffect(() => { if(enriched)return; return data.watchReposts(setReposts, () => setError('리포스트를 불러오지 못했습니다.')); }, [enriched]);
   const actions = {
     me, reposts, busy, repostNavigates: !!onReposted, onBattle: post => me ? setBattle(post) : login(), onComment: setComments, onPhoto: setPhoto,
     onRepost: async post => {
@@ -20,7 +20,7 @@ export function useFeedActions(me, login, onReposted) {
       if (busy) return;
       setBusy(true);
       try {
-        const shared = reposts.some(r => r.postId === post.id && r.userId === me.id);
+        const shared = post.reposted ?? reposts.some(r => r.postId === post.id && r.userId === me.id);
         if (onReposted) { if (!shared) await data.repost(post.id, true); onReposted(); }
         else await data.repost(post.id, !shared);
       }
@@ -42,6 +42,7 @@ function AttachedPin({ id, onPin }) {
   const [revision, retry] = useState(0);
   useEffect(() => {
     let active = true; setStatus('loading'); setPin(null);
+    if(data.watchPin)return data.watchPin(id,value=>{setPin(value);setStatus(value?'ready':'missing');},()=>setStatus('error'));
     data.getPin(id).then(value => { if (active) { setPin(value); setStatus(value ? 'ready' : 'missing'); } }, () => { if (active) setStatus('error'); });
     return () => { active = false; };
   }, [id, revision]);
@@ -50,18 +51,28 @@ function AttachedPin({ id, onPin }) {
 }
 
 export function CommunityPost({ onPin, post, onProfile, me, reposts, busy, repostNavigates, onBattle, onComment, onRepost, onPhoto, onDelete }) {
-  const authorProfile = useLiveProfile(post.authorId);
+  const element = useRef(null);
+  const [nearViewport, setNearViewport] = useState(false);
+  useEffect(() => {
+    if (!globalThis.IntersectionObserver) { setNearViewport(true); return; }
+    const observer = new IntersectionObserver(([entry]) => setNearViewport(entry.isIntersecting), { rootMargin: '300px' });
+    observer.observe(element.current);
+    return () => observer.disconnect();
+  }, []);
+  const liveAuthor = useLiveProfile(nearViewport && !('authorProfile' in post) ? post.authorId : null);
+  const authorProfile = post.authorProfile || liveAuthor;
   const authorName = authorProfile?.username || post.author;
   const [count, setCount] = useState(null);
-  useEffect(() => { setCount(null); return data.watchCommentCount(post.id, setCount, () => setCount(null)); }, [post.id]);
+  useEffect(() => { if (!nearViewport || post.commentCount !== undefined) return; return data.watchCommentCount(post.id, setCount, () => setCount(null)); }, [post.id, nearViewport, post.commentCount]);
   const total = post.support + post.oppose, score = post.support - post.oppose;
-  const shared = reposts.filter(r => r.postId === post.id), isShared = shared.some(r => r.userId === me?.id);
-  return <article className="post-card">
+  const shared = reposts.filter(r => r.postId === post.id), isShared = post.reposted ?? shared.some(r => r.userId === me?.id);
+  const shownCount=post.commentCount ?? count;
+  return <article ref={element} className="post-card">
     <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={`${authorName} 프로필 보기`}>{authorProfile?.profileImage ? <img src={authorProfile.profileImage} alt=""/> : authorName.slice(0,2)}</button><div><b>{authorName}</b><span>{age(post.createdAt)}</span></div><Coin symbol={post.coin}/></div>
     <p className="post-body">{post.content}</p>{post.image && <button className="post-image" onClick={() => onPhoto(post.image)} aria-label="피드 이미지 크게 보기"><img src={post.image} alt="피드 첨부 사진"/></button>}
-    {post.pinId && <AttachedPin id={post.pinId} onPin={onPin} onProfile={onProfile} onPhoto={onPhoto}/>}
+    {post.pinId && (nearViewport ? <AttachedPin id={post.pinId} onPin={onPin} onProfile={onProfile} onPhoto={onPhoto}/> : <div className="attached-pin-placeholder" aria-hidden="true"/>)}
     <div className="battle-meter"><i style={{width:`${total ? post.support / total * 100 : 50}%`}}/><span>지지 {post.support.toLocaleString()}</span><span>반대 {post.oppose.toLocaleString()}</span></div>
-    <div className="score-row"><div><small>지지 점수</small><strong className={score < 0 ? 'negative' : ''}>{score > 0 ? '+' : ''}{score.toLocaleString()}</strong></div><div className="card-actions"><button onClick={() => onComment(post)} aria-label={`댓글 ${count ?? ''}`}><MessageCircle/>{count ?? '댓글'}</button><button disabled={busy} aria-pressed={isShared} aria-label={repostNavigates && isShared ? '내 리포스트 보기' : isShared ? '리포스트 취소' : '리포스트'} onClick={() => onRepost(post)}><Repeat2/>{shared.length}</button><button className="battle-btn" onClick={() => onBattle(post)}><Swords/>배틀</button></div></div>
+    <div className="score-row"><div><small>지지 점수</small><strong className={score < 0 ? 'negative' : ''}>{score > 0 ? '+' : ''}{score.toLocaleString()}</strong></div><div className="card-actions"><button onClick={() => onComment(post)} aria-label={`댓글 ${shownCount ?? ''}`}><MessageCircle/>{shownCount ?? '댓글'}</button><button disabled={busy} aria-pressed={isShared} aria-label={repostNavigates && isShared ? '내 리포스트 보기' : isShared ? '리포스트 취소' : '리포스트'} onClick={() => onRepost(post)}><Repeat2/>{post.repostCount ?? shared.length}</button><button className="battle-btn" onClick={() => onBattle(post)}><Swords/>배틀</button></div></div>
     {post.authorId === me?.id && <button className="text-action danger-text" onClick={() => onDelete(post)}>내 글 삭제</button>}
   </article>;
 }

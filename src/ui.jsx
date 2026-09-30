@@ -1,3 +1,4 @@
+import {useDebounced} from './use-debounced.js';
 import { useBackDismiss } from './use-back-dismiss.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from "react";
@@ -125,11 +126,12 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
     <div className={`pin-detail ${onEdit || onDelete ? 'has-actions' : ''} ${onActivate ? 'pin-card-link' : ''} ${className}`} role={onActivate ? 'button' : undefined} tabIndex={onActivate ? 0 : undefined} aria-label={onActivate ? `${pin.title} 지도에서 보기` : undefined} onClick={onActivate ? () => onActivate(pin) : undefined} onKeyDown={onActivate ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(pin); } } : undefined}>
         <div className="pin-creator">
           <span className="pin-category-badge">{normalizePinCategory(pin.category) === '상점 등록' ? '상점' : normalizePinCategory(pin.category)}</span>
-          <Coin symbol={pin.coin} size="sm" />
+
           <Avatar className="pin-creator-profile" onClick={!passive ? () => onProfile?.(pin.creator || "battle_newbie") : undefined} aria-label={!passive ? '핀 생성자 프로필 보기' : undefined}>
             <img src={creator?.profileImage || profileImage()} alt={`${creatorName} 프로필`} />
           </Avatar>
           <span className="pin-creator-name">@{creatorName}</span>
+          <Coin symbol={pin.coin} size="sm" />
           {topAction && <div className="pin-detail-actions">{topAction}</div>}
           {!passive && (onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button type="button" onClick={() => onEdit(pin)}>수정</button>}
           {onDelete && <button disabled={interactionDisabled} type="button" className="pin-delete" aria-label="핀 삭제" onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>삭제</button>}</div>}
@@ -297,7 +299,8 @@ export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChan
   const [query, setQuery] = useState(''), [image, setImage] = useState('');
   const fileRef = useRef(null);
   const chooseImage = async event => { try { setImage(await readPhoto(event.target.files?.[0])); setError(''); } catch (error) { setError(error.message); } };
-  const list = cmcCoins.filter(c => `${c.name} ${c.symbol} ${c.aliases || ''}`.toLowerCase().includes(query.toLowerCase()));
+  const searchQuery = useDebounced(query);
+  const list = cmcCoins.filter(c => `${c.name} ${c.symbol} ${c.aliases || ''}`.toLowerCase().includes(searchQuery.toLowerCase()));
   if (hidden) return null;
   if (picker === 'coin') return <Modal title="지지 코인 선택" onClose={() => setPicker(null)}>
     <label className="search"><Search/><input value={query} onChange={e => setQuery(e.target.value)} placeholder="지지 코인 검색"/></label>
@@ -379,6 +382,7 @@ export function Field({ label, children }) {
 export function AppSelect({ title, value, options, onChange, searchable = false }) {
   const [open, setOpen] = useState(false), [query, setQuery] = useState('');
   const selected = options.find(option => option.value === value);
+  const searchQuery = useDebounced(query);
   const filtered = options.filter(option => `${option.label} ${option.search || ''}`.toLowerCase().includes(query.toLowerCase()));
   return <span className="app-select-wrap"><button type="button" className="app-select" aria-label={`${title}: ${selected?.label || value}`} aria-haspopup="dialog" aria-expanded={open} onClick={() => { setQuery(''); setOpen(true); }}>{selected?.coin && <Coin symbol={selected.coin} size="sm"/>}<span>{selected?.label || value}</span><ChevronDown/></button>
     {open && <Modal title={title} onClose={() => setOpen(false)} className="app-select-modal">{searchable && <label className="search"><Search/><input aria-label={title + ' 검색'} value={query} onChange={e=>setQuery(e.target.value)} placeholder="코인 검색"/></label>}<div className="app-select-options">{filtered.map(option=><button type="button" key={option.value} aria-pressed={option.value === value} className={option.value === value ? 'selected' : ''} onClick={()=>{onChange(option.value);setOpen(false);}}>{option.coin && <Coin symbol={option.coin} size="sm"/>}<span>{option.label}</span>{option.value === value && <Check/>}</button>)}</div>{!filtered.length && <p>검색 결과가 없습니다.</p>}</Modal>}

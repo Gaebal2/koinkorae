@@ -7,9 +7,10 @@ import { age } from './api.js';
 import { filterFeed } from './feed-model.js';
 import { Segments, Coin, Empty, Modal, Field, PageTitle } from './ui.jsx';
 import { useLiveProfile } from './live-profile.js';
+import {useCursorPage} from './paged-feed.jsx';
 
-function CommentAuthor({ id, name }) {
-  const profile = useLiveProfile(id);
+function CommentAuthor({ id, name, initial }) {
+  const live = useLiveProfile(initial ? null : id), profile=initial || live;
   return <span className="comment-author">{profile?.profileImage && <img src={profile.profileImage} alt=""/>}<b>{profile?.username || name}</b></span>;
 }
 
@@ -29,13 +30,21 @@ export function HomePage({ onPin, onReposted, me, options, setOptions, following
 }
 
 export function Comments({ post, me, close }) {
+  return data.page ? <CursorComments post={post} me={me} close={close}/> : <CommentThread post={post} me={me} close={close}/>;
+}
+function CursorComments(props){
+  const page=useCursorPage({mode:'comments',postId:props.post.id},props.me?.id);
+  return <CommentThread {...props} query={page}/>;
+}
+function CommentThread({post,me,close,query}) {
   const { confirm } = useFeedback();
   const [deleting, setDeleting] = useState(null);
   const [pendingScroll, setPendingScroll] = useState(null);
-  const [items, setItems] = useState([]), [content, setContent] = useState(''), [reply, setReply] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
+  const [legacyItems, setItems] = useState([]), [content, setContent] = useState(''), [reply, setReply] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
+  const items=query?[...query.items].sort((a,b)=>a.createdAt-b.createdAt||a.id.localeCompare(b.id)):legacyItems;
   const timer = useRef(null), origin = useRef(null), nodes = useRef(new Map()), sending = useRef(false), input = useRef(null);
   const cancelPress = () => clearTimeout(timer.current);
-  useEffect(() => data.watchComments(post.id, setItems, () => setError('댓글을 불러오지 못했습니다.')), [post.id]);
+  useEffect(() => { if(query)return; return data.watchComments(post.id, setItems, () => setError('댓글을 불러오지 못했습니다.')); }, [post.id,!!query]);
   useEffect(() => () => clearTimeout(timer.current), []);
   useEffect(() => {
     const node=nodes.current.get(pendingScroll);
@@ -64,16 +73,18 @@ export function Comments({ post, me, close }) {
   };
   return <Modal title="댓글" onClose={close} className="comments-modal">
     <div className="chat-messages" aria-label="댓글 대화">
-      {!items.length && <p className="form-help">첫 댓글을 남겨보세요.</p>}
+      {query?.nextCursor&&<button disabled={query.loading} onClick={query.more}>이전 댓글 20개 보기</button>}
+      {query?.error&&<button onClick={query.retry}>댓글 다시 불러오기</button>}
+      {!items.length && <p className="form-help">{query?.loading?'댓글을 불러오는 중…':'첫 댓글을 남겨보세요.'}</p>}
       {items.map(c => <article key={c.id} ref={node => { if (node) nodes.current.set(c.id, node); else nodes.current.delete(c.id); }} tabIndex={-1} className={'chat-message ' + (c.side || 'neutral')}>
-        <div className="chat-message-head"><CommentAuthor id={c.authorId} name={c.author}/>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label="내 댓글 삭제">×</button>}</div>
+        <div className="chat-message-head"><CommentAuthor id={c.authorId} name={c.author} initial={c.authorProfile}/>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label="내 댓글 삭제">×</button>}</div>
         <div className="chat-bubble" tabIndex={0} aria-label={c.author + (c.side === 'support' ? ' 지지' : c.side === 'oppose' ? ' 반대' : '') + ' 댓글. 길게 누르거나 Enter 키로 답글 작성'}
           onPointerDown={e => { if (e.button !== 0) return; cancelPress(); origin.current = { x:e.clientX, y:e.clientY }; timer.current = setTimeout(() => selectReply(c), 550); }}
           onPointerMove={e => { if (origin.current && Math.hypot(e.clientX-origin.current.x,e.clientY-origin.current.y)>10) cancelPress(); }}
           onPointerUp={cancelPress} onPointerCancel={cancelPress} onPointerLeave={cancelPress}
           onContextMenu={e => { e.preventDefault(); cancelPress(); selectReply(c); }}
           onKeyDown={e => { if (e.target === e.currentTarget && e.key === 'Enter') { e.preventDefault(); selectReply(c); } }}>
-          {c.replyTo && (items.some(parent => parent.id === c.replyTo.id) ? <button type="button" className={'chat-quote quote-' + (items.find(parent => parent.id === c.replyTo.id)?.side || 'neutral')} aria-label="원댓글 보기: 두 번 누르기" onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><CommentAuthor id={items.find(parent => parent.id === c.replyTo.id)?.authorId} name={c.replyTo.author}/><span>{c.replyTo.content}</span></button> : <div className="chat-quote">삭제된 댓글입니다.</div>)}
+          {c.replyTo && (items.some(parent => parent.id === c.replyTo.id) ? <button type="button" className={'chat-quote quote-' + (items.find(parent => parent.id === c.replyTo.id)?.side || 'neutral')} aria-label="원댓글 보기: 두 번 누르기" onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><CommentAuthor id={items.find(parent => parent.id === c.replyTo.id)?.authorId} name={c.replyTo.author}/><span>{c.replyTo.content}</span></button> : <div className="chat-quote">{c.replyExists ? <><b>{c.replyTo.author}</b><span>{c.replyTo.content}</span><small>이전 댓글에서 원문을 확인할 수 있습니다.</small></> : "삭제된 댓글입니다."}</div>)}
           <p>{c.content}</p>
         </div><small>{age(c.createdAt)}{!c.side && ' · 입장 미선택'}</small>
       </article>)}

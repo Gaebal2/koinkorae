@@ -5,6 +5,9 @@ import { Home, CalendarCheck, Map as MapIcon, MessageCircle, MapPinPlus, LocateF
 import L from 'leaflet';
 import { data, configured, googleEnabled } from './data.js';
 import { Modal, Field, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage } from './ui.jsx';
+import { PagedHome } from './paged-feed.jsx';
+import { PagedMap } from './paged-map.jsx';
+import { debounce } from './query-timing.js';
 import { HomePage, CheckinPage } from './social.jsx';
 import { ProfileEditor } from './profile-editor.jsx';
 import { CommunityProfile } from './community-profile.jsx';
@@ -13,7 +16,7 @@ import { useLiveProfile } from './live-profile.js';
 import { useBackDismiss, usePageBack } from './use-back-dismiss.js';
 import { coinImage, coinColor } from './ui.jsx';
 
-import { readViewState, saveViewState } from './view-state.js';
+import { readViewState, saveViewState, readMapCamera, saveMapCamera } from './view-state.js';
 
 function Auth(props) { return googleEnabled ? <GoogleAuth {...props}/> : <EmailAuth {...props}/>; }
 
@@ -47,35 +50,62 @@ function GoogleAuth({ close, done }) {
   </Modal>;
 }
 
-export function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick }) {
-  const element = useRef(null), map = useRef(null), markers = useRef(null);
-  const [center, setCenter] = useState({ lat: 37.5665, lng: 126.978 }), [locationError, setLocationError] = useAppMessage(), [photo, setPhoto] = useState(null);
+export function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick, onBounds, moreControl, ownPinCount }) {
+  const element = useRef(null), map = useRef(null), markers = useRef(null), markerById = useRef(new Map());
+  const [cardTop, setCardTop] = useState(null);
+  const [center, setCenter] = useState(readMapCamera), [locationError, setLocationError] = useAppMessage(), [photo, setPhoto] = useState(null);
   useEffect(() => {
-    const instance = L.map(element.current, { zoomControl: false }).setView([center.lat, center.lng], 14); map.current = instance;
+    const instance = L.map(element.current, { zoomControl: false }).setView([center.lat, center.lng], center.zoom || 14); map.current = instance;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(instance);
-    instance.on('moveend', () => { const c = instance.getCenter(); setCenter({ lat: +c.lat.toFixed(6), lng: +c.lng.toFixed(6) }); });
+    instance.on('moveend', () => { const c = instance.getCenter(); saveMapCamera({lat:c.lat,lng:c.lng,zoom:instance.getZoom()}); setCenter({ lat: +c.lat.toFixed(6), lng: +c.lng.toFixed(6) }); });
     instance.on('click', () => select(null));
     return () => { instance.remove(); map.current = null; };
   }, []);
+  useEffect(()=>{
+    if(!onBounds)return;
+    const instance=map.current;
+    const update=()=>{const b=instance.getBounds();const wrap=lng=>((lng+180)%360+360)%360-180;
+      const world=b.getEast()-b.getWest()>=360;
+      onBounds([Math.max(-90,b.getSouth()),world?-180:wrap(b.getWest()),Math.min(90,b.getNorth()),world?180:wrap(b.getEast())].map(v=>+v.toFixed(5)));
+    };
+    const delayed=debounce(update,300);update();instance.on('moveend resize',delayed);
+    return()=>{delayed.cancel();instance.off('moveend resize',delayed);};
+  },[onBounds]);
   useEffect(() => {
     markers.current?.remove(); markers.current = L.layerGroup().addTo(map.current);
+    markerById.current.clear();
     for (const pin of pins) {
       const content = coinMarker(pin.coin);
-      L.marker([pin.lat, pin.lng], { title: pin.title, icon: L.divIcon({ className: 'battle-map-marker', html: content, iconSize: [40, 48], iconAnchor: [20, 45] }) }).addTo(markers.current).on('click', () => select(pin));
+      const marker = L.marker([pin.lat, pin.lng], { title: pin.title, icon: L.divIcon({ className: 'battle-map-marker', html: content, iconSize: [40, 48], iconAnchor: [20, 45] }) }).addTo(markers.current).on('click', () => select(pin));
+      markerById.current.set(pin.id, marker);
     }
   }, [pins]);
   useEffect(() => { if (selected) map.current.setView([selected.lat, selected.lng], 15); }, [selected?.id]);
+  useEffect(() => {
+    if (!selected) { setCardTop(null); return; }
+    const instance = map.current;
+    const update = () => {
+      const shell = markerById.current.get(selected.id)?.getElement()?.querySelector('.map-pin-shell');
+      if (shell) setCardTop(shell.getBoundingClientRect().bottom - element.current.getBoundingClientRect().top + 10);
+    };
+    update(); instance.on('move zoom resize', update);
+    const observer = new ResizeObserver(update); observer.observe(element.current);
+    return () => { instance.off('move zoom resize', update); observer.disconnect(); };
+  }, [selected?.id, pins]);
   useBackDismiss(!!selected && !picking,()=>select(null),20);
   const pickActions = picking && <div className="pin-pick-actions"><span>첨부할 Pin을 선택하세요</span><div><button type="button" onClick={onCancelPick}>취소</button><button type="button" className="pin-confirm-selection" disabled={!selected} onClick={() => selected && onPick(selected)}>선택</button></div></div>;
   return <main className="map-page"><div className="map-stage"><div className="real-map" ref={element}/><div className="map-crosshair" aria-label="거래 등록 위치"/><div className="center-coordinate">{center.lat.toFixed(6)}, {center.lng.toFixed(6)}</div></div>
     {picking && !selected && <div className="pin-detail pin-selection-empty"><p>지도에서 첨부할 Pin을 눌러 주세요.</p><div className="pin-detail-footer">{pickActions}</div></div>}
     {!picking && <div className="map-intro"><b>내 주변 P2P 거래</b><small>{configured ? `${pins.length}개의 거래 정보 · 지도를 움직여 위치를 선택하세요` : '거래 서비스를 준비 중입니다 · 지도를 둘러보세요'}</small></div>}
-    {locationError && <div className="map-message" role="alert">{locationError}</div>}
-    <div className="map-toolbar"><span>{me ? `내 거래 ${pins.filter(p => p.owner).length}/3 · 무료 등록` : '로그인하고 거래를 등록하세요'}</span><button disabled={picking} aria-label="내 위치" onClick={() => { setLocationError(''); if (!navigator.geolocation) { setLocationError('위치 정보를 지원하지 않는 브라우저입니다.'); return; } navigator.geolocation.getCurrentPosition(p => map.current?.setView([p.coords.latitude, p.coords.longitude], 16), () => setLocationError('위치 권한을 확인하거나 지도를 직접 움직여 주세요.'), { timeout: 10000 }); }}><LocateFixed/></button><button aria-label="거래 등록" disabled={picking || (!!me && pins.filter(p => p.owner).length >= 3)} onClick={() => me ? edit({ center }) : login()}><MapPinPlus/></button></div>
-    {selected && <PinDetailCard pin={selected} interactionDisabled={picking} footer={pickActions} onDelete={selected.owner ? onDelete : undefined} onProfile={() => onProfile(selected.ownerId)} onEdit={selected.owner ? p => edit({ initial: p, center }) : undefined} onImage={p => setPhoto(p.image)}/>}
+    {locationError && <div className="map-message" role="alert">{locationError}</div>}{moreControl}
+    <div className="map-toolbar"><span>{me ? `내 거래 ${(ownPinCount ?? pins.filter(p => p.owner).length)}/3 · 무료 등록` : '로그인하고 거래를 등록하세요'}</span><button disabled={picking} aria-label="내 위치" onClick={() => { setLocationError(''); if (!navigator.geolocation) { setLocationError('위치 정보를 지원하지 않는 브라우저입니다.'); return; } navigator.geolocation.getCurrentPosition(p => map.current?.setView([p.coords.latitude, p.coords.longitude], 16), () => setLocationError('위치 권한을 확인하거나 지도를 직접 움직여 주세요.'), { timeout: 10000 }); }}><LocateFixed/></button><button aria-label="거래 등록" disabled={picking || (!!me && (ownPinCount ?? pins.filter(p => p.owner).length) >= 3)} onClick={() => me ? edit({ center }) : login()}><MapPinPlus/></button></div>
+    {selected && <div className="map-pin-card-anchor" style={{ top: cardTop ?? 0, visibility: cardTop === null ? "hidden" : undefined }}><PinDetailCard pin={selected} interactionDisabled={picking} footer={pickActions} onDelete={selected.owner ? onDelete : undefined} onProfile={() => onProfile(selected.ownerId)} onEdit={selected.owner ? p => edit({ initial: p, center }) : undefined} onImage={p => setPhoto(p.image)}/></div>}
     {photo && <Modal title="거래 사진" onClose={() => setPhoto(null)}><img style={{ width: '100%' }} src={photo} alt="거래 첨부 사진"/></Modal>}
   </main>;
 }
+
+const FeedHome = data.page ? PagedHome : HomePage;
+const MapScreen = props => data.page ? <PagedMap component={MapPage} ownPins={props.pins} {...props}/> : <MapPage {...props}/>;
 
 export default function App() {
   const { notify } = useFeedback();
@@ -84,7 +114,7 @@ export default function App() {
   const [compose, setCompose] = useState(false), [following, setFollowing] = useState([]), [balance, setBalance] = useState({ current: 0, lifetime: 0, day: -1 });
   const [options, setOptions] = useState(restored.options);
   const [profileFeed, setProfileFeed] = useState('작성 피드');
-  const myProfile=useLiveProfile(me?.id), viewedProfile=useLiveProfile(me ? profileId : null);
+  const myProfile=useLiveProfile(me?.id), viewedProfile=useLiveProfile(me && page === 'profile' ? profileId : null);
   const [pickingPin, setPickingPin] = useState(false), [attachedPin, setAttachedPin] = useState(null);
   useEffect(() => { saveViewState(undefined, { page: pickingPin ? 'home' : page, profileId, options }); }, [page, profileId, options, pickingPin]);
   const finishPick = pin => { if (pin) setAttachedPin(pin); setPickingPin(false); setPage('home'); };
@@ -92,21 +122,31 @@ export default function App() {
   usePageBack(page,profileId,setPage,setProfileId);
   const [settings,setSettings]=useState(false);
 
-  const refresh = async () => { try { setPins(await data.listPins()); } catch { setError('거래 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'); } };
+  const refresh = async () => { try { setPins(data.page ? me ? (await data.page({mode:'pins',owner:me.id,detail:true},null,true)).items : [] : await data.listPins()); } catch { setError('거래 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'); } };
   useEffect(() => data.watchAuth(setMe), []);
   useEffect(() => { setBalance({ current: 0, lifetime: 0, day: -1 }); return data.watchBalance(me?.id, setBalance, () => setError('BP를 불러오지 못했습니다.')); }, [me?.id]);
-  useEffect(() => { setFollowing([]); return data.watchFollowing(me?.id, setFollowing, () => setError('팔로잉 정보를 불러오지 못했습니다.')); }, [me?.id]);
-  useEffect(() => { select(null); refresh(); const timer = setInterval(refresh, 60000); return () => clearInterval(timer); }, [me?.id]);
-  useEffect(() => { let active = true; setProfile(null); if (me && profileId) data.profile(profileId).then(p => { if (active) setProfile(p); }).catch(() => { if (active) setError('프로필을 불러오지 못했습니다.'); }); return () => { active = false; }; }, [profileId, me?.id]);
+  useEffect(() => { setFollowing([]); if(data.page && page!=='profile')return; return data.watchFollowing(me?.id, setFollowing, () => setError('팔로잉 정보를 불러오지 못했습니다.')); }, [me?.id,page]);
+  useEffect(() => { select(null); setPins([]); }, [me?.id]);
+  useEffect(() => {
+    if(page!=='map' && page!=='profile' && !compose)return;
+    if(data.watchPinPage){
+      const owner=page==='profile'?profileId:me?.id;
+      if(!owner){setPins([]);return;}
+      return data.watchPinPage(owner,setPins,()=>setError('거래 정보를 불러오지 못했습니다.'));
+    }
+    if(data.watchPins)return data.watchPins(setPins,()=>setError('거래 정보를 불러오지 못했습니다.'));
+    void refresh();
+  },[me?.id,profileId,page,compose]);
+  useEffect(() => { setProfile(viewedProfile); }, [viewedProfile]);
   const openPin = async id => { try { const pin = await data.getPin(id); if (!pin) { setError('삭제되었거나 더 이상 존재하지 않는 Pin입니다.'); return; } select(pin); setPage('map'); } catch { setError('Pin을 불러오지 못했습니다.'); } };
   const openProfile = (id, feed = '작성 피드') => { setEditing(false); setProfileFeed(feed); setProfileId(id); setPage('profile'); };
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
   return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => openProfile(me.id)} aria-label="내 프로필로 이동"><img src={myProfile?.profileImage || profileImage()} alt="내 프로필"/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={profileImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}{me ? page === 'profile' ? <button className="profile-settings-button" aria-label="설정" onClick={()=>setSettings(true)}><Settings/></button> : <span className="bp-pill">{balance.current} BP</span> : <button className="text-action" disabled={pickingPin} onClick={() => setAuth(true)}>로그인</button>}</header>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label="닫기" onClick={() => setError('')}><X/></button></div>}
-    {page === 'home' && <HomePage onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
+    {page === 'home' && <FeedHome onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
     {page === 'chat' && <FriendChat me={me} login={() => setAuth(true)}/>}
     {page === 'check' && <CheckinPage me={me} balance={balance} login={() => setAuth(true)}/>}
-    {page === 'map' && <MapPage picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
+    {page === 'map' && <MapScreen picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
     {page === 'profile' && <CommunityProfile initialFeed={profileFeed} onPin={openPin} profileId={profileId} profile={viewedProfile || profile} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
     <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessageCircle]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><span>{label}</span></button>)}</nav>
     {compose && <Composer hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
