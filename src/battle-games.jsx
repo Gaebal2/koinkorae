@@ -3,6 +3,7 @@ import {gameLabels,drawExtra} from './arcade-extra.js';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pause, Play, RotateCcw, Trophy } from 'lucide-react';
 import { Modal } from './ui.jsx';
+import { coinImage } from './coin-artwork.js';
 import { newGame, jump, step, WIDTH, HEIGHT, GROUND } from './battle-engine.js';
 
 import { TICK } from '../functions/battle-validation.js';
@@ -10,8 +11,14 @@ import { battleRandom, CHECKPOINT_TICKS } from '../functions/battle-progress.js'
 import { useLiveProfile } from './live-profile.js';
 import { data } from './data.js';
 import { useFeedback } from './feedback.jsx';
-function draw(context, game) {
-  if(drawExtra(context,game,WIDTH,HEIGHT))return;
+function draw(context, game, icon, symbol) {
+  const drawPlayer=(ctx,x,y,size)=>{
+    ctx.save();ctx.shadowColor='#44336b33';ctx.shadowBlur=5;
+    if(icon?.complete && icon.naturalWidth)ctx.drawImage(icon,x-size/2,y-size/2,size,size);
+    else {ctx.fillStyle='#7157ff';ctx.beginPath();ctx.arc(x,y,size/2,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='white';ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(symbol.slice(0,4),x,y);}
+    ctx.restore();
+  };
+  if(drawExtra(context,game,WIDTH,HEIGHT,drawPlayer))return;
   const bird = game.kind === 'flappy';
   context.clearRect(0, 0, WIDTH, HEIGHT);
   const sky = context.createLinearGradient(0, 0, 0, HEIGHT); sky.addColorStop(0, '#eeebff'); sky.addColorStop(1, '#fafaff');
@@ -41,18 +48,8 @@ function draw(context, game) {
   context.fillStyle = '#baf7d0'; context.fillRect(0, GROUND, WIDTH, HEIGHT - GROUND);
   context.fillStyle = '#9adab1'; context.fillRect(0, GROUND, WIDTH, 3);
   if (bird) {
-    context.save(); context.translate(87, game.y); context.rotate(Math.max(-.4, Math.min(.6, game.velocity / 650)));
-    context.fillStyle = '#7157ff'; context.beginPath(); context.ellipse(0, 0, 15, 12, 0, 0, Math.PI * 2); context.fill();
-    context.fillStyle = '#baf7d0'; context.beginPath(); context.ellipse(-6, 3, 8, 5, Math.sin(game.time * 14) * .4, 0, Math.PI * 2); context.fill();
-    context.fillStyle = '#fff'; context.beginPath(); context.arc(7, -4, 5, 0, Math.PI * 2); context.fill(); context.fillStyle = '#27223f'; context.fillRect(8, -6, 3, 4);
-    context.fillStyle = '#ffbe69'; context.beginPath(); context.moveTo(12, 1); context.lineTo(22, 4); context.lineTo(12, 7); context.fill(); context.restore();
-  } else {
-    const x = 61, y = game.y; context.fillStyle = '#27223f';
-    context.fillRect(x + 11, y, 23, 15); context.fillRect(x + 4, y + 10, 20, 17); context.fillRect(x - 3, y + 13, 9, 8);
-    context.fillRect(x + 21, y + 18, 9, 4); context.fillStyle = '#fff'; context.fillRect(x + 26, y + 3, 3, 3);
-    context.fillStyle = '#27223f'; const stride = game.velocity === 0 ? Math.sin(game.time * 20) * 3 : 0;
-    context.fillRect(x + 5, y + 25, 6, 9 + stride); context.fillRect(x + 17, y + 25, 6, 9 - stride);
-  }
+    context.save();context.translate(87,game.y);context.rotate(Math.max(-.4,Math.min(.6,game.velocity/650)));drawPlayer(context,0,0,28);context.restore();
+  } else drawPlayer(context,76,game.y+17,34);
 }
 
 export function BattleGames({ post, onClose }) {
@@ -60,11 +57,12 @@ export function BattleGames({ post, onClose }) {
   const [session,setSession]=useState(null),[mode,setMode]=useState('choose'),[display,setDisplay]=useState({score:0,time:0});
   const [busy,setBusy]=useState(false),[syncing,setSyncing]=useState(false),[error,setError]=useState(''),[result,setResult]=useState(null);
   const canvas=useRef(null),game=useRef(null),random=useRef(null),inputs=useRef([]),ticks=useRef(0),banked=useRef(0),revision=useRef(0),packets=useRef([]),pumping=useRef(null),locked=useRef(false),request=useRef(null),sessionRef=useRef(null),mounted=useRef(true);
-  const pendingAction=useRef(false);
+  const pendingAction=useRef(false), playerIcon=useRef(null);
+  useEffect(()=>{const image=new Image();playerIcon.current=image;image.onload=()=>{const ctx=canvas.current?.getContext("2d");if(ctx&&game.current)draw(ctx,game.current,image,post.coin);};image.src=coinImage(post.coin);return()=>{image.onload=null;};},[post.coin]);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   const side=session?.side,kind=session?.kind;
   const signed=score=>score===0?'0':(side==='oppose'?'-':'+')+score;
-  const paint=()=>{const ctx=canvas.current?.getContext('2d');if(ctx&&game.current)draw(ctx,game.current);};
+  const paint=()=>{const ctx=canvas.current?.getContext('2d');if(ctx&&game.current)draw(ctx,game.current,playerIcon.current,post.coin);};
   const install=progress=>{game.current=structuredClone(progress.game);random.current=battleRandom(progress.randomState);banked.current=progress.bankedScore;revision.current=progress.revision;inputs.current=[];ticks.current=0;packets.current=[];setDisplay({score:banked.current+game.current.score,time:game.current.time});};
   const start=async selected=>{
     if(locked.current)return;locked.current=true;setBusy(true);setError('');
