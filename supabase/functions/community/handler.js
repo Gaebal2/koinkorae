@@ -51,18 +51,20 @@ export async function dispatch(db, identity, action, args = {}) {
       if(!options || typeof options!=='object' || Array.isArray(options))throw Error('잘못된 목록 조건입니다.');
       const mode=options.mode || 'posts';
       if(!['posts','coins','pins','comments','ownComments','profilePin'].includes(mode))throw Error('잘못된 목록입니다.');
-      if(mode==='profilePin')id(options.profileId);
+      if(mode==='profilePin'){id(options.profileId);if(options.feed!==undefined&&!['posts','reposts'].includes(options.feed))throw Error('잘못된 피드 종류입니다.');}
       if(mode==='ownComments'&&!uid)throw Object.assign(Error('로그인이 필요합니다.'),{status:401});
       if(mode==='comments')id(options.postId);
       for(const field of ['owner','author','repostedBy'])if(options[field]!==undefined)id(options[field]);
       if(options.coin!==undefined)coin(options.coin);
       if(options.category!==undefined && !['최신','좋아요','지지','팔로잉','급상승','논쟁'].includes(options.category))throw Error('잘못된 정렬입니다.');
-      for(const field of ['since','until'])if(options[field]!==undefined && (!Number.isSafeInteger(options[field])||options[field]<0))throw Error('잘못된 기간입니다.');
+      for(const field of ['since','until','activitySince'])if(options[field]!==undefined && (!Number.isSafeInteger(options[field])||options[field]<0))throw Error('잘못된 기간입니다.');
       if(options.bounds!==undefined && (!Array.isArray(options.bounds)||options.bounds.length!==4||options.bounds.some(v=>!Number.isFinite(v))||options.bounds[0]<-90||options.bounds[2]>90||options.bounds[0]>options.bounds[2]||Math.abs(options.bounds[1])>180||Math.abs(options.bounds[3])>180))throw Error('잘못된 지도 범위입니다.');
       if(args.cursor!==undefined && args.cursor!==null){
         const c=args.cursor;
-        if(!Array.isArray(c) || (mode==='pins' ? c.length!==1 || typeof c[0]!=='string' : c.length!==3 || !Number.isSafeInteger(c[0]) || !Number.isSafeInteger(c[1]) || typeof c[2]!=='string'))throw Error('잘못된 페이지입니다.');
-        id(c.at(-1));
+        const trending=options.category==='급상승' && ['posts','coins'].includes(mode);
+        if(!Array.isArray(c) || (mode==='pins' ? c.length!==1 || typeof c[0]!=='string' : (c.length!==3 && !(trending&&c.length===4)) || !Number.isSafeInteger(c[0]) || !Number.isSafeInteger(c[1]) || typeof c[2]!=='string'))throw Error('잘못된 페이지입니다.');
+        if(c.length===4 && (!Number.isSafeInteger(c[3])||c[3]<0||c[3]>Date.now()+60000))throw Error('잘못된 페이지입니다.');
+        id(mode==='pins'?c[0]:c[2]);
       }
       const limit=args.limit??20;if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('잘못된 페이지 크기입니다.');
       return db.page(uid||null,{...options,mode},args.cursor??null,limit);

@@ -16,16 +16,18 @@ function CommentAuthor({ id, name, initial }) {
   return <span className="comment-author">{profile?.profileImage && <img src={profile.profileImage} alt=""/>}<b>{profile?.username || name}</b></span>;
 }
 
-export function HomePage({ onPin, onReposted, me, options, setOptions, following, onProfile, compose, login }) {
+export function HomePage({ onCoin, onPin, onReposted, me, options, setOptions, following, onProfile, compose, login }) {
   const [posts, setPosts] = useState([]), [error, setError] = useAppMessage(), [loading, setLoading] = useState(true), [open, setOpen] = useState({});
   useEffect(() => data.watchPosts(value => { setPosts(value); setLoading(false); setError(''); }, () => { setError('피드를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'); setLoading(false); }), []);
   const { actions, overlays } = useFeedActions(me, login, onReposted);
+  actions.onCoin=onCoin;
+  useEffect(()=>{if(options.focusCoin){setOpen(current=>({...current,[options.focusCoin]:true}));window.scrollTo(0,0);}},[options.focusCoin,options.coinSelection]);
   const result = filterFeed(posts.map(post => ({...post, likeCount: actions.likes.filter(like => like.postId === post.id).length})), options, following);
   const card = post => <CommunityPost onPin={onPin} key={post.id} post={post} onProfile={onProfile} {...actions}/>;
   return <main className="home-page"><FeedControls options={options} setOptions={setOptions}/>
     {loading && <p className="loading-state" role="status">{t("피드를 불러오는 중…")}</p>}{error && <p className="error" role="alert">{error}</p>}
     {!loading && !error && !result.posts.length && <Empty text={options.category === '팔로잉' ? t("팔로우한 사용자의 게시물이 없습니다") : t("첫 번째 이야기를 남겨보세요")}/>}
-    {options.feed === '유저 피드' ? <div className="feed">{result.posts.map(card)}</div> : result.groups.map((group, index) => <section className="coin-group" key={group.coin}><button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>{group.coin}</b><small>{options.category === '최신' ? age(group.score) : `${t(options.category === '논쟁' ? '논쟁' : options.category === '급상승' ? '급상승' : '코인 지지')} ${group.score.toLocaleString()}`} · {group.items.length}{t("개의 피드")}</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>{open[group.coin] && group.items.map(card)}</section>)}
+    {options.feed === '유저 피드' ? <div className="feed">{result.posts.map(card)}</div> : [...result.groups].sort((a,b)=>Number(b.coin===options.focusCoin)-Number(a.coin===options.focusCoin)).map((group, index) => <section className="coin-group" key={group.coin}><button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>{group.coin}</b><small>{options.category === '최신' ? age(group.score) : `${t(options.category === '논쟁' ? '논쟁' : options.category === '급상승' ? '급상승' : '코인 지지')} ${group.score.toLocaleString()}`} · {group.items.length}{t("개의 피드")}</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>{open[group.coin] && group.items.map(card)}</section>)}
     <button className="fab" onClick={compose} aria-label={t("새 피드 작성")}><SquarePen/></button>
     {overlays}
   </main>;

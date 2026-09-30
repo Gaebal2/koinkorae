@@ -177,7 +177,7 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 @media (max-width: 360px) { .pin-detail > .pin-creator { gap: 4px; } .pin-detail .pin-creator > .pin-category-badge { padding-inline: 5px; font-size: 9px; } .pin-detail-actions button { padding-inline: 5px; } }
 
 .map-pin-card-anchor { position: absolute; z-index: 8; left: 14px; right: 14px; }
-.map-pin-card-anchor > .pin-detail { position: relative; inset: auto; width: 100%; max-height: calc(100dvh - 190px); overflow-y: auto; }
+.map-pin-card-anchor > .pin-detail { position: relative; inset: auto; width: 100%; max-height: none; overflow: visible; }
 .attached-pin-placeholder { min-height: 170px; }
 
 /* Explicit tracks preserve the existing header / left photo / right text layout,
@@ -389,3 +389,29 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .repost-context-heading .repost-badge { width: 32px; height: 32px; flex: 0 0 32px; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; padding: 0; background: #e5daf8; color: #7350ac; margin: 0; }
 .repost-context-heading button.repost-badge:hover { background: #d9c9f1; }
 .repost-context-heading button.repost-badge:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.post-author-line { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.post-author-line b { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.post-card .feed-menu-button { width:30px; height:30px; flex:0 0 30px; display:inline-flex; align-items:center; justify-content:center; padding:0; border:0; background:transparent; color:var(--primary-dark); }
+.post-card .post-head > div { flex:1; }
+.post-card .feed-coin-button { padding:0; border:0; background:transparent; margin-left:auto; flex:none; }
+.post-card .repost-context { margin:0 0 14px; }
+.repost-context-heading > .feed-menu-button { margin-left:auto; order:2; }
+.post-card .feed-battle-meter { width:100%; border:0; cursor:pointer; isolation:isolate; }
+.feed-battle-meter > i { z-index:-1; }
+.feed-battle-meter .meter-total { position:absolute; left:50%; transform:translateX(-50%); font-size:12px; font-variant-numeric:tabular-nums; }
+.feed-battle-meter .meter-total.negative { color:#b32647; }
+.post-card .score-row > .battle-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:40px; min-width:88px; padding:0 18px; border:0; border-radius:10px; background:var(--surface-tint); color:var(--primary-dark); white-space:nowrap; }
+.post-card .score-row > .battle-btn svg { width:18px; }
+.post-card .score-row > .card-actions { flex:0 1 auto; margin-left:auto; flex-direction:row; gap:8px; }
+.post-card .card-actions button { min-height:40px; padding:4px; }
+.post-card .card-actions button:is(:active,[aria-pressed="true"]) { background:transparent; }
+.post-card .card-actions button:is(:active,[aria-pressed="true"]) svg { color:var(--primary); fill:currentColor; }
+.post-card .card-actions .like-button:is(:active,[aria-pressed="true"]) svg { color:#c34578; }
+.profile-page-x .profile-name-row { display:flex; align-items:center; justify-content:space-between; gap:12px; min-width:0; }
+.profile-page-x .profile-name-row h1 { margin:0; }
+.profile-name-row > button { flex:none; border:0; border-radius:10px; padding:9px 12px; background:var(--surface-tint); color:var(--primary-dark); }
+.profile-content-tabs { display:flex; margin-top:16px; }
+.profile-content-tabs > button { flex:1; min-width:0; min-height:44px; display:flex; justify-content:center; align-items:center; }
+.profile-content-tabs svg { width:20px; height:20px; }
+.pin-category-badge { display:inline-flex; align-items:center; gap:7px; }
+.pin-category-icon { display:inline-block; flex:0 0 15px; width:15px; height:15px; border:2px solid var(--primary); border-radius:50% 50% 50% 3px; transform:rotate(-45deg); background:white; margin:0 2px 3px; }

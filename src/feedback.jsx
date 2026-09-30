@@ -52,7 +52,7 @@ function FeedbackDialog({ item, close }) {
     return () => { document.body.style.overflow = previous; siblings.forEach(([node, inert]) => { node.inert = inert; }); };
   }, [item]);
   const Icon = item.kind === 'success' ? Check : item.kind === 'error' ? CircleAlert : Info;
-  return <div className="feedback-backdrop"><section ref={element} className={`feedback-dialog feedback-${item.kind}`} role="alertdialog" aria-modal="true" aria-labelledby="feedback-title" aria-describedby="feedback-description" onKeyDown={event => {
+  return <div className="feedback-backdrop" onClick={event=>{if(event.target===event.currentTarget)close(false);}}><section ref={element} className={`feedback-dialog feedback-${item.kind}`} role="alertdialog" aria-modal="true" aria-labelledby="feedback-title" aria-describedby="feedback-description" onKeyDown={event => {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(false); }
     if (event.key === 'Tab') {
       const buttons = [...element.current.querySelectorAll('button')], first = buttons[0], last = buttons.at(-1);

@@ -25,6 +25,33 @@ Deploy in this order:
 The inactive Firebase rollback adapter and historical SQLite demo retain their
 old repost model; this migration targets the production Supabase backend.
 
+Profile pins and ranking update:
+
+- Apply `202609300006_separate_profile_pins.sql`, then
+  `202609300007_feed_activity_ranking.sql`, and finally
+  `202609300008_period_activity_ranking.sql`, after migration 005. Deploy the updated
+  `community` function before the frontend (trending pagination now carries its
+  evaluation time). Do not replay older migrations over these functions.
+- Authored posts use `pinnedPostId`; reposts use `pinnedRepostId`. A legacy repost
+  pin migrates to the repost tab. Each tab replaces/unpins only its own entry.
+- Controversy orders by `abs(support) + abs(oppose)`.
+- Trending follows the selected KST calendar period: today, this month, this year
+  or all available history. The start timestamp filters activity, not publication
+  dates, so an older post can trend today. Each point of battle-counter change and
+  each active new comment, repost or like contributes one unit divided by
+  `1 + elapsed minutes`. Scores are scaled by 1,000,000 and floored for integer
+  pagination. This measures time-weighted activity rather than lifetime totals.
+  Coin groups sum feed scores. Open trending lists refresh every minute.
+- Comments, reposts and likes use existing creation timestamps; removing an
+  engagement removes its contribution. Battle changes are recorded from migration
+  time onward; historic totals are not fabricated into recent activity. Activity
+  buckets are private, retained for the year/all-period queries, and removed with
+  a deleted post. Migration 008 removes the former 24-hour cutoff and pruning;
+  any history already pruned by an earlier deployment cannot be reconstructed.
+- Cursor pages reuse the first page's evaluation timestamp to avoid shifts caused
+  solely by time decay. Concurrent real activity can still change ordering, as
+  with the existing live feed; refreshed lists re-evaluate the complete chain.
+
 Validation: `npm test` includes SQL integration coverage for comment limits,
 authentication, canonical originals, cursor pagination, profile order, migration
 reapplication, deletion and exactly-once support/oppose scoring on both protocols.

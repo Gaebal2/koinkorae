@@ -125,7 +125,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
   return (
     <div className={`pin-detail ${pin.image || pin._detailPending ? 'has-photo-slot' : ''} ${onEdit || onDelete ? 'has-actions' : ''} ${onActivate ? 'pin-card-link' : ''} ${className}`} role={onActivate ? 'button' : undefined} tabIndex={onActivate ? 0 : undefined} aria-label={onActivate ? t("{0} 지도에서 보기", pin.title) : undefined} onClick={onActivate ? () => onActivate(pin) : undefined} onKeyDown={onActivate ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(pin); } } : undefined}>
         <div className="pin-creator">
-          <span className="pin-category-badge">{pin._detailPending?t('Pin'):normalizePinCategory(pin.category) === '상점 등록' ? t("상점") : t(normalizePinCategory(pin.category))}</span>
+          <span className="pin-category-badge"><span className="map-pin-shell pin-category-icon" aria-hidden="true"/>{pin._detailPending?t('Pin'):normalizePinCategory(pin.category) === '상점 등록' ? t("상점") : t(normalizePinCategory(pin.category))}</span>
 
           <Avatar className="pin-creator-profile" onClick={!passive ? () => onProfile?.(pin.creator || "battle_newbie") : undefined} aria-label={!passive ? t("핀 생성자 프로필 보기") : undefined}>
             <img src={creator?.profileImage || profileImage()} alt={t("{0} 프로필", creatorName)} />
@@ -356,7 +356,7 @@ export function Modal({ title, onClose, children, className = "", floating = fal
     return () => { root.removeEventListener('keydown', onKey); siblings.forEach(([node, inert]) => { node.inert = inert; }); document.body.style.overflow = overflow; if (previous?.isConnected) previous.focus(); };
   }, []);
   return createPortal(
-    <div className={`overlay${floating ? " overlay-floating" : ""}`}>
+    <div className={`overlay${floating ? " overlay-floating" : ""}`} onClick={event=>{if(event.target===event.currentTarget)onClose();}}>
       <section ref={element} role="dialog" aria-modal="true" aria-label={t(title)} tabIndex={-1} className={`modal ${className}`}>
         <header>
           <b>{t(title)}</b>
@@ -423,5 +423,5 @@ export function InstallPrompt(){
     finally { setInstalling(false); }
   };
   if(!installEvent)return null;
-  return <div className="install-overlay" role="dialog" aria-modal="true" aria-labelledby="install-heading"><section className="install-card"><button className="install-dismiss" onClick={dismiss} aria-label={t("설치 안내 닫기")}><X/></button><img src={asset("koin-korae-transparent-192.png")} alt={t("ㅋㅇㄱㄹ 앱 아이콘")}/><small>ㅋㅇㄱㄹ APP</small><h2 id="install-heading">{t("앱으로 설치할까요?")}</h2><p>{t("홈 화면에서 더 빠르고 편하게 이용할 수 있어요.")}</p><button className="install-action" onClick={install} disabled={installing}>{installing?t("설치 확인 중…"):t("앱 설치하기")}</button><button className="install-later" onClick={dismiss}>{t("나중에")}</button></section></div>
+  return <div className="install-overlay" onClick={event=>{if(event.target===event.currentTarget)dismiss();}} role="dialog" aria-modal="true" aria-labelledby="install-heading"><section className="install-card"><button className="install-dismiss" onClick={dismiss} aria-label={t("설치 안내 닫기")}><X/></button><img src={asset("koin-korae-transparent-192.png")} alt={t("ㅋㅇㄱㄹ 앱 아이콘")}/><small>ㅋㅇㄱㄹ APP</small><h2 id="install-heading">{t("앱으로 설치할까요?")}</h2><p>{t("홈 화면에서 더 빠르고 편하게 이용할 수 있어요.")}</p><button className="install-action" onClick={install} disabled={installing}>{installing?t("설치 확인 중…"):t("앱 설치하기")}</button><button className="install-later" onClick={dismiss}>{t("나중에")}</button></section></div>
 }
