@@ -62,6 +62,15 @@ export function BattleGames({ post, onClose, practiceKind, onShare }) {
   useEffect(()=>{const image=new Image();playerIcon.current=image;image.onload=()=>{const ctx=canvas.current?.getContext("2d");if(ctx&&game.current)draw(ctx,game.current,image,post.coin);};image.src=coinImage(post.coin);return()=>{image.onload=null;};},[post.coin]);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   const side=session?.side,kind=session?.kind;
+  useEffect(()=>{
+    const surface=canvas.current;if(!surface)return;
+    const prevent=event=>{if(event.cancelable)event.preventDefault();};
+    surface.addEventListener('touchstart',prevent,{passive:false});
+    surface.addEventListener('touchmove',prevent,{passive:false});
+    surface.addEventListener('contextmenu',prevent);
+    surface.addEventListener('selectstart',prevent);
+    return()=>{surface.removeEventListener('touchstart',prevent);surface.removeEventListener('touchmove',prevent);surface.removeEventListener('contextmenu',prevent);surface.removeEventListener('selectstart',prevent);};
+  },[kind]);
   const signed=score=>practice?score.toLocaleString():score===0?'0':(side==='oppose'?'-':'+')+score;
   const paint=()=>{const ctx=canvas.current?.getContext('2d');if(ctx&&game.current)draw(ctx,game.current,playerIcon.current,post.coin);};
   const install=progress=>{game.current=structuredClone(progress.game);random.current=battleRandom(progress.randomState);banked.current=progress.bankedScore;revision.current=progress.revision;inputs.current=[];ticks.current=0;packets.current=[];pendingAction.current=false;drag.current.reset();heldKeys.current.clear();setDisplay({score:banked.current+game.current.score,time:game.current.time});};

@@ -118,7 +118,7 @@ export async function dispatch(db, identity, action, args = {}) {
     case 'publish': {
       const value=args.value || {};
       if (value.pinId && !await get('pins',value.pinId)) throw Error('삭제된 거래입니다.');
-      await put('posts',crypto.randomUUID(),{authorId:uid,author:name,content:text(value.content,200,true),coin:coin(value.coin),image:photo(value.image),...(value.pinId?{pinId:id(value.pinId)}:{}),createdAt:Date.now(),support:0,oppose:0}); return null;
+      await put('posts',crypto.randomUUID(),{authorId:uid,author:name,content:text(value.content,200,true),coin:coin(value.coin),image:photo(value.image),...(value.additionalImage!==undefined?{additionalImage:photo(value.additionalImage)}:{}),...(value.pinId?{pinId:id(value.pinId)}:{}),createdAt:Date.now(),support:0,oppose:0}); return null;
     }
     case 'deletePost': return mutate('deletePost',id(args.id));
     case 'follow': {

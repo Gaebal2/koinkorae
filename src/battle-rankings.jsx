@@ -30,7 +30,6 @@ export function BattleRankings({postId,me,onClose,onProfile}) {
   return <Modal title={t('배틀 참여자 순위')} onClose={onClose} floating className="battle-rankings">
     <div className="ranking-summary"><Trophy/><div><strong>{t('전체 {0}명',result?.summary.participants.toLocaleString()??'—')}</strong><span>{t('총 배틀 점수 {0}점',result?.summary.total.toLocaleString()??'—')}</span></div></div>
     <p className="ranking-note">{t('지지·반대 점수의 절댓값 합계 순위입니다.')}</p>
-    <p className="ranking-note">{t('새 집계 기능 적용 이후 피드에 반영한 배틀만 포함됩니다.')}</p>
     {me&&result&&<section className="my-battle-ranking"><h3>{t('내 기록')}</h3>{result.mine?<Participant row={result.mine} total={result.summary.total} mine onProfile={openProfile}/>:<p className="form-help">{t('아직 이 피드에 반영한 배틀이 없습니다.')}</p>}</section>}
     {result&&<><h3>{t('상위 100명')}</h3><div className="battle-ranking-list">{result.items.map(row=><Participant key={row.userId} row={row} total={result.summary.total} onProfile={openProfile}/>)}</div>{!result.items.length&&<p className="form-help">{t('첫 배틀 참여자가 되어 보세요.')}</p>}</>}
     {error&&<p className="error" role="alert">{t('순위를 불러오지 못했습니다.')} <button onClick={()=>load(result?.nextCursor??null)}>{t('다시 시도')}</button></p>}

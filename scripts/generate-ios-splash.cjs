@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 async function main() {
   const manifest = JSON.parse(await fs.readFile(path.join(root, 'public/manifest.webmanifest'), 'utf8'));
   const logo = await loadImage(path.join(root, 'public', manifest.icons.find(icon => icon.sizes === '512x512').src));
-  const screens = [[320,568,2],[375,667,2],[414,736,3],[375,812,3],[414,896,2],[414,896,3],[390,844,3],[393,852,3],[402,874,3],[420,912,3],[428,926,3],[430,932,3],[440,956,3],[768,1024,2],[810,1080,2],[820,1180,2],[834,1112,2],[834,1194,2],[834,1210,2],[1024,1366,2],[1032,1376,2]];
+  const screens = [[360,780,3],[375,812,2],[744,1133,2],[320,568,2],[375,667,2],[414,736,3],[375,812,3],[414,896,2],[414,896,3],[390,844,3],[393,852,3],[402,874,3],[420,912,3],[428,926,3],[430,932,3],[440,956,3],[768,1024,2],[810,1080,2],[820,1180,2],[834,1112,2],[834,1194,2],[834,1210,2],[1024,1366,2],[1032,1376,2]];
   const directory = path.join(root, 'public/ios-splash');
   await fs.mkdir(directory, { recursive: true });
   const links = [];
@@ -21,7 +21,7 @@ async function main() {
       ctx.drawImage(logo, (w-size)/2, (h-size)/2, size, size);
       const file = `launch-${w}x${h}.png`;
       await fs.writeFile(path.join(directory, file), canvas.toBuffer('image/png'));
-      links.push(`    <link rel="apple-touch-startup-image" href="%BASE_URL%ios-splash/${file}" media="screen and (device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${scale}) and (orientation: ${orientation})" />`);
+      links.push(`    <link rel="apple-touch-startup-image" href="%BASE_URL%ios-splash/${file}?v=6" media="screen and (device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${scale}) and (orientation: ${orientation})" />`);
     }
   }
   const file = path.join(root, 'index.html');

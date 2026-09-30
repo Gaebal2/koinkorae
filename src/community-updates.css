@@ -316,7 +316,9 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .practice-art-runner { background:linear-gradient(150deg,#def6e8,#f4fff8); }
 .practice-art-tower { background:linear-gradient(150deg,#fff0ce,#fffaf0); }
 .practice-art-bounce { background:linear-gradient(150deg,#e2eeff,#f7faff); }
-.score-row .support-score-button { min-height:36px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:5px 10px; border:1px solid #e9e4f2; border-radius:10px; background:#f8f6fc; }
+.score-row { align-items:center; }
+.score-row .support-score-button,.card-actions .battle-btn { height:36px; min-height:36px; box-sizing:border-box; display:inline-flex; flex-direction:row; align-items:center; justify-content:center; gap:5px; padding:0 12px; border:0; border-radius:10px; background:var(--surface-tint); color:var(--primary-dark); line-height:1; white-space:nowrap; }
+.score-row .support-score-button small { color:inherit; font-size:10px; }
 .score-row .support-score-button strong { font-size:14px; }
 .support-score-button:focus-visible { outline:3px solid #a997ff; outline-offset:2px; }
 .overlay-floating > .battle-rankings { width:min(100%,440px); }
@@ -337,6 +339,16 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .participant-meta { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:8px; }
 .participant-time { display:block; color:var(--muted); font-size:10px; margin-top:6px; line-height:1.5; }
 .ranking-more { width:100%; margin-top:14px; }
+.map-crosshair::after { content:none; }
+.battle-games-modal,.battle-games-modal * { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+.battle-games-modal canvas,.battle-games-modal img { -webkit-user-drag:none; }
+.photo-editor-stage { display:grid; place-items:center; padding:16px; background:#eeebf5; border-radius:18px; margin:16px 0; }
+.photo-editor-preview { position:relative; overflow:hidden; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; background:white; box-shadow:0 0 0 2px white; }
+.photo-editor-preview.is-profile { border-radius:50%; }
+.photo-editor-preview img { position:absolute; max-width:none; pointer-events:none; -webkit-user-drag:none; object-fit:fill; }
+.photo-editor-modal input[type=range] { width:100%; accent-color:var(--primary); }
+.practice-capture-preview > img { object-fit:contain; }
+.composer-tools button:disabled { opacity:.65; cursor:default; }
 .repost-context { margin: 14px 0; }
 .repost-context-heading .repost-badge { width: 32px; height: 32px; flex: 0 0 32px; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; padding: 0; background: #e5daf8; color: #7350ac; margin: 0; }
 .repost-context-heading button.repost-badge:hover { background: #d9c9f1; }

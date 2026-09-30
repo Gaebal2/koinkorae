@@ -430,5 +430,18 @@
   "첫 배틀 참여자가 되어 보세요.": "Be the first to battle for this post.",
   "순위를 불러오지 못했습니다.": "Could not load the ranking.",
   "20명 더 보기": "Show 20 more",
-  "지지 점수 · 배틀 참여자 순위": "Support score · Battle contributors"
+  "지지 점수 · 배틀 참여자 순위": "Support score · Battle contributors",
+  "상세 정보 불러오는 중…": "Loading details…",
+  "20MB 이하의 사진을 선택해 주세요.": "Choose a photo up to 20 MB.",
+  "사진 편집": "Edit photo",
+  "사진을 드래그하거나 확대해 표시할 부분을 맞춰 주세요.": "Drag or zoom the photo to frame your crop.",
+  "자르기 비율": "Crop ratio",
+  "원본 비율": "Original ratio",
+  "사진 편집 미리보기": "Photo editing preview",
+  "확대": "Zoom",
+  "추가 사진 미리보기": "Additional photo preview",
+  "추가 사진 제거": "Remove additional photo",
+  "추가 사진 크게 보기": "View additional photo",
+  "피드 추가 사진": "Additional post photo",
+  "지도 중앙의 원 위치": "Circle at the center of the map"
 }

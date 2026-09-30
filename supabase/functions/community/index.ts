@@ -42,7 +42,7 @@ Deno.serve(async request=>{
   if(request.method!=='POST') return reply({error:'POST 요청이 필요합니다.'},405);
   try {
     const raw=await request.text();
-    if(raw.length>400000) return reply({error:'요청이 너무 큽니다.'},413);
+    if(raw.length>650000) return reply({error:'요청이 너무 큽니다.'},413);
     const {action,args={}}=JSON.parse(raw);
     if(typeof action!=='string' || !args || typeof args!=='object' || Array.isArray(args)) return reply({error:'잘못된 요청입니다.'},400);
     let identity=null;
