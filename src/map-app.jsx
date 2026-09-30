@@ -53,6 +53,7 @@ function GoogleAuth({ close, done }) {
 export function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick, onBounds, moreControl, ownPinCount }) {
   const element = useRef(null), map = useRef(null), markers = useRef(null), markerById = useRef(new Map());
   const [cardTop, setCardTop] = useState(null);
+  const anchoredPin = useRef(null);
   const [center, setCenter] = useState(readMapCamera), [locationError, setLocationError] = useAppMessage(), [photo, setPhoto] = useState(null);
   useEffect(() => {
     const instance = L.map(element.current, { zoomControl: false }).setView([center.lat, center.lng], center.zoom || 14); map.current = instance;
@@ -80,17 +81,16 @@ export function MapPage({ pins, selected, select, me, login, edit, onProfile, on
       markerById.current.set(pin.id, marker);
     }
   }, [pins]);
-  useEffect(() => { if (selected) map.current.setView([selected.lat, selected.lng], 15); }, [selected?.id]);
+  useEffect(() => { if (selected) map.current.setView([selected.lat, selected.lng], 15, { animate: false }); }, [selected?.id]);
   useEffect(() => {
-    if (!selected) { setCardTop(null); return; }
-    const instance = map.current;
-    const update = () => {
-      const shell = markerById.current.get(selected.id)?.getElement()?.querySelector('.map-pin-shell');
-      if (shell) setCardTop(shell.getBoundingClientRect().bottom - element.current.getBoundingClientRect().top + 10);
-    };
-    update(); instance.on('move zoom resize', update);
-    const observer = new ResizeObserver(update); observer.observe(element.current);
-    return () => { instance.off('move zoom resize', update); observer.disconnect(); };
+    if (!selected) { anchoredPin.current = null; setCardTop(null); return; }
+    // Capture once per selection. Map movement and refreshed marker lists must
+    // not move an already-open card away from its original screen position.
+    if (anchoredPin.current === selected.id) return;
+    const shell = markerById.current.get(selected.id)?.getElement()?.querySelector('.map-pin-shell');
+    if (!shell) { setCardTop(null); return; }
+    anchoredPin.current = selected.id;
+    setCardTop(shell.getBoundingClientRect().bottom - element.current.getBoundingClientRect().top + 10);
   }, [selected?.id, pins]);
   useBackDismiss(!!selected && !picking,()=>select(null),20);
   const pickActions = picking && <div className="pin-pick-actions"><span>첨부할 Pin을 선택하세요</span><div><button type="button" onClick={onCancelPick}>취소</button><button type="button" className="pin-confirm-selection" disabled={!selected} onClick={() => selected && onPick(selected)}>선택</button></div></div>;
