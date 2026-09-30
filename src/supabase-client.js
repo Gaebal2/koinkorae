@@ -5,7 +5,7 @@ const affected={
   ensureProfile:['profile'], saveProfile:['profile','posts','authorPosts','postsById','listPins','getPin','comments','friends','ownComments'],
   savePin:['listPins','getPin'], deletePin:['listPins','getPin'], checkin:['balance'],
   publish:['posts','authorPosts','postsById'], deletePost:['posts','authorPosts','postsById','comments','commentCount','ownComments','reposts'],
-  follow:['following','relationships','friends','messages'], repost:['reposts'], like:['posts','authorPosts','postsById'],
+  follow:['following','relationships','friends','messages'], repost:['reposts','posts','authorPosts','postsById'], like:['posts','authorPosts','postsById'],
   comment:['comments','commentCount','ownComments'], deleteComment:['comments','commentCount','ownComments'],
   sendMessage:['messages'], startBattle:['balance'], applyBattle:['balance','posts','authorPosts','postsById'], finishBattle:['balance','posts','authorPosts','postsById'],
 };

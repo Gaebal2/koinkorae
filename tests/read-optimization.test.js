@@ -16,21 +16,21 @@ test('SQL cursor pages preserve tied records, global ranking, coin totals, profi
     await dispatch(db,user,'ensureProfile');
     for(let i=0;i<45;i++)await db.put({kind:'posts',id:'p'+String(i).padStart(2,'0'),parent:'',owner:'alice',body:{authorId:'alice',author:'old',coin:i<30?'BTC':'ETH',content:'Post '+i,createdAt:1000,support:i,oppose:0}});
     await dispatch(db,user,'comment',{postId:'p44',content:'hi',side:'support'});
-    await dispatch(db,user,'repost',{postId:'p44',enabled:true});
+    const repost=await dispatch(db,user,'repost',{postId:'p44',enabled:true});
     const top=await dispatch(db,user,'page',{options:{category:'지지'},limit:20});
     assert.equal(top.items[0].id,'p44');assert.equal(top.items[0].author,'Alice');assert.equal(top.items[0].commentCount,1);assert.equal(top.items[0].repostCount,1);assert.equal(top.items[0].reposted,true);
     let cursor=null,all=[];
     do{const page=await dispatch(db,user,'page',{options:{category:'최신'},cursor,limit:20});all.push(...page.items);cursor=page.nextCursor;}while(cursor);
-    assert.equal(all.length,45);assert.equal(new Set(all.map(p=>p.id)).size,45);assert.equal(all[0].id,'p00');
+    assert.equal(all.length,46);assert.equal(new Set(all.map(p=>p.id)).size,46);assert.equal(all[0].id,repost.id);
     const coins=await dispatch(db,null,'page',{options:{mode:'coins',category:'지지'},limit:1});
-    assert.equal(coins.items[0].coin,'ETH');assert.equal(coins.items[0].count,15);assert.equal(coins.items[0].score,555);
+    assert.equal(coins.items[0].coin,'ETH');assert.equal(coins.items[0].count,16);assert.equal(coins.items[0].score,555);
     const next=await dispatch(db,null,'page',{options:{mode:'coins',category:'지지'},cursor:coins.nextCursor,limit:1});
     assert.equal(next.items[0].coin,'BTC');assert.equal(next.items[0].count,30);assert.equal(next.nextCursor,null);
-    assert.equal((await dispatch(db,user,'page',{options:{category:'최신',since:1001}})).items.length,0);
+    assert.equal((await dispatch(db,user,'page',{options:{category:'최신',since:1001}})).items.length,1);
     assert.equal((await dispatch(db,user,'page',{options:{category:'팔로잉'}})).items.length,0);
     await dispatch(db,{uid:'bob',name:'Bob'},'follow',{id:'alice',enabled:true});
     assert.equal((await dispatch(db,{uid:'bob'},'page',{options:{category:'팔로잉'}})).items.length,20);
-    assert.equal((await dispatch(db,user,'page',{options:{category:'최신',repostedBy:'alice'}})).items[0].id,'p44');
+    assert.equal((await dispatch(db,user,'page',{options:{category:'최신',repostedBy:'alice'}})).items[0].id,repost.id);
   }finally{await pg.close();}
 });
 test('map pages project marker fields, respect owner/bounds and handle the date line',async()=>{

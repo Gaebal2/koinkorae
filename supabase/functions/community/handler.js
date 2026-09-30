@@ -121,7 +121,7 @@ export async function dispatch(db, identity, action, args = {}) {
       else await db.remove('following',target,uid,uid);
       return null;
     }
-    case 'repost': return mutate('repost','',{postId:id(args.postId),enabled:enabled(args.enabled)});
+    case 'repost': return mutate('repost','',{postId:id(args.postId),enabled:enabled(args.enabled),comment:text(args.comment ?? '',100)});
     case 'like': return mutate('like',id(args.postId),{enabled:enabled(args.enabled)});
     case 'comment': {
       const parent = args.replyToId ? await get('comments',args.replyToId,id(args.postId)) : null;
