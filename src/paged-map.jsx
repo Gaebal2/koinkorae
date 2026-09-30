@@ -1,3 +1,4 @@
+import { t } from './language.js';
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
 import {data} from './data.js';
 import {useCursorPage} from './paged-feed.jsx';
@@ -17,5 +18,5 @@ export function PagedMap({component:Map,ownPins=[],...props}){
     catch{setError('Pin을 불러오지 못했습니다.');}
   };
   return <Map {...props} pins={pins} select={select} onBounds={onBounds} ownPinCount={ownPins.length}
-    moreControl={<div className="map-results">{(error||page.error)&&<p role="alert">{error||'지도를 불러오지 못했습니다.'}<button onClick={page.retry}>다시 시도</button></p>}{page.loading?<span>주변 Pin 불러오는 중…</span>:page.nextCursor?<button onClick={page.more}>주변 Pin 20개 더 보기</button>:null}</div>}/>;
+    moreControl={<div className="map-results">{(error||page.error)&&<p role="alert">{t(error||"지도를 불러오지 못했습니다.")}<button onClick={page.retry}>{t("다시 시도")}</button></p>}{page.loading?<span>{t("주변 Pin 불러오는 중…")}</span>:page.nextCursor?<button onClick={page.more}>{t("주변 Pin 20개 더 보기")}</button>:null}</div>}/>;
 }

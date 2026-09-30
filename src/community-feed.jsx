@@ -1,5 +1,6 @@
+import { t } from './language.js';
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageCircle, Repeat2, Swords } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2, Swords } from 'lucide-react';
 import { data } from './data.js';
 import { age } from './api.js';
 import { Coin, Modal, PinDetailCard } from './ui.jsx';
@@ -13,8 +14,11 @@ export function useFeedActions(me, login, onReposted, enriched = false) {
   const [, setError] = useAppMessage();
   const [battle, setBattle] = useState(null), [comments, setComments] = useState(null), [photo, setPhoto] = useState(null), [reposts, setReposts] = useState([]), [busy, setBusy] = useState(false);
   useEffect(() => { if(enriched)return; return data.watchReposts(setReposts, () => setError('리포스트를 불러오지 못했습니다.')); }, [enriched]);
+  const [likes, setLikes] = useState([]);
+  useEffect(() => { if(enriched)return; return data.watchLikes?.(setLikes, () => setError('좋아요를 불러오지 못했습니다.')); }, [enriched]);
   const actions = {
-    me, reposts, busy, repostNavigates: !!onReposted, onBattle: post => me ? setBattle(post) : login(), onComment: setComments, onPhoto: setPhoto,
+    me, reposts, likes, busy, repostNavigates: !!onReposted, onBattle: post => me ? setBattle(post) : login(), onComment: setComments, onPhoto: setPhoto,
+    onLike: async (post, enabled) => { if (!me) { login(); return; } await data.like(post.id, enabled); },
     onRepost: async post => {
       if (!me) { login(); return; }
       if (busy) return;
@@ -33,7 +37,7 @@ export function useFeedActions(me, login, onReposted, enriched = false) {
       catch { setError('게시물을 삭제하지 못했습니다.'); }
     },
   };
-  const overlays = <>{battle && <BattleGames post={battle} onClose={() => setBattle(null)}/ >}{comments && <Comments post={comments} me={me} close={() => setComments(null)}/ >}{photo && <Modal title="피드 사진" onClose={() => setPhoto(null)}><img className="expanded-photo" src={photo} alt="피드 첨부 사진 확대"/></Modal>}</>;
+  const overlays = <>{battle && <BattleGames post={battle} onClose={() => setBattle(null)}/ >}{comments && <Comments post={comments} me={me} close={() => setComments(null)}/ >}{photo && <Modal title={t("피드 사진")} onClose={() => setPhoto(null)}><img className="expanded-photo" src={photo} alt={t("피드 첨부 사진 확대")}/></Modal>}</>;
   return { actions, overlays };
 }
 
@@ -46,11 +50,11 @@ function AttachedPin({ id, onPin }) {
     data.getPin(id).then(value => { if (active) { setPin(value); setStatus(value ? 'ready' : 'missing'); } }, () => { if (active) setStatus('error'); });
     return () => { active = false; };
   }, [id, revision]);
-  if (!pin) return <div className="attached-pin-status" role="status">{status === 'loading' ? '첨부 Pin을 불러오는 중…' : status === 'missing' ? '삭제된 Pin입니다.' : <button type="button" onClick={() => retry(value => value + 1)}>Pin 다시 불러오기</button>}</div>;
+  if (!pin) return <div className="attached-pin-status" role="status">{status === 'loading' ? t("첨부 Pin을 불러오는 중…") : status === 'missing' ? t("삭제된 Pin입니다.") : <button type="button" onClick={() => retry(value => value + 1)}>{t("Pin 다시 불러오기")}</button>}</div>;
   return <PinDetailCard pin={pin} className="feed-pin-card" onActivate={() => onPin?.(id)}/>;
 }
 
-export function CommunityPost({ onPin, post, onProfile, me, reposts, busy, repostNavigates, onBattle, onComment, onRepost, onPhoto, onDelete }) {
+export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [], busy, repostNavigates, onBattle, onComment, onRepost, onLike, onPhoto, onDelete }) {
   const element = useRef(null);
   const [nearViewport, setNearViewport] = useState(false);
   useEffect(() => {
@@ -67,12 +71,27 @@ export function CommunityPost({ onPin, post, onProfile, me, reposts, busy, repos
   const total = post.support + post.oppose, score = post.support - post.oppose;
   const shared = reposts.filter(r => r.postId === post.id), isShared = post.reposted ?? shared.some(r => r.userId === me?.id);
   const shownCount=post.commentCount ?? count;
+  const postLikes = likes.filter(like => like.postId === post.id);
+  const likeCount = post.likeCount ?? postLikes.length;
+  const liked = post.liked ?? postLikes.some(like => like.userId === me?.id);
   return <article ref={element} className="post-card">
-    <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={`${authorName} 프로필 보기`}>{authorProfile?.profileImage ? <img src={authorProfile.profileImage} alt=""/> : authorName.slice(0,2)}</button><div><b>{authorName}</b><span>{age(post.createdAt)}</span></div><Coin symbol={post.coin}/></div>
-    <p className="post-body">{post.content}</p>{post.image && <button className="post-image" onClick={() => onPhoto(post.image)} aria-label="피드 이미지 크게 보기"><img src={post.image} alt="피드 첨부 사진"/></button>}
+    <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={t("{0} 프로필 보기", authorName)}>{authorProfile?.profileImage ? <img src={authorProfile.profileImage} alt=""/> : authorName.slice(0,2)}</button><div><b>{authorName}</b><span>{age(post.createdAt)}</span></div><Coin symbol={post.coin}/></div>
+    <p className="post-body">{post.content}</p>{post.image && <button className="post-image" onClick={() => onPhoto(post.image)} aria-label={t("피드 이미지 크게 보기")}><img src={post.image} alt={t("피드 첨부 사진")}/></button>}
     {post.pinId && (nearViewport ? <AttachedPin id={post.pinId} onPin={onPin} onProfile={onProfile} onPhoto={onPhoto}/> : <div className="attached-pin-placeholder" aria-hidden="true"/>)}
-    <div className="battle-meter"><i style={{width:`${total ? post.support / total * 100 : 50}%`}}/><span>지지 {post.support.toLocaleString()}</span><span>반대 {post.oppose.toLocaleString()}</span></div>
-    <div className="score-row"><div><small>지지 점수</small><strong className={score < 0 ? 'negative' : ''}>{score > 0 ? '+' : ''}{score.toLocaleString()}</strong></div><div className="card-actions"><button onClick={() => onComment(post)} aria-label={`댓글 ${shownCount ?? ''}`}><MessageCircle/>{shownCount ?? '댓글'}</button><button disabled={busy} aria-pressed={isShared} aria-label={repostNavigates && isShared ? '내 리포스트 보기' : isShared ? '리포스트 취소' : '리포스트'} onClick={() => onRepost(post)}><Repeat2/>{post.repostCount ?? shared.length}</button><button className="battle-btn" onClick={() => onBattle(post)}><Swords/>배틀</button></div></div>
-    {post.authorId === me?.id && <button className="text-action danger-text" onClick={() => onDelete(post)}>내 글 삭제</button>}
+    <div className="battle-meter"><i style={{width:`${total ? post.support / total * 100 : 50}%`}}/><span>{t("지지")} {post.support.toLocaleString()}</span><span>{t("반대")} {post.oppose.toLocaleString()}</span></div>
+    <div className="score-row"><div><small>{t("지지 점수")}</small><strong className={score < 0 ? 'negative' : ''}>{score > 0 ? '+' : ''}{score.toLocaleString()}</strong></div><div className="card-actions"><button onClick={() => onComment(post)} aria-label={t("댓글 {0}", shownCount ?? '')}><MessageCircle/>{shownCount ?? t("댓글")}</button><button disabled={busy} aria-pressed={isShared} aria-label={repostNavigates && isShared ? t("내 리포스트 보기") : isShared ? t("리포스트 취소") : t("리포스트")} onClick={() => onRepost(post)}><Repeat2/>{post.repostCount ?? shared.length}</button><LikeButton post={post} liked={liked} count={likeCount} onLike={onLike}/><button className="battle-btn" onClick={() => onBattle(post)}><Swords/>{t("배틀")}</button></div></div>
+    {post.authorId === me?.id && <button className="text-action danger-text" onClick={() => onDelete(post)}>{t("내 글 삭제")}</button>}
   </article>;
+}
+
+function LikeButton({post, liked, count, onLike}) {
+  const [pending, setPending] = useState(false), locked = useRef(false);
+  const { notify } = useFeedback();
+  return <button type="button" className="like-button" aria-pressed={liked} aria-label={t(liked ? '좋아요 취소, {0}개' : '좋아요, {0}개', count)} disabled={pending} onClick={async () => {
+    if (locked.current) return;
+    locked.current = true; setPending(true);
+    try { await onLike(post, !liked); }
+    catch { void notify(t('좋아요를 저장하지 못했습니다. 다시 시도해 주세요.'), {kind:'error'}); }
+    finally { locked.current = false; setPending(false); }
+  }}><Heart fill={liked ? 'currentColor' : 'none'}/><span>{count}</span></button>;
 }

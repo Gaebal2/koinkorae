@@ -1,3 +1,4 @@
+import { t } from './language.js';
 import artwork from './coin-artwork.json';
 
 export const coinImage = symbol => import.meta.env.BASE_URL + `coin-icons/${symbol === 'PI' ? 'pi-official.png' : symbol.toLowerCase() + (symbol === 'SL' ? '.png' : '.svg')}`;
@@ -12,7 +13,7 @@ export function coinMarker(symbol) {
   const label = document.createElement('span');
   label.className = 'coin-fallback'; label.textContent = symbol.slice(0, 4);
   const image = document.createElement('img');
-  image.src = coinImage(symbol); image.alt = `${symbol} 아이콘`;
+  image.src = coinImage(symbol); image.alt = t('{0} 아이콘', symbol);
   image.onerror = () => { image.style.display = 'none'; coin.classList.add('coin-outline'); };
   coin.append(label, image); marker.append(coin);
   return marker;

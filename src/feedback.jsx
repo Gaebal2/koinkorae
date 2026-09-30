@@ -1,3 +1,4 @@
+import { t } from './language.js';
 import { useBackDismiss } from './use-back-dismiss.js';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -58,9 +59,9 @@ function FeedbackDialog({ item, close }) {
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }
-  }}><button className="feedback-close" aria-label="알림 닫기" onClick={() => close(false)}><X/></button><div className="feedback-symbol"><Icon/></div><h2 id="feedback-title">{item.title}</h2><p id="feedback-description">{item.message}</p><div className="feedback-actions">
-    {item.kind === 'confirm' && <button className="secondary" data-initial-focus onClick={() => close(false)}>{item.cancelLabel || '취소'}</button>}
-    <button className="primary" data-initial-focus={item.kind !== 'confirm' ? true : undefined} onClick={() => close(true)}>{item.confirmLabel || '확인'}</button>
+  }}><button className="feedback-close" aria-label={t("알림 닫기")} onClick={() => close(false)}><X/></button><div className="feedback-symbol"><Icon/></div><h2 id="feedback-title">{t(item.title)}</h2><p id="feedback-description">{t(item.message)}</p><div className="feedback-actions">
+    {item.kind === 'confirm' && <button className="secondary" data-initial-focus onClick={() => close(false)}>{t(item.cancelLabel || '취소')}</button>}
+    <button className="primary" data-initial-focus={item.kind !== 'confirm' ? true : undefined} onClick={() => close(true)}>{t(item.confirmLabel || '확인')}</button>
   </div></section></div>;
 }
 

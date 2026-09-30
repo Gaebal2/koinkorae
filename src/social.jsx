@@ -1,3 +1,4 @@
+import { t } from './language.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from 'react';
 import { CommunityPost, useFeedActions } from './community-feed.jsx';
@@ -17,14 +18,14 @@ function CommentAuthor({ id, name, initial }) {
 export function HomePage({ onPin, onReposted, me, options, setOptions, following, onProfile, compose, login }) {
   const [posts, setPosts] = useState([]), [error, setError] = useAppMessage(), [loading, setLoading] = useState(true), [open, setOpen] = useState({});
   useEffect(() => data.watchPosts(value => { setPosts(value); setLoading(false); setError(''); }, () => { setError('피드를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'); setLoading(false); }), []);
-  const result = filterFeed(posts, options, following);
   const { actions, overlays } = useFeedActions(me, login, onReposted);
+  const result = filterFeed(posts.map(post => ({...post, likeCount: actions.likes.filter(like => like.postId === post.id).length})), options, following);
   const card = post => <CommunityPost onPin={onPin} key={post.id} post={post} onProfile={onProfile} {...actions}/>;
-  return <main className="home-page"><div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['최신', '지지', '팔로잉', '급상승', '논쟁']} value={options.category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={options.period} onChange={period => setOptions({ ...options, period })}/></div></div>
-    {loading && <p className="loading-state" role="status">피드를 불러오는 중…</p>}{error && <p className="error" role="alert">{error}</p>}
-    {!loading && !error && !result.posts.length && <Empty text={options.category === '팔로잉' ? '팔로우한 사용자의 게시물이 없습니다' : '첫 번째 이야기를 남겨보세요'}/>}
-    {options.feed === '유저 피드' ? <div className="feed">{result.posts.map(card)}</div> : result.groups.map((group, index) => <section className="coin-group" key={group.coin}><button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>{group.coin}</b><small>{options.category === '최신' ? age(group.score) : `${options.category === '논쟁' ? '논쟁' : options.category === '급상승' ? '급상승' : '코인 지지'} ${group.score.toLocaleString()}`} · {group.items.length}개의 피드</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>{open[group.coin] && group.items.map(card)}</section>)}
-    <button className="fab" onClick={compose} aria-label="새 피드 작성"><SquarePen/></button>
+  return <main className="home-page"><div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['최신', '좋아요', '지지', '팔로잉', '급상승', '논쟁']} value={options.category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={options.period} onChange={period => setOptions({ ...options, period })}/></div></div>
+    {loading && <p className="loading-state" role="status">{t("피드를 불러오는 중…")}</p>}{error && <p className="error" role="alert">{error}</p>}
+    {!loading && !error && !result.posts.length && <Empty text={options.category === '팔로잉' ? t("팔로우한 사용자의 게시물이 없습니다") : t("첫 번째 이야기를 남겨보세요")}/>}
+    {options.feed === '유저 피드' ? <div className="feed">{result.posts.map(card)}</div> : result.groups.map((group, index) => <section className="coin-group" key={group.coin}><button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>{group.coin}</b><small>{options.category === '최신' ? age(group.score) : `${t(options.category === '논쟁' ? '논쟁' : options.category === '급상승' ? '급상승' : '코인 지지')} ${group.score.toLocaleString()}`} · {group.items.length}{t("개의 피드")}</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>{open[group.coin] && group.items.map(card)}</section>)}
+    <button className="fab" onClick={compose} aria-label={t("새 피드 작성")}><SquarePen/></button>
     {overlays}
   </main>;
 }
@@ -71,37 +72,37 @@ function CommentThread({post,me,close,query}) {
     catch { setError('댓글을 저장하지 못했습니다.'); }
     finally { sending.current = false; setBusy(false); }
   };
-  return <Modal title="댓글" onClose={close} className="comments-modal">
-    <div className="chat-messages" aria-label="댓글 대화">
-      {query?.nextCursor&&<button disabled={query.loading} onClick={query.more}>이전 댓글 20개 보기</button>}
-      {query?.error&&<button onClick={query.retry}>댓글 다시 불러오기</button>}
-      {!items.length && <p className="form-help">{query?.loading?'댓글을 불러오는 중…':'첫 댓글을 남겨보세요.'}</p>}
+  return <Modal title={t("댓글")} onClose={close} className="comments-modal">
+    <div className="chat-messages" aria-label={t("댓글 대화")}>
+      {query?.nextCursor&&<button disabled={query.loading} onClick={query.more}>{t("이전 댓글 20개 보기")}</button>}
+      {query?.error&&<button onClick={query.retry}>{t("댓글 다시 불러오기")}</button>}
+      {!items.length && <p className="form-help">{query?.loading?t("댓글을 불러오는 중…"):t("첫 댓글을 남겨보세요.")}</p>}
       {items.map(c => <article key={c.id} ref={node => { if (node) nodes.current.set(c.id, node); else nodes.current.delete(c.id); }} tabIndex={-1} className={'chat-message ' + (c.side || 'neutral')}>
-        <div className="chat-message-head"><CommentAuthor id={c.authorId} name={c.author} initial={c.authorProfile}/>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label="내 댓글 삭제">×</button>}</div>
-        <div className="chat-bubble" tabIndex={0} aria-label={c.author + (c.side === 'support' ? ' 지지' : c.side === 'oppose' ? ' 반대' : '') + ' 댓글. 길게 누르거나 Enter 키로 답글 작성'}
+        <div className="chat-message-head"><CommentAuthor id={c.authorId} name={c.author} initial={c.authorProfile}/>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label={t("내 댓글 삭제")}>×</button>}</div>
+        <div className="chat-bubble" tabIndex={0} aria-label={c.author + (c.side === 'support' ? t(" 지지") : c.side === 'oppose' ? t(" 반대") : '') + t(" 댓글. 길게 누르거나 Enter 키로 답글 작성")}
           onPointerDown={e => { if (e.button !== 0) return; cancelPress(); origin.current = { x:e.clientX, y:e.clientY }; timer.current = setTimeout(() => selectReply(c), 550); }}
           onPointerMove={e => { if (origin.current && Math.hypot(e.clientX-origin.current.x,e.clientY-origin.current.y)>10) cancelPress(); }}
           onPointerUp={cancelPress} onPointerCancel={cancelPress} onPointerLeave={cancelPress}
           onContextMenu={e => { e.preventDefault(); cancelPress(); selectReply(c); }}
           onKeyDown={e => { if (e.target === e.currentTarget && e.key === 'Enter') { e.preventDefault(); selectReply(c); } }}>
-          {c.replyTo && (items.some(parent => parent.id === c.replyTo.id) ? <button type="button" className={'chat-quote quote-' + (items.find(parent => parent.id === c.replyTo.id)?.side || 'neutral')} aria-label="원댓글 보기: 두 번 누르기" onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><CommentAuthor id={items.find(parent => parent.id === c.replyTo.id)?.authorId} name={c.replyTo.author}/><span>{c.replyTo.content}</span></button> : <div className="chat-quote">{c.replyExists ? <><b>{c.replyTo.author}</b><span>{c.replyTo.content}</span><small>이전 댓글에서 원문을 확인할 수 있습니다.</small></> : "삭제된 댓글입니다."}</div>)}
+          {c.replyTo && (items.some(parent => parent.id === c.replyTo.id) ? <button type="button" className={'chat-quote quote-' + (items.find(parent => parent.id === c.replyTo.id)?.side || 'neutral')} aria-label={t("원댓글 보기: 두 번 누르기")} onPointerDown={e => e.stopPropagation()} onDoubleClick={() => jump(c.replyTo.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(c.replyTo.id); } }}><CommentAuthor id={items.find(parent => parent.id === c.replyTo.id)?.authorId} name={c.replyTo.author}/><span>{c.replyTo.content}</span></button> : <div className="chat-quote">{c.replyExists ? <><b>{c.replyTo.author}</b><span>{c.replyTo.content}</span><small>{t("이전 댓글에서 원문을 확인할 수 있습니다.")}</small></> : t("삭제된 댓글입니다.")}</div>)}
           <p>{c.content}</p>
-        </div><small>{age(c.createdAt)}{!c.side && ' · 입장 미선택'}</small>
+        </div><small>{age(c.createdAt)}{!c.side && t(" · 입장 미선택")}</small>
       </article>)}
     </div>
     {me ? <form className="chat-composer" onSubmit={e => e.preventDefault()}>
-      {reply && <div className="chat-reply-preview"><div><b>{reply.author}에게 답글</b><span>{reply.content}</span></div><button type="button" disabled={busy} onClick={() => setReply(null)} aria-label="답글 취소">×</button></div>}
-      <div className="chat-input-row"><button type="button" className="chat-send support" disabled={busy || !content.trim()} onClick={() => send('support')}>지지</button><textarea ref={input} aria-label="댓글" disabled={busy} maxLength={1000} value={content} onChange={e => setContent(e.target.value)} placeholder="댓글을 입력하세요"/><button type="button" className="chat-send oppose" disabled={busy || !content.trim()} onClick={() => send('oppose')}>반대</button></div>
-      <small>댓글을 길게 눌러 답글 · 인용문을 두 번 눌러 원댓글 보기</small>
-    </form> : <p className="form-help">로그인하면 댓글을 남길 수 있습니다.</p>}{error && <p className="error" role="alert">{error}</p>}</Modal>;
+      {reply && <div className="chat-reply-preview"><div><b>{reply.author}{t("에게 답글")}</b><span>{reply.content}</span></div><button type="button" disabled={busy} onClick={() => setReply(null)} aria-label={t("답글 취소")}>×</button></div>}
+      <div className="chat-input-row"><button type="button" className="chat-send support" disabled={busy || !content.trim()} onClick={() => send('support')}>{t("지지")}</button><textarea ref={input} aria-label={t("댓글")} disabled={busy} maxLength={1000} value={content} onChange={e => setContent(e.target.value)} placeholder={t("댓글을 입력하세요")}/><button type="button" className="chat-send oppose" disabled={busy || !content.trim()} onClick={() => send('oppose')}>{t("반대")}</button></div>
+      <small>{t("댓글을 길게 눌러 답글 · 인용문을 두 번 눌러 원댓글 보기")}</small>
+    </form> : <p className="form-help">{t("로그인하면 댓글을 남길 수 있습니다.")}</p>}{error && <p className="error" role="alert">{error}</p>}</Modal>;
 }
 
 export function CheckinPage({ me, balance, login }) {
   const { notify } = useFeedback();
   const [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const checked = balance.day === dayNumber();
-  return <main><PageTitle icon={CalendarCheck} title="오늘의 BP" sub="매일 출석하고 Battle Point를 모으세요"/><section className="balance-card"><span>보유 BP</span><strong>{balance.current}</strong><small>Lifetime Earned · {balance.lifetime.toLocaleString()} BP</small></section>
-    <section className="check-card"><div className="calendar-mark"><CalendarCheck/></div><h2>{checked ? '오늘 출석 완료!' : '매일 출석하고 +10 BP'}</h2><p>{checked ? '내일 다시 만나요' : '한국 시간 자정에 새 출석이 시작됩니다.'}</p><button className="primary" disabled={busy || checked} onClick={async () => { if (!me) { login(); return; } setBusy(true); setError(''); try { await data.checkin(); void notify('오늘 출석이 완료됐습니다. 10 BP를 받았습니다.', {kind:'success',title:'출석 완료'}); } catch { setError('출석을 저장하지 못했습니다. 기기 날짜와 인터넷 연결을 확인해 주세요.'); } finally { setBusy(false); } }}>{busy ? '출석 확인 중…' : checked ? <><Check/>지급 완료</> : me ? <><Zap/>출석 체크</> : '로그인하고 출석하기'}</button></section>
-    <section className="reward-row"><div><span>REWARDED AD</span><b>광고 보상 준비 중</b><small>광고 서비스 연결 후 이용할 수 있어요</small></div><button disabled>준비 중</button></section>{error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>BP는 커뮤니티 참여 포인트입니다.<br/>배틀은 무료로 참여할 수 있습니다.</p></div>
+  return <main><PageTitle icon={CalendarCheck} title={t("오늘의 BP")} sub={t("매일 출석하고 Battle Point를 모으세요")}/><section className="balance-card"><span>{t("보유 BP")}</span><strong>{balance.current}</strong><small>Lifetime Earned · {balance.lifetime.toLocaleString()} BP</small></section>
+    <section className="check-card"><div className="calendar-mark"><CalendarCheck/></div><h2>{checked ? t("오늘 출석 완료!") : t("매일 출석하고 +10 BP")}</h2><p>{checked ? t("내일 다시 만나요") : t("한국 시간 자정에 새 출석이 시작됩니다.")}</p><button className="primary" disabled={busy || checked} onClick={async () => { if (!me) { login(); return; } setBusy(true); setError(''); try { await data.checkin(); void notify('오늘 출석이 완료됐습니다. 10 BP를 받았습니다.', {kind:'success',title:'출석 완료'}); } catch { setError('출석을 저장하지 못했습니다. 기기 날짜와 인터넷 연결을 확인해 주세요.'); } finally { setBusy(false); } }}>{busy ? t("출석 확인 중…") : checked ? <><Check/>{t("지급 완료")}</> : me ? <><Zap/>{t("출석 체크")}</> : t("로그인하고 출석하기")}</button></section>
+    <section className="reward-row"><div><span>REWARDED AD</span><b>{t("광고 보상 준비 중")}</b><small>{t("광고 서비스 연결 후 이용할 수 있어요")}</small></div><button disabled>{t("준비 중")}</button></section>{error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>{t("BP는 커뮤니티 참여 포인트입니다.")}<br/>{t("배틀은 무료로 참여할 수 있습니다.")}</p></div>
   </main>;
 }

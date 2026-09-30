@@ -1,3 +1,4 @@
+import { t, getLocale } from './language.js';
 const base = import.meta.env.VITE_API_URL || '/api';
 const crossOrigin = new URL(base, window.location.href).origin !== window.location.origin;
 const sessionKey = 'battlefeed.remote-session';
@@ -34,7 +35,7 @@ export async function api(path, method = 'GET', body) {
 }
 export const age = time => {
   const minutes = Math.max(0, Math.floor((Date.now() - time) / 60000));
-  return minutes < 1 ? '방금' : minutes < 60 ? `${minutes}분 전` : minutes < 1440 ? `${Math.floor(minutes / 60)}시간 전` : new Date(time).toLocaleDateString();
+  return minutes < 1 ? t('방금') : minutes < 60 ? t('{0}분 전', minutes) : minutes < 1440 ? t('{0}시간 전', Math.floor(minutes / 60)) : new Date(time).toLocaleDateString(getLocale());
 };
 export const presentationPost = post => ({ ...post, age: age(post.createdAt), initials: post.author.slice(0, 2).toUpperCase(), tone: 'purple' });
 export async function readPhoto(file) {

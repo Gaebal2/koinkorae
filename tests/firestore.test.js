@@ -7,6 +7,25 @@ const pin = { ownerId: 'alice', slot: '0', creator: 'Alice', title: 'BTC 거래'
 before(async () => { env = await initializeTestEnvironment({ projectId: process.env.GCLOUD_PROJECT || 'demo-koinkorae', firestore: { rules: await readFile('firestore.rules', 'utf8') } }); });
 beforeEach(async () => { await env.clearFirestore(); });
 after(async () => { await env?.cleanup(); });
+test('trade coins reject more than 20 or duplicate symbols and preserve order', async () => {
+  const ref=doc(env.authenticatedContext('alice').firestore(),'pins','alice_0');
+  const tradeCoins=Array.from({length:20},(_,i)=>'C'+i);
+  await assertSucceeds(setDoc(ref,{...pin,tradeCoins}));
+  await assertFails(setDoc(ref,{...pin,tradeCoins:[...tradeCoins,'extra']}));
+  await assertFails(setDoc(ref,{...pin,tradeCoins:['BTC','BTC']}));
+});
+test('likes can only be created or removed by their owner on an existing post', async () => {
+  const alice=env.authenticatedContext('alice').firestore(),bob=env.authenticatedContext('bob').firestore(),guest=env.unauthenticatedContext().firestore();
+  await setDoc(doc(alice,'posts','liked-post'),{authorId:'alice',author:'Alice',coin:'BTC',content:'Hello',image:'',createdAt:serverTimestamp(),support:0,oppose:0});
+  const path=['posts','liked-post','likes','bob'];
+  await assertSucceeds(setDoc(doc(bob,...path),{createdAt:serverTimestamp()}));
+  await assertFails(setDoc(doc(bob,...path),{createdAt:serverTimestamp()}));
+  await assertFails(deleteDoc(doc(alice,...path)));
+  await assertSucceeds(getDocs(collectionGroup(guest,'likes')));
+  await assertFails(setDoc(doc(guest,'posts','liked-post','likes','guest'),{createdAt:serverTimestamp()}));
+  await assertSucceeds(deleteDoc(doc(bob,...path)));
+  await assertFails(setDoc(doc(bob,'posts','missing','likes','bob'),{createdAt:serverTimestamp()}));
+});
 test('public reads; signed-out writes denied', async () => {
   const db = env.unauthenticatedContext().firestore();
   await assertSucceeds(getDoc(doc(db, 'pins', 'alice_0')));

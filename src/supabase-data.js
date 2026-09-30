@@ -59,6 +59,7 @@ export const data={
   watchRelationships:(callback,error,uid)=>watch('relationships',uid?{uid}:{},callback,error),
   watchReposts:(callback,error)=>watch('reposts',{},callback,error),
   repost:(postId,enabled)=>call('repost',{postId,enabled}),
+  like:(postId,enabled)=>call('like',{postId,enabled}),
   watchCommentCount:(postId,callback,error)=>watch('commentCount',{postId},callback,error),
   ownComments:()=>call('ownComments'),
   watchComments:(postId,callback,error)=>watch('comments',{postId},callback,error),

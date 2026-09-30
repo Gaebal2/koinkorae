@@ -144,6 +144,15 @@ export const data = {
     if (enabled) await runTransaction(db, async tx => { const existing = await tx.get(ref); if (!existing.exists()) tx.set(ref, { createdAt: serverTimestamp() }); });
     else await deleteDoc(ref);
   },
+  watchLikes(callback, error) {
+    if (!configured) { callback([]); return () => {}; }
+    return onSnapshot(collectionGroup(db, 'likes'), rows => callback(rows.docs.map(row => ({userId:row.id,postId:row.ref.parent.parent.id}))), error);
+  },
+  async like(postId, enabled) {
+    const u = user(), ref = doc(db, 'posts', postId, 'likes', u.uid);
+    if (enabled) await runTransaction(db, async tx => { const existing = await tx.get(ref); if (!existing.exists()) tx.set(ref, {createdAt:serverTimestamp()}); });
+    else await deleteDoc(ref);
+  },
   watchCommentCount(postId, callback, error) {
     return onSnapshot(collection(db, 'posts', postId, 'comments'), rows => callback(rows.size), error);
   },

@@ -4,7 +4,7 @@ export function readViewState(storage) {
     storage ??= window.sessionStorage;
     const value = JSON.parse(storage.getItem('korae-view') || '{}');
     const options = { ...defaultOptions };
-    for(const [key,allowed] of Object.entries({feed:['유저 피드','코인 피드'],category:['최신','지지','팔로잉','급상승','논쟁'],period:['오늘','이번 달','올해','전체']}))if(allowed.includes(value.options?.[key]))options[key]=value.options[key];
+    for(const [key,allowed] of Object.entries({feed:['유저 피드','코인 피드'],category:['최신','좋아요','지지','팔로잉','급상승','논쟁'],period:['오늘','이번 달','올해','전체']}))if(allowed.includes(value.options?.[key]))options[key]=value.options[key];
     return { page: ['home', 'check', 'profile', 'map', 'chat'].includes(value?.page) ? value.page : 'home', profileId: typeof value?.profileId === 'string' ? value.profileId : null, options };
   } catch { return { page: 'home', profileId: null, options: { ...defaultOptions } }; }
 }

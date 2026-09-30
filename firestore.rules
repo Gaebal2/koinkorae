@@ -7,6 +7,7 @@ service cloud.firestore {
     // Public social relationships and repost references; only owners may mutate below.
     match /{path=**}/following/{target} { allow read: if true; }
     match /{path=**}/reposts/{uid} { allow read: if true; }
+    match /{path=**}/likes/{uid} { allow read: if true; }
     match /{path=**}/comments/{id} {
       allow read: if signedIn() && resource.data.authorId == request.auth.uid;
     }
@@ -39,6 +40,12 @@ service cloud.firestore {
         && request.resource.data.support == 0 && request.resource.data.oppose == 0;
       allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
       match /reposts/{uid} {
+        allow create: if signedIn() && request.auth.uid == uid
+          && exists(/databases/$(database)/documents/posts/$(id))
+          && request.resource.data.keys().hasOnly(['createdAt']) && request.resource.data.createdAt == request.time;
+        allow delete: if signedIn() && request.auth.uid == uid;
+      }
+      match /likes/{uid} {
         allow create: if signedIn() && request.auth.uid == uid
           && exists(/databases/$(database)/documents/posts/$(id))
           && request.resource.data.keys().hasOnly(['createdAt']) && request.resource.data.createdAt == request.time;
@@ -84,7 +91,7 @@ service cloud.firestore {
           && text(p.creator, 24) && text(p.title, 50) && p.title.size() > 0
           && text(p.description, 200) && p.description.size() > 0
           && text(p.coin, 20) && p.coin.matches('[A-Za-z0-9]+')
-          && p.tradeCoins is list && p.tradeCoins.size() <= 110
+          && p.tradeCoins is list && p.tradeCoins.size() <= 20 && p.tradeCoins.toSet().size() == p.tradeCoins.size()
           && text(p.link, 500) && (p.link == '' || p.link.matches('https?://.*'))
           && photo(p.image) && p.category in ['P2P 판매', 'P2P 구매 희망', '상점 등록']
           && p.lat is number && p.lat >= -90 && p.lat <= 90

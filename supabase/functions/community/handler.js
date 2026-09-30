@@ -49,7 +49,7 @@ export async function dispatch(db, identity, action, args = {}) {
       if(mode==='comments')id(options.postId);
       for(const field of ['owner','author','repostedBy'])if(options[field]!==undefined)id(options[field]);
       if(options.coin!==undefined)coin(options.coin);
-      if(options.category!==undefined && !['최신','지지','팔로잉','급상승','논쟁'].includes(options.category))throw Error('잘못된 정렬입니다.');
+      if(options.category!==undefined && !['최신','좋아요','지지','팔로잉','급상승','논쟁'].includes(options.category))throw Error('잘못된 정렬입니다.');
       for(const field of ['since','until'])if(options[field]!==undefined && (!Number.isSafeInteger(options[field])||options[field]<0))throw Error('잘못된 기간입니다.');
       if(options.bounds!==undefined && (!Array.isArray(options.bounds)||options.bounds.length!==4||options.bounds.some(v=>!Number.isFinite(v))||options.bounds[0]<-90||options.bounds[2]>90||options.bounds[0]>options.bounds[2]||Math.abs(options.bounds[1])>180||Math.abs(options.bounds[3])>180))throw Error('잘못된 지도 범위입니다.');
       if(args.cursor!==undefined && args.cursor!==null){
@@ -122,6 +122,7 @@ export async function dispatch(db, identity, action, args = {}) {
       return null;
     }
     case 'repost': return mutate('repost','',{postId:id(args.postId),enabled:enabled(args.enabled)});
+    case 'like': return mutate('like',id(args.postId),{enabled:enabled(args.enabled)});
     case 'comment': {
       const parent = args.replyToId ? await get('comments',args.replyToId,id(args.postId)) : null;
       if (args.replyToId && !parent) throw Error('원댓글을 찾을 수 없습니다.');
