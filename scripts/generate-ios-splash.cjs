@@ -22,6 +22,8 @@ async function main() {
       const file = `launch-v7-${w}x${h}.png`;
       await fs.writeFile(path.join(directory, file), canvas.toBuffer('image/png'));
       links.push(`    <link rel="apple-touch-startup-image" href="%BASE_URL%ios-splash/${file}" media="screen and (device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${scale}) and (orientation: ${orientation})" />`);
+      // Fetch only the matching device image before a user adds the PWA to Home Screen.
+      links.push(`    <link rel="preload" as="image" href="%BASE_URL%ios-splash/${file}" media="screen and (device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${scale}) and (orientation: ${orientation})" />`);
     }
   }
   const file = path.join(root, 'index.html');
@@ -29,6 +31,6 @@ async function main() {
   const block = `    <!-- ios-splash:start -->\n${links.join('\n')}\n    <!-- ios-splash:end -->`;
   html = html.includes('<!-- ios-splash:start -->') ? html.replace(/    <!-- ios-splash:start -->[\s\S]*?<!-- ios-splash:end -->/, block) : html.replace('  </head>', block + '\n  </head>');
   await fs.writeFile(file, html);
-  console.log(`Generated ${links.length} iOS launch images from the Android manifest artwork and background.`);
+  console.log(`Generated ${screens.length*2} iOS launch images with matching-device preloads.`);
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

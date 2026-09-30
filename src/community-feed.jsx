@@ -1,6 +1,7 @@
+import {formatCompactNumber} from './number-format.js';
 import { t } from './language.js';
 import React, { useEffect, useRef, useState } from 'react';
-import { Heart, MessageCircle, Repeat2, RepeatOff, Swords } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2, RepeatOff, Swords, MoreVertical, Pin, Trash2 } from 'lucide-react';
 import { data } from './data.js';
 import { age } from './api.js';
 import { Coin, Modal, PinDetailCard, profileImage } from './ui.jsx';
@@ -12,6 +13,7 @@ import { useLiveProfile } from './live-profile.js';
 
 export function useFeedActions(me, login, onReposted, enriched = false) {
   const { confirm, notify } = useFeedback();
+  const ownProfile = useLiveProfile(me?.id);
   const [, setError] = useAppMessage();
   const [battle, setBattle] = useState(null), [comments, setComments] = useState(null), [photo, setPhoto] = useState(null), [reposts, setReposts] = useState([]), [busy, setBusy] = useState(false);
   useEffect(() => { if(enriched)return; return data.watchReposts(setReposts, () => setError('리포스트를 불러오지 못했습니다.')); }, [enriched]);
@@ -37,6 +39,8 @@ export function useFeedActions(me, login, onReposted, enriched = false) {
   const [likes, setLikes] = useState([]);
   useEffect(() => { if(enriched)return; return data.watchLikes?.(setLikes, () => setError('좋아요를 불러오지 못했습니다.')); }, [enriched]);
   const actions = {
+    pinnedPostId: ownProfile?.pinnedPostId,
+    onPinProfile: async post => { await data.pinProfilePost(post.id, ownProfile?.pinnedPostId !== post.id); },
     me, reposts, likes, busy, onCancelRepost: cancelRepost, repostNavigates: !!onReposted, onBattle: post => me ? setBattle(post) : login(), onComment: setComments, onPhoto: setPhoto,
     onLike: async (post, enabled) => { if (!me) { login(); return; } await data.like(post.id, enabled); },
     onRepost: async post => {
@@ -70,8 +74,11 @@ function AttachedPin({ id, onPin }) {
   return <PinDetailCard pin={pin} className="feed-pin-card" onActivate={() => onPin?.(id)}/>;
 }
 
-export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [], busy, repostNavigates, onBattle, onComment, onRepost, onCancelRepost, onLike, onPhoto, onDelete }) {
-  const [ranking,setRanking]=useState(false);
+export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [], busy, repostNavigates, onBattle, onComment, onRepost, onCancelRepost, onLike, onPhoto, onDelete, onPinProfile, pinnedPostId }) {
+  const [ranking,setRanking]=useState(false), [menu,setMenu]=useState(false), [managing,setManaging]=useState(false);
+  const {notify}=useFeedback();
+  const own=(post.repostAuthorId || post.authorId)===me?.id;
+  const manage=async action=>{if(managing)return;setManaging(true);try{await action();setMenu(false);}catch{void notify(t("피드 설정을 저장하지 못했습니다. 다시 시도해 주세요."),{kind:"error"});}finally{setManaging(false);}};
   const element = useRef(null);
   const [nearViewport, setNearViewport] = useState(false);
   useEffect(() => {
@@ -96,15 +103,15 @@ export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [],
   const likeCount = post.likeCount ?? postLikes.length;
   const liked = post.liked ?? postLikes.some(like => like.userId === me?.id);
   return <article ref={element} className="post-card">
-    <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={t("{0} 프로필 보기", authorName)}>{authorProfile?.profileImage ? <img src={authorProfile.profileImage} alt=""/> : authorName.slice(0,2)}</button><div><b>{authorName}</b><span>{age(post.originalCreatedAt ?? post.createdAt)}</span></div><Coin symbol={post.coin}/></div>
+    <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={t("{0} 프로필 보기", authorName)}>{authorProfile?.profileImage ? <img src={authorProfile.profileImage} alt=""/> : authorName.slice(0,2)}</button><div><b>{authorName}</b><span>{age(post.originalCreatedAt ?? post.createdAt)}</span></div><Coin symbol={post.coin}/>{own&&<button type="button" className="feed-menu-button" aria-label={t("피드 관리")} aria-haspopup="dialog" onClick={()=>setMenu(true)}><MoreVertical/></button>}</div>
     {post.originalPostId && <div className="repost-context"><div className="repost-context-heading">{post.repostAuthorId === me?.id ? <button type="button" className="repost-badge" aria-label={t('리포스트 취소')} disabled={busy} onClick={() => onCancelRepost(post)}><RepeatOff size={16}/></button> : <span className="repost-badge" aria-hidden="true"><Repeat2 size={16}/></span>}<button onClick={() => onProfile(post.repostAuthorId)}><img src={post.repostProfile?.profileImage || profileImage()} alt=""/><b>{post.repostProfile?.username || t('사용자')}</b></button><span>{t('리포스트')} · {age(post.createdAt)}</span></div>{post.repostComment && <p>{post.repostComment}</p>}</div>}
     <p className="post-body">{post.content}</p>{post.image && <button className="post-image" onClick={() => onPhoto(post.image)} aria-label={t("피드 이미지 크게 보기")}><img src={post.image} alt={t("피드 첨부 사진")}/></button>}
     {post.additionalImage&&<button className="post-image" onClick={()=>onPhoto(post.additionalImage)} aria-label={t('추가 사진 크게 보기')}><img src={post.additionalImage} alt={t('피드 추가 사진')}/></button>}
     {post.pinId && (nearViewport ? <AttachedPin id={post.pinId} onPin={onPin} onProfile={onProfile} onPhoto={onPhoto}/> : <div className="attached-pin-placeholder" aria-hidden="true"/>)}
-    <div className="battle-meter"><i style={{width:`${total ? post.support / total * 100 : 50}%`}}/><span>{t("지지")} {post.support.toLocaleString()}</span><span>{t("반대")} {post.oppose.toLocaleString()}</span></div>
-    <div className="score-row"><button className="support-score-button" aria-label={t('지지 점수 · 배틀 참여자 순위')} onClick={()=>setRanking(true)}><small>{t("지지 점수")}</small><strong className={score < 0 ? 'negative' : ''}>{score > 0 ? '+' : ''}{score.toLocaleString()}</strong></button><div className="card-actions"><button onClick={() => onComment(post)} aria-label={t("댓글 {0}", shownCount ?? '')}><MessageCircle/>{shownCount ?? t("댓글")}</button><button disabled={busy} aria-pressed={isShared} aria-label={repostNavigates && isShared ? t("내 리포스트 보기") : isShared ? t("리포스트 취소") : t("리포스트")} onClick={() => onRepost(post)}><Repeat2/>{post.repostCount ?? shared.length}</button><LikeButton post={post} liked={liked} count={likeCount} onLike={onLike}/><button className="battle-btn" onClick={() => onBattle(post)}><Swords/>{t("배틀")}</button></div></div>
+    <div className="battle-meter"><i style={{width:`${total ? post.support / total * 100 : 50}%`}}/><span>{t("지지")} {formatCompactNumber(post.support)}</span><span>{t("반대")} {formatCompactNumber(post.oppose)}</span></div>
+    <div className="score-row"><button className="support-score-button" aria-label={t('지지 점수 · 배틀 참여자 순위')} onClick={()=>setRanking(true)}><small>{t("지지 점수")}</small><strong className={score < 0 ? 'negative' : ''}>{score > 0 ? '+' : ''}{formatCompactNumber(score)}</strong></button><div className="card-actions"><button onClick={() => onComment(post)} aria-label={t("댓글 {0}", shownCount ?? '')}><MessageCircle/>{shownCount == null ? t("댓글") : formatCompactNumber(shownCount)}</button><button disabled={busy} aria-pressed={isShared} aria-label={repostNavigates && isShared ? t("내 리포스트 보기") : isShared ? t("리포스트 취소") : t("리포스트")} onClick={() => onRepost(post)}><Repeat2/>{formatCompactNumber(post.repostCount ?? shared.length)}</button><LikeButton post={post} liked={liked} count={likeCount} onLike={onLike}/><button className="battle-btn" onClick={() => onBattle(post)}><Swords/>{t("배틀")}</button></div></div>
     {ranking&&<BattleRankings key={`${post.id}:${me?.id||'guest'}`} postId={post.id} me={me} onClose={()=>setRanking(false)} onProfile={onProfile}/>}
-    {(post.repostAuthorId || post.authorId) === me?.id && <button className="text-action danger-text" onClick={() => onDelete(post)}>{t("내 글 삭제")}</button>}
+    {menu&&own&&<Modal title={t('피드 관리')} onClose={()=>{if(!managing)setMenu(false);}} floating><div className="app-select-options"><button disabled={managing} onClick={()=>manage(()=>onPinProfile(post))}><Pin size={18}/><span>{t(pinnedPostId===post.id?'프로필 상단 고정 해제':'피드 내 프로필 상단에 고정')}</span></button><button className="danger-text" disabled={managing} onClick={()=>manage(()=>onDelete(post))}><Trash2 size={18}/><span>{t('피드 삭제하기')}</span></button></div></Modal>}
   </article>;
 }
 
@@ -117,5 +124,5 @@ function LikeButton({post, liked, count, onLike}) {
     try { await onLike(post, !liked); }
     catch { void notify(t('좋아요를 저장하지 못했습니다. 다시 시도해 주세요.'), {kind:'error'}); }
     finally { locked.current = false; setPending(false); }
-  }}><Heart fill={liked ? 'currentColor' : 'none'}/><span>{count}</span></button>;
+  }}><Heart fill={liked ? 'currentColor' : 'none'}/><span>{formatCompactNumber(count)}</span></button>;
 }

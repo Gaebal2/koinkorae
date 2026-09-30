@@ -2,9 +2,10 @@ import {createReadBatcher} from './read-batcher.js';
 const reads=new Set(['battleRankings','page','profiles','commentCounts','listPins','getPin','profile','posts','authorPosts','postsById','following','relationships','reposts','commentCount','comments','balance','ownComments','friends','messages']);
 const silentWrites=new Set(['checkpointBattle','continueBattle']);
 const affected={
+  pinProfilePost:['profile','profiles'],
   ensureProfile:['profile'], saveProfile:['battleRankings','profile','posts','authorPosts','postsById','listPins','getPin','comments','friends','ownComments'],
   savePin:['listPins','getPin'], deletePin:['listPins','getPin'], checkin:['balance'],
-  publish:['posts','authorPosts','postsById'], deletePost:['battleRankings','posts','authorPosts','postsById','comments','commentCount','ownComments','reposts'],
+  publish:['posts','authorPosts','postsById'], deletePost:['profile','profiles','battleRankings','posts','authorPosts','postsById','comments','commentCount','ownComments','reposts'],
   follow:['following','relationships','friends','messages'], repost:['battleRankings','reposts','posts','authorPosts','postsById'], like:['posts','authorPosts','postsById'],
   comment:['comments','commentCount','ownComments'], deleteComment:['comments','commentCount','ownComments'],
   sendMessage:['messages'], startBattle:['balance'], applyBattle:['battleRankings','balance','posts','authorPosts','postsById'], finishBattle:['battleRankings','balance','posts','authorPosts','postsById'],

@@ -55,6 +55,7 @@ export const data={
   },
   publish:value=>call('publish',{value}),
   deletePost:id=>call('deletePost',{id}),
+  pinProfilePost:(id,enabled)=>call('pinProfilePost',{id,enabled}),
   watchFollowing(uid,callback,error) { if(!uid){callback([]);return()=>{};}return watch('following',{uid},callback,error); },
   follow:(id,enabled)=>call('follow',{id,enabled}),
   watchRelationships:(callback,error,uid)=>watch('relationships',uid?{uid}:{},callback,error),

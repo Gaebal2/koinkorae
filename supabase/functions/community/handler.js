@@ -50,7 +50,8 @@ export async function dispatch(db, identity, action, args = {}) {
       const options=args.options || {};
       if(!options || typeof options!=='object' || Array.isArray(options))throw Error('잘못된 목록 조건입니다.');
       const mode=options.mode || 'posts';
-      if(!['posts','coins','pins','comments','ownComments'].includes(mode))throw Error('잘못된 목록입니다.');
+      if(!['posts','coins','pins','comments','ownComments','profilePin'].includes(mode))throw Error('잘못된 목록입니다.');
+      if(mode==='profilePin')id(options.profileId);
       if(mode==='ownComments'&&!uid)throw Object.assign(Error('로그인이 필요합니다.'),{status:401});
       if(mode==='comments')id(options.postId);
       for(const field of ['owner','author','repostedBy'])if(options[field]!==undefined)id(options[field]);
@@ -111,7 +112,8 @@ export async function dispatch(db, identity, action, args = {}) {
     case 'ensureProfile': {
       await put('profiles',uid,{username:name,bio:'',profileImage:''},'',true); return null;
     }
-    case 'saveProfile': await put('profiles',uid,{username:args.value?.username === undefined ? name : text(args.value.username,24,true),bio:text(args.value?.bio,200),profileImage:photo(args.value?.profileImage)}); return null;
+    case 'saveProfile': return mutate('updateProfile','',{username:args.value?.username === undefined ? name : text(args.value.username,24,true),bio:text(args.value?.bio,200),profileImage:photo(args.value?.profileImage)});
+    case 'pinProfilePost': return mutate('pinProfilePost',id(args.id),{enabled:enabled(args.enabled)});
     case 'savePin': return mutate('savePin',args.id ? id(args.id) : '',{...pin(args.value || {}),creator:name});
     case 'deletePin': await db.remove('pins',id(args.id),'',uid); return null;
     case 'checkin': return mutate('checkin');

@@ -11,6 +11,8 @@ test('Supabase transaction rules, ownership, retries and private data',async()=>
   try {
     await pg.exec('create role anon; create role authenticated; create role service_role;');
     await pg.exec(await readFile(new URL('../supabase/migrations/202609280001_community.sql',import.meta.url),'utf8'));
+    await pg.exec('create function public.korae_page(text,jsonb,jsonb,integer) returns jsonb language sql as $$ select null::jsonb $$;');
+    await pg.exec(await readFile(new URL('../supabase/migrations/202609300005_profile_pinned_feed.sql',import.meta.url),'utf8'));
     const db={
       async one(kind,id,parent=''){return (await pg.query('select * from korae_documents where kind=$1 and id=$2 and parent=$3',[kind,id,parent])).rows[0] || null;},
       async list(kind,filter={}){return (await pg.query('select * from korae_documents where kind=$1 and ($2::text is null or owner=$2) and ($3::text is null or parent=$3)',[kind,filter.owner || null,filter.parent || null])).rows;},

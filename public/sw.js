@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v20-stable-feed';
+const CACHE = 'korae-community-v21-launch-photo-tools';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();

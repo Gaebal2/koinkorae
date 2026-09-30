@@ -2,6 +2,7 @@
 import React, { useId,useRef,useState } from 'react';
 import { Modal, Field,AppSelect } from './ui.jsx';
 import {cropGeometry} from './photo-editing.js';
+import {ChevronDown,ChevronUp} from 'lucide-react';
 export function PhotoCropper({ source,onClose,onApply,profile=true }) {
   const [image,setImage]=useState(null),[zoom,setZoom]=useState(1),[aspect,setAspect]=useState(profile?'1':'original');
   const [x,setX]=useState(50),[y,setY]=useState(50),[error,setError]=useState('');
@@ -30,11 +31,11 @@ export function PhotoCropper({ source,onClose,onApply,profile=true }) {
   return <Modal title={t(profile?'프로필 사진 자르기':'사진 편집')} onClose={onClose} className="photo-editor-modal">
     <p className="form-help">{t('사진을 드래그하거나 확대해 표시할 부분을 맞춰 주세요.')}</p>
     {!profile&&<Field label={t('자르기 비율')}><AppSelect title={t('자르기 비율')} value={aspect} options={[{value:'original',label:'원본 비율'},{value:'1',label:'1:1'},{value:String(4/3),label:'4:3'},{value:String(3/4),label:'3:4'},{value:String(16/9),label:'16:9'}]} onChange={value=>{setAspect(value);setZoom(1);setX(50);setY(50);}} floating/></Field>}
+    <button type="button" className="app-select photo-tools-toggle" aria-expanded={toolsOpen} aria-controls={toolsId} onClick={()=>setToolsOpen(value=>!value)}><span>{t(toolsOpen?'사진편집 툴 닫기':'사진편집 툴 열기(손가락 제스쳐 사용불가 시 사용)')}</span>{toolsOpen?<ChevronUp/>:<ChevronDown/>}</button>
     <div className="photo-editor-stage"><div className={'photo-editor-preview'+(profile?' is-profile':'')} style={{aspectRatio:ratio,width:`min(100%, ${Math.min(340,340*ratio)}px)`}} onContextMenu={e=>e.preventDefault()}
       onPointerDown={e=>{e.preventDefault();contacts.current.set(e.pointerId,{x:e.clientX,y:e.clientY});e.currentTarget.setPointerCapture(e.pointerId);}} onPointerMove={move} onPointerUp={e=>contacts.current.delete(e.pointerId)} onPointerCancel={e=>contacts.current.delete(e.pointerId)} onLostPointerCapture={e=>contacts.current.delete(e.pointerId)}>
       <img src={source} draggable={false} alt={t('사진 편집 미리보기')} onLoad={e=>setImage(e.currentTarget)} onError={()=>setError('사진을 열지 못했습니다. PNG, JPEG 또는 WebP 사진을 선택해 주세요.')} style={{width:`${width*100}%`,height:`${height*100}%`,left:`${(1-width)*x}%`,top:`${(1-height)*y}%`}}/>
     </div></div>
-    <button type="button" className="secondary photo-tools-toggle" aria-expanded={toolsOpen} aria-controls={toolsId} onClick={()=>setToolsOpen(value=>!value)}>{t(toolsOpen?'사진편집 툴 닫기':'사진편집 툴 열기(손가락 제스쳐 사용불가 시 사용)')}</button>
     <div id={toolsId} hidden={!toolsOpen}>
     <Field label={t('확대 · {0}배',zoom.toFixed(1))}><input aria-label={t('확대')} type="range" min="1" max="4" step="0.01" value={zoom} onChange={e=>setZoom(+e.target.value)}/></Field>
     <Field label={t('가로 위치')}><input aria-label={t('가로 위치')} type="range" min="0" max="100" value={x} onChange={e=>setX(+e.target.value)}/></Field>

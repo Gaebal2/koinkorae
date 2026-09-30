@@ -192,7 +192,10 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .pin-photo-skeleton { display: block; width: 100%; height: 100%; background: #eeeaf4; }
 .feed-image-preview + .feed-image-preview { margin-top: 12px; }
 .post-image { margin-block: 12px; }
-.photo-tools-toggle { white-space: normal; line-height: 1.5; font-size: 12px; }
+.post-head > .feed-menu-button { flex: 0 0 28px; width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: var(--surface-tint); color: var(--primary-dark); }
+.feed-menu-button svg { width: 17px; height: 17px; }
+.profile-pinned-label { display: block; color: var(--primary-dark); font-size: 11px; font-weight: 700; margin: 12px 0 6px; }
+.photo-tools-toggle { white-space: normal; margin-bottom: 12px; font-size: 11px; font-weight: 700; }
 .feed-scroll-top { position: fixed; z-index: 21; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 81px); left: 50%; transform: translateX(-50%); display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 1px solid #e5dfee; border-radius: 50%; background: #fff; color: var(--primary); box-shadow: 0 4px 18px #31234e24; }
 .feed-scroll-top svg { width: 21px; height: 21px; }
 .more-results { padding: 16px; text-align: center; min-height: 48px; }
@@ -337,6 +340,23 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .score-row .support-score-button small { color:inherit; font-size:10px; }
 .score-row .support-score-button strong { font-size:14px; }
 .support-score-button:focus-visible { outline:3px solid #a997ff; outline-offset:2px; }
+@media (max-width: 430px) {
+  .post-card .score-row { flex-wrap: nowrap; gap: 4px; }
+  .post-card .support-score-button { padding-inline: 6px; gap: 3px; flex-shrink: 0; }
+  .post-card .support-score-button strong { font-size: 12px; }
+  .post-card .score-row > .card-actions { flex: 1; min-width: 0; flex-wrap: nowrap; gap: 2px; }
+  .post-card .card-actions button { min-width: 0; flex: 1; justify-content: center; gap: 2px; padding-inline: 2px; font-size: 9px; white-space: nowrap; }
+  .post-card .card-actions svg { width: 14px; height: 16px; flex-shrink: 0; }
+  .post-card .card-actions .battle-btn { flex: 0 0 auto; padding-inline: 6px; }
+}
+@media (max-width: 360px) {
+  .post-card .support-score-button { padding-inline: 4px; }
+  .post-card .support-score-button small { font-size: 8px; }
+  .post-card .support-score-button strong { font-size: 11px; }
+  .post-card .card-actions button { font-size: 8px; padding-inline: 1px; gap: 1px; }
+  .post-card .card-actions svg { width: 12px; }
+  .post-card .card-actions .battle-btn { padding-inline: 4px; }
+}
 .overlay-floating > .battle-rankings { width:min(100%,440px); }
 .ranking-summary { display:flex; align-items:center; gap:12px; padding:14px; border-radius:16px; background:#f3efff; color:var(--primary); }
 .ranking-summary strong,.ranking-summary span { display:block; }

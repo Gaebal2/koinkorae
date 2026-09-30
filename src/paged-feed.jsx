@@ -31,10 +31,10 @@ export function feedOptions(options,now=Date.now()){
   const since=options.period==='오늘'?Date.UTC(year,month,day)-9*3600000:options.period==='이번 달'?Date.UTC(year,month,1)-9*3600000:options.period==='올해'?Date.UTC(year,0,1)-9*3600000:undefined;
   return {mode:options.feed==='코인 피드'?'coins':'posts',category:options.category,...(since!==undefined?{since}:{})};
 }
-export function PagedPosts({options,me,onPin,onProfile,actions,onReady}){
+export function PagedPosts({options,me,onPin,onProfile,actions,onReady,excludeId}){
   const page=useCursorPage(options,me?.id);
   useEffect(()=>{if(!page.loading&&!page.error)onReady?.();},[page.loading,page.error,onReady]);
-  return <><div className="feed">{page.items.map(post=><CommunityPost key={post.id} post={post} onPin={onPin} onProfile={onProfile} {...actions}/>)}</div>{!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 게시물이 없습니다")}/>}<MoreResults page={page}/></>;
+  return <><div className="feed">{page.items.filter(post=>post.id!==excludeId).map(post=><CommunityPost key={post.id} post={post} onPin={onPin} onProfile={onProfile} {...actions}/>)}</div>{!excludeId&&!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 게시물이 없습니다")}/>}<MoreResults page={page}/></>;
 }
 export function PagedOwnComments({me,onComment}){
   const page=useCursorPage({mode:'ownComments'},me.id);
