@@ -179,6 +179,22 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .map-pin-card-anchor { position: absolute; z-index: 8; left: 14px; right: 14px; }
 .map-pin-card-anchor > .pin-detail { position: relative; inset: auto; width: 100%; max-height: calc(100dvh - 190px); overflow-y: auto; }
 .attached-pin-placeholder { min-height: 170px; }
+
+/* Explicit tracks preserve the existing header / left photo / right text layout,
+   including browsers where :has support differs. */
+.pin-detail { grid-template-columns: minmax(0,1fr); }
+.pin-detail.has-photo-slot { grid-template-columns: 92px minmax(0,1fr); }
+.pin-detail > .pin-creator { grid-row: 1; grid-column: 1 / -1; }
+.pin-detail > .pin-detail-photo-button { grid-row: 2; grid-column: 1; height: 118px; }
+.pin-detail > .pin-detail-content { grid-row: 2; grid-column: 1 / -1; }
+.pin-detail.has-photo-slot > .pin-detail-content { grid-column: 2; }
+.pin-detail > .pin-detail-footer { grid-row: 3; grid-column: 1 / -1; }
+.pin-photo-skeleton { display: block; width: 100%; height: 100%; background: #eeeaf4; }
+.feed-image-preview + .feed-image-preview { margin-top: 12px; }
+.post-image { margin-block: 12px; }
+.photo-tools-toggle { white-space: normal; line-height: 1.5; font-size: 12px; }
+.feed-scroll-top { position: fixed; z-index: 21; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 81px); left: 50%; transform: translateX(-50%); display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 1px solid #e5dfee; border-radius: 50%; background: #fff; color: var(--primary); box-shadow: 0 4px 18px #31234e24; }
+.feed-scroll-top svg { width: 21px; height: 21px; }
 .more-results { padding: 16px; text-align: center; min-height: 48px; }
 .more-results button, .map-results button { border: 0; border-radius: 10px; padding: 9px 14px; background: #f0ecfa; color: #5137a0; font-weight: 700; }
 .map-results { position: absolute; top: 104px; left: 14px; right: 14px; z-index: 6; pointer-events: none; font-size: 11px; }

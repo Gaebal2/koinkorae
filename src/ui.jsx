@@ -123,7 +123,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
   const Photo = passive ? 'span' : 'button';
   const Avatar = passive ? 'span' : 'button';
   return (
-    <div className={`pin-detail ${onEdit || onDelete ? 'has-actions' : ''} ${onActivate ? 'pin-card-link' : ''} ${className}`} role={onActivate ? 'button' : undefined} tabIndex={onActivate ? 0 : undefined} aria-label={onActivate ? t("{0} 지도에서 보기", pin.title) : undefined} onClick={onActivate ? () => onActivate(pin) : undefined} onKeyDown={onActivate ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(pin); } } : undefined}>
+    <div className={`pin-detail ${pin.image || pin._detailPending ? 'has-photo-slot' : ''} ${onEdit || onDelete ? 'has-actions' : ''} ${onActivate ? 'pin-card-link' : ''} ${className}`} role={onActivate ? 'button' : undefined} tabIndex={onActivate ? 0 : undefined} aria-label={onActivate ? t("{0} 지도에서 보기", pin.title) : undefined} onClick={onActivate ? () => onActivate(pin) : undefined} onKeyDown={onActivate ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(pin); } } : undefined}>
         <div className="pin-creator">
           <span className="pin-category-badge">{pin._detailPending?t('Pin'):normalizePinCategory(pin.category) === '상점 등록' ? t("상점") : t(normalizePinCategory(pin.category))}</span>
 
@@ -136,9 +136,9 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
           {!passive && !pin._detailPending && (onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button type="button" onClick={() => onEdit(pin)}>{t("수정")}</button>}
           {onDelete && <button disabled={interactionDisabled} type="button" className="pin-delete" aria-label={t("핀 삭제")} onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>{t("삭제")}</button>}</div>}
         </div>
-      {pin.image && (
-        <Photo className="pin-detail-photo-button" onClick={!passive ? () => onImage?.(pin) : undefined} aria-label={!passive ? t("사진 전체 화면으로 보기") : undefined}>
-          <img className="pin-detail-photo" src={pin.image} alt={t("핀 등록 사진")} />
+      {(pin.image || pin._detailPending) && (
+        <Photo className="pin-detail-photo-button" disabled={!passive && !pin.image} onClick={!passive && pin.image ? () => onImage?.(pin) : undefined} aria-label={!passive && pin.image ? t("사진 전체 화면으로 보기") : undefined}>
+          {pin.image ? <img className="pin-detail-photo" src={pin.image} alt={t("핀 등록 사진")} /> : <span className="pin-photo-skeleton" aria-hidden="true"/>}
         </Photo>
       )}
       <div className="pin-detail-content">

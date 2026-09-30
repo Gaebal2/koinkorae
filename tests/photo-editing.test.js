@@ -36,8 +36,11 @@ test('practice capture, edited extra photo and attached pin survive publish and 
 
 test('iOS startup links resolve to matching images, including mini devices, and a standalone startup fallback exists',async()=>{
   const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
-  const links=[...html.matchAll(/href="%BASE_URL%(ios-splash\/launch-(\d+)x(\d+)\.png)\?v=6"/g)];
+  const links=[...html.matchAll(/href="%BASE_URL%(ios-splash\/launch-v7-(\d+)x(\d+)\.png)\"/g)];
   assert.ok(links.length>=48);assert.ok(html.includes('device-width: 360px'));assert.ok(html.includes('device-width: 744px'));
   for(const [,file,width,height] of links){const bytes=await readFile(new URL('../public/'+file,import.meta.url));assert.equal(bytes.readUInt32BE(16),+width);assert.equal(bytes.readUInt32BE(20),+height);}
   assert.ok(html.includes('navigator.standalone'));assert.ok(html.includes('class="app-launch"'));
+  // React must not erase the startup artwork before the first app frame.
+  assert.match(html,/<\/div><div id="root"><\/div>/);
+  assert.ok(!/<div id="root">\s*<div class="app-launch"/.test(html));
 });

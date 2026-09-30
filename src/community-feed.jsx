@@ -76,7 +76,11 @@ export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [],
   const [nearViewport, setNearViewport] = useState(false);
   useEffect(() => {
     if (!globalThis.IntersectionObserver) { setNearViewport(true); return; }
-    const observer = new IntersectionObserver(([entry]) => setNearViewport(entry.isIntersecting), { rootMargin: '300px' });
+    // Once rendered, keep attachments mounted: replacing them offscreen changes
+    // the document height and makes mobile scrolling jump.
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setNearViewport(true); observer.disconnect(); }
+    }, { rootMargin: '300px' });
     observer.observe(element.current);
     return () => observer.disconnect();
   }, []);

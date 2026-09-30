@@ -1,11 +1,12 @@
 ﻿import { t } from './language.js';
-import React, { useRef,useState } from 'react';
+import React, { useId,useRef,useState } from 'react';
 import { Modal, Field,AppSelect } from './ui.jsx';
 import {cropGeometry} from './photo-editing.js';
 export function PhotoCropper({ source,onClose,onApply,profile=true }) {
   const [image,setImage]=useState(null),[zoom,setZoom]=useState(1),[aspect,setAspect]=useState(profile?'1':'original');
   const [x,setX]=useState(50),[y,setY]=useState(50),[error,setError]=useState('');
   const contacts=useRef(new Map());
+  const [toolsOpen,setToolsOpen]=useState(false),toolsId=useId();
   const ratio=aspect==='original'?(image?image.naturalWidth/image.naturalHeight:1):Number(aspect);
   const geometry=image?cropGeometry(image.naturalWidth,image.naturalHeight,ratio,zoom,x,y,profile?512:960):null;
   const width=geometry?image.naturalWidth/geometry.sw:1,height=geometry?image.naturalHeight/geometry.sh:1;
@@ -33,9 +34,12 @@ export function PhotoCropper({ source,onClose,onApply,profile=true }) {
       onPointerDown={e=>{e.preventDefault();contacts.current.set(e.pointerId,{x:e.clientX,y:e.clientY});e.currentTarget.setPointerCapture(e.pointerId);}} onPointerMove={move} onPointerUp={e=>contacts.current.delete(e.pointerId)} onPointerCancel={e=>contacts.current.delete(e.pointerId)} onLostPointerCapture={e=>contacts.current.delete(e.pointerId)}>
       <img src={source} draggable={false} alt={t('사진 편집 미리보기')} onLoad={e=>setImage(e.currentTarget)} onError={()=>setError('사진을 열지 못했습니다. PNG, JPEG 또는 WebP 사진을 선택해 주세요.')} style={{width:`${width*100}%`,height:`${height*100}%`,left:`${(1-width)*x}%`,top:`${(1-height)*y}%`}}/>
     </div></div>
+    <button type="button" className="secondary photo-tools-toggle" aria-expanded={toolsOpen} aria-controls={toolsId} onClick={()=>setToolsOpen(value=>!value)}>{t(toolsOpen?'사진편집 툴 닫기':'사진편집 툴 열기(손가락 제스쳐 사용불가 시 사용)')}</button>
+    <div id={toolsId} hidden={!toolsOpen}>
     <Field label={t('확대 · {0}배',zoom.toFixed(1))}><input aria-label={t('확대')} type="range" min="1" max="4" step="0.01" value={zoom} onChange={e=>setZoom(+e.target.value)}/></Field>
     <Field label={t('가로 위치')}><input aria-label={t('가로 위치')} type="range" min="0" max="100" value={x} onChange={e=>setX(+e.target.value)}/></Field>
     <Field label={t('세로 위치')}><input aria-label={t('세로 위치')} type="range" min="0" max="100" value={y} onChange={e=>setY(+e.target.value)}/></Field>
+    </div>
     {error&&<p className="error" role="alert">{t(error)}</p>}
     <button type="button" className="primary" disabled={!image||!!error} onClick={apply}>{t('사진 적용')}</button><button type="button" className="secondary" onClick={onClose}>{t('취소')}</button>
   </Modal>;

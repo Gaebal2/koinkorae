@@ -1,4 +1,5 @@
 import { FeedControls } from './feed-controls.jsx';
+import { FeedScrollTop } from './feed-scroll-top.jsx';
 import { t } from './language.js';
 import React,{useEffect,useMemo,useRef,useState,useSyncExternalStore} from 'react';
 import {data} from './data.js';
@@ -56,7 +57,7 @@ export function PagedHome({me,options,setOptions,onPin,onProfile,onReposted,logi
     window.addEventListener('scroll',remember,{passive:true});
     return()=>{cancelAnimationFrame(frame);window.removeEventListener('scroll',remember);};
   },[scrollKey]);
-  return <main className="home-page"><FeedControls options={options} setOptions={setOptions}/>
+  return <main className="home-page"><FeedControls options={options} setOptions={setOptions}/><FeedScrollTop key={scrollKey}/>
     {query.mode==='coins'?page.items.map(group=><CoinGroup key={group.coin} group={group} options={query} me={me} onPin={onPin} onProfile={onProfile} actions={actions}/>):<div className="feed">{page.items.map(post=><CommunityPost key={post.id} post={post} onPin={onPin} onProfile={onProfile} {...actions}/>)}</div>}
     {!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 게시물이 없습니다")}/>}<MoreResults page={page}/><button className="fab" onClick={compose} aria-label={t("새 피드 작성")}><SquarePen/></button>{overlays}
   </main>;

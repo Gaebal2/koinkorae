@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v19-ios-photo-editor';
+const CACHE = 'korae-community-v20-stable-feed';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();

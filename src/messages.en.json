@@ -443,5 +443,8 @@
   "추가 사진 제거": "Remove additional photo",
   "추가 사진 크게 보기": "View additional photo",
   "피드 추가 사진": "Additional post photo",
-  "지도 중앙의 원 위치": "Circle at the center of the map"
+  "지도 중앙의 원 위치": "Circle at the center of the map",
+  "사진편집 툴 열기(손가락 제스쳐 사용불가 시 사용)": "Open photo editing tools (if touch gestures are unavailable)",
+  "사진편집 툴 닫기": "Close photo editing tools",
+  "피드 맨 위로": "Back to top of feed"
 }

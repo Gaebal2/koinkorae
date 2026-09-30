@@ -19,9 +19,9 @@ async function main() {
       ctx.fillStyle = manifest.background_color; ctx.fillRect(0, 0, w, h);
       const size = 96 * scale;
       ctx.drawImage(logo, (w-size)/2, (h-size)/2, size, size);
-      const file = `launch-${w}x${h}.png`;
+      const file = `launch-v7-${w}x${h}.png`;
       await fs.writeFile(path.join(directory, file), canvas.toBuffer('image/png'));
-      links.push(`    <link rel="apple-touch-startup-image" href="%BASE_URL%ios-splash/${file}?v=6" media="screen and (device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${scale}) and (orientation: ${orientation})" />`);
+      links.push(`    <link rel="apple-touch-startup-image" href="%BASE_URL%ios-splash/${file}" media="screen and (device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${scale}) and (orientation: ${orientation})" />`);
     }
   }
   const file = path.join(root, 'index.html');
