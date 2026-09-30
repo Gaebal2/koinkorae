@@ -1,9 +1,10 @@
+import { FeedControls } from './feed-controls.jsx';
 import { t } from './language.js';
 import React,{useEffect,useMemo,useRef,useState,useSyncExternalStore} from 'react';
 import {data} from './data.js';
 import {createPagedStore} from './paged-store.js';
 import {CommunityPost,useFeedActions} from './community-feed.jsx';
-import {Coin,Empty,Segments} from './ui.jsx';
+import {Coin,Empty} from './ui.jsx';
 import {SquarePen,ChevronDown,ChevronUp} from 'lucide-react';
 import {age} from './api.js';
 
@@ -52,7 +53,7 @@ export function PagedHome({me,options,setOptions,onPin,onProfile,onReposted,logi
     window.addEventListener('scroll',remember,{passive:true});
     return()=>{cancelAnimationFrame(frame);window.removeEventListener('scroll',remember);};
   },[scrollKey]);
-  return <main className="home-page"><div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드','코인 피드']} value={options.feed} onChange={feed=>setOptions({...options,feed})}/></div><div className="filters"><Segments compact items={['최신','좋아요','지지','팔로잉','급상승','논쟁']} value={options.category} onChange={category=>setOptions({...options,category})}/><span className="filter-divider"/><Segments compact items={['오늘','이번 달','올해','전체']} value={options.period} onChange={period=>setOptions({...options,period})}/></div></div>
+  return <main className="home-page"><FeedControls options={options} setOptions={setOptions}/>
     {query.mode==='coins'?page.items.map(group=><CoinGroup key={group.coin} group={group} options={query} me={me} onPin={onPin} onProfile={onProfile} actions={actions}/>):<div className="feed">{page.items.map(post=><CommunityPost key={post.id} post={post} onPin={onPin} onProfile={onProfile} {...actions}/>)}</div>}
     {!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 게시물이 없습니다")}/>}<MoreResults page={page}/><button className="fab" onClick={compose} aria-label={t("새 피드 작성")}><SquarePen/></button>{overlays}
   </main>;

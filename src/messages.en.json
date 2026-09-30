@@ -385,5 +385,6 @@
   "이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.": "Delete this listing? This cannot be undone.",
   "거래 삭제": "Delete listing",
   "거래 정보를 수정했습니다.": "Listing updated.",
-  "지도에 거래 정보를 등록했습니다.": "Your listing is on the map."
+  "지도에 거래 정보를 등록했습니다.": "Your listing is on the map.",
+  "?? ??": "Time period"
 }

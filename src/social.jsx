@@ -1,3 +1,4 @@
+import { FeedControls } from './feed-controls.jsx';
 import { t } from './language.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from 'react';
@@ -6,7 +7,7 @@ import { CalendarCheck, Check, Shield, SquarePen, Zap, ChevronDown, ChevronUp } 
 import { data, dayNumber } from './data.js';
 import { age } from './api.js';
 import { filterFeed } from './feed-model.js';
-import { Segments, Coin, Empty, Modal, Field, PageTitle } from './ui.jsx';
+import { Coin, Empty, Modal, Field, PageTitle } from './ui.jsx';
 import { useLiveProfile } from './live-profile.js';
 import {useCursorPage} from './paged-feed.jsx';
 
@@ -21,7 +22,7 @@ export function HomePage({ onPin, onReposted, me, options, setOptions, following
   const { actions, overlays } = useFeedActions(me, login, onReposted);
   const result = filterFeed(posts.map(post => ({...post, likeCount: actions.likes.filter(like => like.postId === post.id).length})), options, following);
   const card = post => <CommunityPost onPin={onPin} key={post.id} post={post} onProfile={onProfile} {...actions}/>;
-  return <main className="home-page"><div className="feed-controls"><div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, feed })}/></div><div className="filters"><Segments compact items={['최신', '좋아요', '지지', '팔로잉', '급상승', '논쟁']} value={options.category} onChange={category => setOptions({ ...options, category })}/><span className="filter-divider"/><Segments compact items={['오늘', '이번 달', '올해', '전체']} value={options.period} onChange={period => setOptions({ ...options, period })}/></div></div>
+  return <main className="home-page"><FeedControls options={options} setOptions={setOptions}/>
     {loading && <p className="loading-state" role="status">{t("피드를 불러오는 중…")}</p>}{error && <p className="error" role="alert">{error}</p>}
     {!loading && !error && !result.posts.length && <Empty text={options.category === '팔로잉' ? t("팔로우한 사용자의 게시물이 없습니다") : t("첫 번째 이야기를 남겨보세요")}/>}
     {options.feed === '유저 피드' ? <div className="feed">{result.posts.map(card)}</div> : result.groups.map((group, index) => <section className="coin-group" key={group.coin}><button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>{group.coin}</b><small>{options.category === '최신' ? age(group.score) : `${t(options.category === '논쟁' ? '논쟁' : options.category === '급상승' ? '급상승' : '코인 지지')} ${group.score.toLocaleString()}`} · {group.items.length}{t("개의 피드")}</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>{open[group.coin] && group.items.map(card)}</section>)}
