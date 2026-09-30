@@ -4,7 +4,7 @@ import { t } from './language.js';
 
 export function FeedControls({ options, setOptions }) {
   const select = (key, items) => <div className={`feed-select feed-select-${key}`}>
-    <AppSelect title={t(key === 'category' ? '피드 정렬' : '기간 선택')} value={options[key]} options={items.map(value => ({value, label:value}))} onChange={value => setOptions({...options, [key]:value})}/>
+    <AppSelect floating title={t(key === 'category' ? '피드 정렬' : '기간 선택')} value={options[key]} options={items.map(value => ({value, label:value}))} onChange={value => setOptions({...options, [key]:value})}/>
   </div>;
   return <div className="feed-controls">
     <div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, feed })}/></div>

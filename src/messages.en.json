@@ -390,5 +390,7 @@
   "기간 선택": "Time period",
   "리포스트 코멘트": "Repost comment",
   "이 피드에 대한 생각을 남겨보세요": "Share your thoughts about this post",
-  "사용자": "User"
+  "사용자": "User",
+  "리포스트를 취소 하시겠습니까?": "Would you like to undo this repost?",
+  "유지": "Keep"
 }

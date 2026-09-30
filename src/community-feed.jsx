@@ -23,10 +23,20 @@ export function useFeedActions(me, login, onReposted, enriched = false) {
     catch { setError('리포스트를 저장하지 못했습니다.'); }
     finally { repostLock.current = false; setBusy(false); }
   };
+  const cancelRepost = async post => {
+    if (!me || repostLock.current) return;
+    repostLock.current = true;
+    try {
+      if (!(await confirm('리포스트를 취소 하시겠습니까?', {title:'리포스트 취소', confirmLabel:'리포스트 취소', cancelLabel:'유지'}))) return;
+      setBusy(true);
+      await data.repost(post.id, false);
+    } catch { setError('리포스트를 저장하지 못했습니다.'); }
+    finally { repostLock.current = false; setBusy(false); }
+  };
   const [likes, setLikes] = useState([]);
   useEffect(() => { if(enriched)return; return data.watchLikes?.(setLikes, () => setError('좋아요를 불러오지 못했습니다.')); }, [enriched]);
   const actions = {
-    me, reposts, likes, busy, repostNavigates: !!onReposted, onBattle: post => me ? setBattle(post) : login(), onComment: setComments, onPhoto: setPhoto,
+    me, reposts, likes, busy, onCancelRepost: cancelRepost, repostNavigates: !!onReposted, onBattle: post => me ? setBattle(post) : login(), onComment: setComments, onPhoto: setPhoto,
     onLike: async (post, enabled) => { if (!me) { login(); return; } await data.like(post.id, enabled); },
     onRepost: async post => {
       if (!me) { login(); return; }
@@ -34,10 +44,7 @@ export function useFeedActions(me, login, onReposted, enriched = false) {
       const shared = post.reposted ?? reposts.some(r => r.postId === (post.originalPostId || post.id) && r.userId === me.id);
       if (!shared) { setRepostComment(''); setRepostDraft(post); return; }
       if (onReposted) { onReposted(); return; }
-      setBusy(true);
-      try { await data.repost(post.id, false); }
-      catch { setError('리포스트를 저장하지 못했습니다.'); }
-      finally { setBusy(false); }
+      await cancelRepost(post);
     },
     onDelete: async post => {
       if (!(await confirm('이 게시물을 삭제할까요? 삭제 후에는 복구할 수 없습니다.', {title:'게시물 삭제',confirmLabel:'삭제'}))) return;
@@ -62,7 +69,7 @@ function AttachedPin({ id, onPin }) {
   return <PinDetailCard pin={pin} className="feed-pin-card" onActivate={() => onPin?.(id)}/>;
 }
 
-export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [], busy, repostNavigates, onBattle, onComment, onRepost, onLike, onPhoto, onDelete }) {
+export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [], busy, repostNavigates, onBattle, onComment, onRepost, onCancelRepost, onLike, onPhoto, onDelete }) {
   const element = useRef(null);
   const [nearViewport, setNearViewport] = useState(false);
   useEffect(() => {
@@ -83,8 +90,8 @@ export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [],
   const likeCount = post.likeCount ?? postLikes.length;
   const liked = post.liked ?? postLikes.some(like => like.userId === me?.id);
   return <article ref={element} className="post-card">
-    {post.originalPostId && <div className="repost-context"><div className="repost-context-heading"><Repeat2 size={16}/><button onClick={() => onProfile(post.repostAuthorId)}><img src={post.repostProfile?.profileImage || profileImage()} alt=""/><b>{post.repostProfile?.username || t('사용자')}</b></button><span>{t('리포스트')} · {age(post.createdAt)}</span></div>{post.repostComment && <p>{post.repostComment}</p>}</div>}
     <div className="post-head"><button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={t("{0} 프로필 보기", authorName)}>{authorProfile?.profileImage ? <img src={authorProfile.profileImage} alt=""/> : authorName.slice(0,2)}</button><div><b>{authorName}</b><span>{age(post.originalCreatedAt ?? post.createdAt)}</span></div><Coin symbol={post.coin}/></div>
+    {post.originalPostId && <div className="repost-context"><div className="repost-context-heading">{post.repostAuthorId === me?.id ? <button type="button" className="repost-badge" aria-label={t('리포스트 취소')} disabled={busy} onClick={() => onCancelRepost(post)}><Repeat2 size={16}/></button> : <span className="repost-badge" aria-hidden="true"><Repeat2 size={16}/></span>}<button onClick={() => onProfile(post.repostAuthorId)}><img src={post.repostProfile?.profileImage || profileImage()} alt=""/><b>{post.repostProfile?.username || t('사용자')}</b></button><span>{t('리포스트')} · {age(post.createdAt)}</span></div>{post.repostComment && <p>{post.repostComment}</p>}</div>}
     <p className="post-body">{post.content}</p>{post.image && <button className="post-image" onClick={() => onPhoto(post.image)} aria-label={t("피드 이미지 크게 보기")}><img src={post.image} alt={t("피드 첨부 사진")}/></button>}
     {post.pinId && (nearViewport ? <AttachedPin id={post.pinId} onPin={onPin} onProfile={onProfile} onPhoto={onPhoto}/> : <div className="attached-pin-placeholder" aria-hidden="true"/>)}
     <div className="battle-meter"><i style={{width:`${total ? post.support / total * 100 : 50}%`}}/><span>{t("지지")} {post.support.toLocaleString()}</span><span>{t("반대")} {post.oppose.toLocaleString()}</span></div>

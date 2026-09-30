@@ -328,7 +328,7 @@ export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChan
   </Modal>;
 }
 
-export function Modal({ title, onClose, children, className = "" }) {
+export function Modal({ title, onClose, children, className = "", floating = false }) {
   useBackDismiss(true,onClose);
   const element = useRef(null), close = useRef(onClose);
   close.current = onClose;
@@ -356,7 +356,7 @@ export function Modal({ title, onClose, children, className = "" }) {
     return () => { root.removeEventListener('keydown', onKey); siblings.forEach(([node, inert]) => { node.inert = inert; }); document.body.style.overflow = overflow; if (previous?.isConnected) previous.focus(); };
   }, []);
   return createPortal(
-    <div className="overlay">
+    <div className={`overlay${floating ? " overlay-floating" : ""}`}>
       <section ref={element} role="dialog" aria-modal="true" aria-label={t(title)} tabIndex={-1} className={`modal ${className}`}>
         <header>
           <b>{t(title)}</b>
@@ -379,13 +379,13 @@ export function Field({ label, children }) {
   );
 }
 
-export function AppSelect({ title, value, options, onChange, searchable = false }) {
+export function AppSelect({ title, value, options, onChange, searchable = false, floating = false }) {
   const [open, setOpen] = useState(false), [query, setQuery] = useState('');
   const selected = options.find(option => option.value === value);
   const searchQuery = useDebounced(query);
   const filtered = options.filter(option => `${option.label} ${option.search || ''}`.toLowerCase().includes(query.toLowerCase()));
   return <span className="app-select-wrap"><button type="button" className="app-select" aria-label={`${title}: ${t(selected?.label || value)}`} aria-haspopup="dialog" aria-expanded={open} onClick={() => { setQuery(''); setOpen(true); }}>{selected?.coin && <Coin symbol={selected.coin} size="sm"/>}<span>{t(selected?.label || value)}</span><ChevronDown/></button>
-    {open && <Modal title={title} onClose={() => setOpen(false)} className="app-select-modal">{searchable && <label className="search"><Search/><input aria-label={title + t(" 검색")} value={query} onChange={e=>setQuery(e.target.value)} placeholder={t("코인 검색")}/></label>}<div className="app-select-options">{filtered.map(option=><button type="button" key={option.value} aria-pressed={option.value === value} className={option.value === value ? 'selected' : ''} onClick={()=>{onChange(option.value);setOpen(false);}}>{option.coin && <Coin symbol={option.coin} size="sm"/>}<span>{t(option.label)}</span>{option.value === value && <Check/>}</button>)}</div>{!filtered.length && <p>{t("검색 결과가 없습니다.")}</p>}</Modal>}
+    {open && <Modal title={title} onClose={() => setOpen(false)} className="app-select-modal" floating={floating}>{searchable && <label className="search"><Search/><input aria-label={title + t(" 검색")} value={query} onChange={e=>setQuery(e.target.value)} placeholder={t("코인 검색")}/></label>}<div className="app-select-options">{filtered.map(option=><button type="button" key={option.value} aria-pressed={option.value === value} className={option.value === value ? 'selected' : ''} onClick={()=>{onChange(option.value);setOpen(false);}}>{option.coin && <Coin symbol={option.coin} size="sm"/>}<span>{t(option.label)}</span>{option.value === value && <Check/>}</button>)}</div>{!filtered.length && <p>{t("검색 결과가 없습니다.")}</p>}</Modal>}
   </span>;
 }
 
