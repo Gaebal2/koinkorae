@@ -4,7 +4,7 @@ import { readViewState, saveViewState, defaultOptions } from './view-state.js';
 test('reload restores screen, profile and validated feed filters', () => {
   let stored;
   const storage = { getItem: () => stored, setItem: (_, value) => { stored = value; } };
-  for (const page of ['home', 'check', 'profile', 'map']) {
+  for (const page of ['home', 'check', 'profile', 'map', 'chat', 'battle']) {
     const state = { page, profileId: 'member-id', options: { feed: '코인 피드', category: '최신', period: '전체' } };
     saveViewState(storage, state);
     assert.deepEqual(readViewState(storage), state);

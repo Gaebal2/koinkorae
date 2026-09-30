@@ -6,6 +6,7 @@ import { age } from './api.js';
 import { Coin, Modal, PinDetailCard, profileImage } from './ui.jsx';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import { BattleGames } from './battle-games.jsx';
+import {BattleRankings} from './battle-rankings.jsx';
 import { Comments } from './social.jsx';
 import { useLiveProfile } from './live-profile.js';
 
@@ -70,6 +71,7 @@ function AttachedPin({ id, onPin }) {
 }
 
 export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [], busy, repostNavigates, onBattle, onComment, onRepost, onCancelRepost, onLike, onPhoto, onDelete }) {
+  const [ranking,setRanking]=useState(false);
   const element = useRef(null);
   const [nearViewport, setNearViewport] = useState(false);
   useEffect(() => {
@@ -95,7 +97,8 @@ export function CommunityPost({ onPin, post, onProfile, me, reposts, likes = [],
     <p className="post-body">{post.content}</p>{post.image && <button className="post-image" onClick={() => onPhoto(post.image)} aria-label={t("피드 이미지 크게 보기")}><img src={post.image} alt={t("피드 첨부 사진")}/></button>}
     {post.pinId && (nearViewport ? <AttachedPin id={post.pinId} onPin={onPin} onProfile={onProfile} onPhoto={onPhoto}/> : <div className="attached-pin-placeholder" aria-hidden="true"/>)}
     <div className="battle-meter"><i style={{width:`${total ? post.support / total * 100 : 50}%`}}/><span>{t("지지")} {post.support.toLocaleString()}</span><span>{t("반대")} {post.oppose.toLocaleString()}</span></div>
-    <div className="score-row"><div><small>{t("지지 점수")}</small><strong className={score < 0 ? 'negative' : ''}>{score > 0 ? '+' : ''}{score.toLocaleString()}</strong></div><div className="card-actions"><button onClick={() => onComment(post)} aria-label={t("댓글 {0}", shownCount ?? '')}><MessageCircle/>{shownCount ?? t("댓글")}</button><button disabled={busy} aria-pressed={isShared} aria-label={repostNavigates && isShared ? t("내 리포스트 보기") : isShared ? t("리포스트 취소") : t("리포스트")} onClick={() => onRepost(post)}><Repeat2/>{post.repostCount ?? shared.length}</button><LikeButton post={post} liked={liked} count={likeCount} onLike={onLike}/><button className="battle-btn" onClick={() => onBattle(post)}><Swords/>{t("배틀")}</button></div></div>
+    <div className="score-row"><button className="support-score-button" aria-label={t('지지 점수 · 배틀 참여자 순위')} onClick={()=>setRanking(true)}><small>{t("지지 점수")}</small><strong className={score < 0 ? 'negative' : ''}>{score > 0 ? '+' : ''}{score.toLocaleString()}</strong></button><div className="card-actions"><button onClick={() => onComment(post)} aria-label={t("댓글 {0}", shownCount ?? '')}><MessageCircle/>{shownCount ?? t("댓글")}</button><button disabled={busy} aria-pressed={isShared} aria-label={repostNavigates && isShared ? t("내 리포스트 보기") : isShared ? t("리포스트 취소") : t("리포스트")} onClick={() => onRepost(post)}><Repeat2/>{post.repostCount ?? shared.length}</button><LikeButton post={post} liked={liked} count={likeCount} onLike={onLike}/><button className="battle-btn" onClick={() => onBattle(post)}><Swords/>{t("배틀")}</button></div></div>
+    {ranking&&<BattleRankings key={`${post.id}:${me?.id||'guest'}`} postId={post.id} me={me} onClose={()=>setRanking(false)} onProfile={onProfile}/>}
     {(post.repostAuthorId || post.authorId) === me?.id && <button className="text-action danger-text" onClick={() => onDelete(post)}>{t("내 글 삭제")}</button>}
   </article>;
 }

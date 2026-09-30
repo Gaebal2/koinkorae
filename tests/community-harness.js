@@ -4,8 +4,9 @@ export async function communityHarness() {
   const pg=new PGlite();
   await pg.exec('create role anon; create role authenticated; create role service_role;');
   await pg.exec("create schema realtime; create table realtime.test_events(payload jsonb,event text,topic text,private boolean); create function realtime.send(payload jsonb,event text,topic text,private boolean) returns void language sql as $$ insert into realtime.test_events values(payload,event,topic,private); $$;");
-  for(const file of ['202609280001_community.sql','202609290001_chat_and_battle_progress.sql','202609300001_read_optimization.sql','202609300002_likes_and_trade_coins.sql','202609300003_repost_feeds.sql'])await pg.exec(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8'));
+  for(const file of ['202609280001_community.sql','202609290001_chat_and_battle_progress.sql','202609300001_read_optimization.sql','202609300002_likes_and_trade_coins.sql','202609300003_repost_feeds.sql','202609300004_battle_rankings.sql'])await pg.exec(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8'));
   const db={
+    async battleRankings(post,uid,cursor){return (await pg.query('select korae_battle_rankings($1,$2,$3) as result',[post,uid,cursor===null?null:JSON.stringify(cursor)])).rows[0].result;},
     async one(kind,id,parent=''){return (await pg.query('select * from korae_documents where kind=$1 and id=$2 and parent=$3',[kind,id,parent])).rows[0]||null;},
     async many(kind,ids){return (await pg.query('select id,body from korae_documents where kind=$1 and parent=\'\' and id=any($2::text[])',[kind,ids])).rows;},
     async page(uid,options,cursor,limit){return (await pg.query('select korae_page($1,$2,$3,$4) as result',[uid,JSON.stringify(options),cursor===null?null:JSON.stringify(cursor),limit])).rows[0].result;},

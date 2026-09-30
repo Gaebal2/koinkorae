@@ -1,6 +1,6 @@
 export const changedActions={
-  profiles:['profile','profiles','page','posts','authorPosts','postsById','getPin','listPins','comments','friends','ownComments'],
-  posts:['page','posts','authorPosts','postsById','comments','commentCount','commentCounts','ownComments','reposts'],
+  profiles:['battleRankings','profile','profiles','page','posts','authorPosts','postsById','getPin','listPins','comments','friends','ownComments'],
+  posts:['battleRankings','page','posts','authorPosts','postsById','comments','commentCount','commentCounts','ownComments','reposts'],
   pins:['page','getPin','listPins'], comments:['page','comments','commentCount','commentCounts','ownComments'],
   following:['page','following','relationships','friends','messages'], reposts:['page','reposts'],
   balances:['balance'],messages:['messages'],

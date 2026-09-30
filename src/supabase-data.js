@@ -25,6 +25,7 @@ const client=createCommunityClient({
 export const dayNumber=(time=Date.now())=>Math.floor((time+9*3600000)/86400000);
 const call=client.call, watch=client.watch;
 export const data={
+  battleRankings:(postId,cursor=null)=>call('battleRankings',{postId,cursor}),
   watchAuth(callback) { if(!auth){callback(null);return()=>{};} return onAuthStateChanged(auth,u=>{client.setScope(u?.uid||'guest');callback(toUser(u));}); },
   page:(options,cursor=null,force=false)=>call('page',{options,cursor,limit:20},force),
   savedPage:options=>client.saved('page',{options,cursor:null,limit:20}),

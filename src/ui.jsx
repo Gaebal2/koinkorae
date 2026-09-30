@@ -292,11 +292,11 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
   );
 }
 
-export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChange, onPickMap, hidden = false }) {
+export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChange, onPickMap, hidden = false, initialDraft }) {
   const [error, setError] = useAppMessage();
   const [busy, setBusy] = useState(false), [picker, setPicker] = useState(null);
-  const [content, setContent] = useState(''), [coin, setCoin] = useState(cmcCoins[0].symbol);
-  const [query, setQuery] = useState(''), [image, setImage] = useState('');
+  const [content, setContent] = useState(initialDraft?.content || ''), [coin, setCoin] = useState(initialDraft?.coin || cmcCoins[0].symbol);
+  const [query, setQuery] = useState(''), [image, setImage] = useState(initialDraft?.image || '');
   const fileRef = useRef(null);
   const chooseImage = async event => { try { setImage(await readPhoto(event.target.files?.[0])); setError(''); } catch (error) { setError(error.message); } };
   const searchQuery = useDebounced(query);

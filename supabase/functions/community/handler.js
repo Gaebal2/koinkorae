@@ -3,7 +3,7 @@ import { text, id, photo, coin, side, enabled, pin } from './validation.js';
 import { replayBattle, scoreResult } from '../_shared/battle-validation.js';
 import { newBattleProgress, advanceBattle, continueBattleProgress } from '../_shared/battle-progress.js';
 
-export const publicActions = new Set(['page','profiles','commentCounts','listPins','getPin','profile','posts','authorPosts','postsById','following','relationships','reposts','commentCount','comments']);
+export const publicActions = new Set(['battleRankings','page','profiles','commentCounts','listPins','getPin','profile','posts','authorPosts','postsById','following','relationships','reposts','commentCount','comments']);
 const present = row => row ? { ...row.body, id: row.id } : null;
 const newest = (a,b) => (b.createdAt || 0) - (a.createdAt || 0);
 
@@ -40,6 +40,12 @@ export async function dispatch(db, identity, action, args = {}) {
     return {target,parent:JSON.stringify([uid,target].sort())};
   };
   switch (action) {
+    case 'battleRankings': {
+      const cursor=args.cursor??null;
+      if(cursor!==null && (!Array.isArray(cursor)||cursor.length!==2||!Number.isSafeInteger(cursor[0])||cursor[0]<0||typeof cursor[1]!=='string'))throw Error('잘못된 페이지입니다.');
+      if(cursor)id(cursor[1]);
+      return db.battleRankings(id(args.postId),uid||null,cursor);
+    }
     case 'page': {
       const options=args.options || {};
       if(!options || typeof options!=='object' || Array.isArray(options))throw Error('잘못된 목록 조건입니다.');

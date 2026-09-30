@@ -9,9 +9,11 @@ import {SquarePen,ChevronDown,ChevronUp} from 'lucide-react';
 import {age} from './api.js';
 
 const pages=createPagedStore({load:(...args)=>data.page(...args),saved:options=>data.savedPage?.(options),observe:fn=>data.observeChanges(fn)});
-export function useCursorPage(options,scope){
+const idlePage={items:[],nextCursor:null,loading:false,error:null};
+const idleEntry={subscribe:()=>()=>{},getSnapshot:()=>idlePage,more:()=>{},refresh:()=>{}};
+export function useCursorPage(options,scope,enabled=true){
   const key=JSON.stringify(options);
-  const entry=useMemo(()=>pages.get(JSON.parse(key),scope),[key,scope]);
+  const entry=useMemo(()=>enabled?pages.get(JSON.parse(key),scope):idleEntry,[key,scope,enabled]);
   return {...useSyncExternalStore(entry.subscribe,entry.getSnapshot),more:entry.more,retry:entry.refresh};
 }
 export function MoreResults({page}){

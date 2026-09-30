@@ -3,13 +3,15 @@ import { LanguageSettings } from './language-settings.jsx';
 import { coinMarker } from './coin-artwork.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Home, CalendarCheck, Map as MapIcon, MessageCircle, MapPinPlus, LocateFixed, Settings, X } from 'lucide-react';
+import { Home, CalendarCheck, Map as MapIcon, MessageCircle, MapPinPlus, LocateFixed, Settings, Swords, X } from 'lucide-react';
 import L from 'leaflet';
 import { data, configured, googleEnabled } from './data.js';
 import { Modal, Field, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage } from './ui.jsx';
 import { PagedHome } from './paged-feed.jsx';
+import { PracticePage } from './practice-page.jsx';
 import { PagedMap } from './paged-map.jsx';
 import { debounce } from './query-timing.js';
+import { reconcileMarkers } from './map-updates.js';
 import { HomePage, CheckinPage } from './social.jsx';
 import { ProfileEditor } from './profile-editor.jsx';
 import { CommunityProfile } from './community-profile.jsx';
@@ -54,6 +56,8 @@ function GoogleAuth({ close, done }) {
 
 export function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick, onBounds, moreControl, ownPinCount }) {
   const element = useRef(null), map = useRef(null), markers = useRef(null), markerById = useRef(new Map());
+  const selectPin = useRef(select);
+  selectPin.current = select;
   const [cardTop, setCardTop] = useState(null);
   const anchoredPin = useRef(null);
   const language = getLanguage();
@@ -62,8 +66,9 @@ export function MapPage({ pins, selected, select, me, login, edit, onProfile, on
     const instance = L.map(element.current, { zoomControl: false }).setView([center.lat, center.lng], center.zoom || 14); map.current = instance;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(instance);
     instance.on('moveend', () => { const c = instance.getCenter(); saveMapCamera({lat:c.lat,lng:c.lng,zoom:instance.getZoom()}); setCenter({ lat: +c.lat.toFixed(6), lng: +c.lng.toFixed(6) }); });
-    instance.on('click', () => select(null));
-    return () => { instance.remove(); map.current = null; };
+    instance.on('click', () => selectPin.current(null));
+    markers.current = L.layerGroup().addTo(instance);
+    return () => { instance.remove(); map.current = null; markers.current = null; markerById.current.clear(); };
   }, []);
   useEffect(()=>{
     if(!onBounds)return;
@@ -76,13 +81,25 @@ export function MapPage({ pins, selected, select, me, login, edit, onProfile, on
     return()=>{delayed.cancel();instance.off('moveend resize',delayed);};
   },[onBounds]);
   useEffect(() => {
-    markers.current?.remove(); markers.current = L.layerGroup().addTo(map.current);
-    markerById.current.clear();
-    for (const pin of pins) {
-      const content = coinMarker(pin.coin);
-      const marker = L.marker([pin.lat, pin.lng], { title: pin.title, icon: L.divIcon({ className: 'battle-map-marker', html: content, iconSize: [40, 48], iconAnchor: [20, 45] }) }).addTo(markers.current).on('click', () => select(pin));
-      markerById.current.set(pin.id, marker);
-    }
+    const icon = pin => L.divIcon({ className: 'battle-map-marker', html: coinMarker(pin.coin), iconSize: [40, 48], iconAnchor: [20, 45] });
+    reconcileMarkers(markerById.current, pins, {
+      create: pin => {
+        const marker = L.marker([pin.lat, pin.lng], {title:pin.title,icon:icon(pin)}).addTo(markers.current);
+        marker.on('click', () => selectPin.current(marker.pinData));
+        marker.pinData = pin; marker.pinLanguage = language;
+        return marker;
+      },
+      update: (marker,pin) => {
+        const previous = marker.pinData;
+        if (previous.lat !== pin.lat || previous.lng !== pin.lng) marker.setLatLng([pin.lat,pin.lng]);
+        if (previous.coin !== pin.coin || marker.pinLanguage !== language) marker.setIcon(icon(pin));
+        marker.options.title = pin.title || '';
+        const element = marker.getElement();
+        if (element && element.title !== (pin.title || '')) element.title = pin.title || '';
+        marker.pinData = pin; marker.pinLanguage = language;
+      },
+      remove: marker => markers.current.removeLayer(marker),
+    });
   }, [pins, language]);
   useEffect(() => { if (selected) map.current.setView([selected.lat, selected.lng], 15, { animate: false }); }, [selected?.id]);
   useEffect(() => {
@@ -115,7 +132,10 @@ export default function App() {
   const { notify } = useFeedback();
   const [restored] = useState(() => readViewState());
   const [me, setMe] = useState(null), [page, setPage] = useState(restored.page), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
+  const [practiceDraft,setPracticeDraft]=useState(null);
   const [compose, setCompose] = useState(false), [following, setFollowing] = useState([]), [balance, setBalance] = useState({ current: 0, lifetime: 0, day: -1 });
+  useEffect(()=>{if(me&&practiceDraft)setCompose(true);},[me,practiceDraft]);
+  const sharePractice=draft=>{setPracticeDraft(draft);setAttachedPin(null);if(me)setCompose(true);else setAuth(true);};
   const [options, setOptions] = useState(restored.options);
   const [profileFeed, setProfileFeed] = useState('작성 피드');
   const myProfile=useLiveProfile(me?.id), viewedProfile=useLiveProfile(me && page === 'profile' ? profileId : null);
@@ -147,13 +167,14 @@ export default function App() {
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
   return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => openProfile(me.id)} aria-label={t("내 프로필로 이동")}><img src={myProfile?.profileImage || profileImage()} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={profileImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}{me ? page === 'profile' ? <button className="profile-settings-button" aria-label={t("설정")} onClick={()=>setSettings(true)}><Settings/></button> : <span className="bp-pill">{balance.current} BP</span> : <button className="text-action" disabled={pickingPin} onClick={() => setAuth(true)}>{t("로그인")}</button>}</header>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
-    {page === 'home' && <FeedHome onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
+    {page === 'home' && <FeedHome onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setPracticeDraft(null); setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
+    {page === 'battle' && <PracticePage onShare={sharePractice}/>}
     {page === 'chat' && <FriendChat me={me} login={() => setAuth(true)}/>}
     {page === 'check' && <CheckinPage me={me} balance={balance} login={() => setAuth(true)}/>}
     {page === 'map' && <MapScreen picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
     {page === 'profile' && <CommunityProfile initialFeed={profileFeed} onPin={openPin} profileId={profileId} profile={viewedProfile || profile} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
-    <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessageCircle]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><span>{t(label)}</span></button>)}</nav>
-    {compose && <Composer hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
+    <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessageCircle], ['battle', '배틀', Swords]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><span>{t(label)}</span></button>)}</nav>
+    {compose && <Composer initialDraft={practiceDraft} hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setPracticeDraft(null); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setPracticeDraft(null); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
     {form && <PinForm {...form} pinCost={0} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin); setPage('map'); }}/>}
     {editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}
 

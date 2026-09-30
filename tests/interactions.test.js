@@ -78,12 +78,14 @@ test('battle continuation retains points, never applies automatically, and appli
   let progress=newBattleProgress('runner',5);const first=packet(progress);progress=await dispatch(db,a,'checkpointBattle',{sessionId:session.id,revision:0,inputs:first.inputs,ticks:first.ticks});
   assert.deepEqual(await dispatch(db,a,'checkpointBattle',{sessionId:session.id,revision:0,inputs:first.inputs,ticks:first.ticks}),progress);
   assert.equal((await db.one('posts',post.id)).body.oppose,0);
+  assert.ok(Number.isSafeInteger(progress.lastCompletedAt));assert.ok(Math.abs(Date.now()-progress.lastCompletedAt)<10000);
   const firstScore=progress.game.score, continueRevision=progress.revision;
   progress=await dispatch(db,a,'continueBattle',{sessionId:session.id,revision:continueRevision});assert.equal(progress.bankedScore,firstScore);
   assert.deepEqual(await dispatch(db,a,'continueBattle',{sessionId:session.id,revision:continueRevision}),progress);
   const second=packet(progress);progress=await dispatch(db,a,'checkpointBattle',{sessionId:session.id,revision:progress.revision,inputs:second.inputs,ticks:second.ticks});
   assert.equal((await db.one('posts',post.id)).body.oppose,0);
   const results=await Promise.all([dispatch(db,a,'applyBattle',{sessionId:session.id}),dispatch(db,a,'applyBattle',{sessionId:session.id})]);
+  const ranking=await dispatch(db,a,'battleRankings',{postId:post.id});assert.equal(ranking.mine.games,2);assert.equal(ranking.mine.lastCompletedAt,progress.lastCompletedAt);
   assert.deepEqual(results[0],results[1]);assert.equal(results[0].score,firstScore+progress.game.score);assert.equal((await db.one('posts',post.id)).body.oppose,results[0].score);
   await assert.rejects(dispatch(db,a,'continueBattle',{sessionId:session.id,revision:progress.revision}));
  }finally{await pg.close();}

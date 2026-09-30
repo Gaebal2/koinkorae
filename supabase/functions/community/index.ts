@@ -9,6 +9,7 @@ const client = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABAS
 const table = () => client.from('korae_documents');
 async function result(query: any) { const {data,error}=await query; if(error) throw Error(error.message); return data; }
 const db = {
+  battleRankings: (post:string,uid:string|null,cursor:any) => result(client.rpc('korae_battle_rankings',{p_post:post,p_uid:uid,p_cursor:cursor})),
   one: (kind:string,id:string,parent='') => result(table().select('id,body').eq('kind',kind).eq('id',id).eq('parent',parent).maybeSingle()),
   many: (kind:string,ids:string[]) => ids.length ? result(table().select('id,body').eq('kind',kind).eq('parent','').in('id',ids)) : Promise.resolve([]),
   page: (uid:string|null,options:any,cursor:any,limit:number) => result(client.rpc('korae_page',{p_uid:uid,p_options:options,p_cursor:cursor,p_limit:limit})),

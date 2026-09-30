@@ -1,12 +1,18 @@
 import { t } from './language.js';
-import React,{useCallback,useEffect,useMemo,useState} from 'react';
+import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {bufferedBounds,containsBounds,retainMapResult} from './map-updates.js';
 import {data} from './data.js';
 import {useCursorPage} from './paged-feed.jsx';
 export function PagedMap({component:Map,ownPins=[],...props}){
-  const [bounds,setBounds]=useState([37.50,126.90,37.63,127.06]);
-  const page=useCursorPage({mode:'pins',bounds},props.me?.id);
-  const pins=useMemo(()=>props.selected&&!page.items.some(p=>p.id===props.selected.id)?[...page.items,props.selected]:page.items,[page.items,props.selected]);
-  const onBounds=useCallback(value=>setBounds(previous=>JSON.stringify(previous)===JSON.stringify(value)?previous:value),[]);
+  const [bounds,setBounds]=useState(null);
+  const scope=props.me?.id || 'guest';
+  const page=useCursorPage({mode:'pins',bounds},scope,!!bounds);
+  const previous=useRef(null);
+  const retained=retainMapResult(previous.current,page,scope);
+  useEffect(()=>{previous.current=retained;},[retained]);
+  const items=retained.items;
+  const pins=useMemo(()=>props.selected&&!items.some(p=>p.id===props.selected.id)?[...items,props.selected]:items,[items,props.selected]);
+  const onBounds=useCallback(value=>setBounds(previous=>containsBounds(previous,value)?previous:bufferedBounds(value)),[]);
   const [error,setError]=useState('');
   useEffect(()=>{
     if(!props.selected?.id || !data.watchPin)return;
@@ -18,5 +24,5 @@ export function PagedMap({component:Map,ownPins=[],...props}){
     catch{setError('Pin을 불러오지 못했습니다.');}
   };
   return <Map {...props} pins={pins} select={select} onBounds={onBounds} ownPinCount={ownPins.length}
-    moreControl={<div className="map-results">{(error||page.error)&&<p role="alert">{t(error||"지도를 불러오지 못했습니다.")}<button onClick={page.retry}>{t("다시 시도")}</button></p>}{page.loading?<span>{t("주변 Pin 불러오는 중…")}</span>:page.nextCursor?<button onClick={page.more}>{t("주변 Pin 20개 더 보기")}</button>:null}</div>}/>;
+    moreControl={<div className="map-results">{(error||page.error)&&<p role="alert">{t(error||"지도를 불러오지 못했습니다.")}<button onClick={page.retry}>{t("다시 시도")}</button></p>}{page.loading?(!items.length&&<span role="status">{t("주변 Pin 불러오는 중…")}</span>):page.nextCursor?<button onClick={page.more}>{t("주변 Pin 20개 더 보기")}</button>:null}</div>}/>;
 }
