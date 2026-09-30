@@ -51,8 +51,9 @@ test('profile edits update historic posts, pins, comments and friend identities'
 function packet(progress,autoplay=false){
  const game=structuredClone(progress.game),random=battleRandom(progress.randomState),inputs=[];let ticks=0;
  while(!game.ended && ticks<CHECKPOINT_TICKS){
-  const obstacle=game.obstacles.find(o=>o.x+o.w>63);
+  const obstacle=game.obstacles?.find(o=>o.x+o.w>63);
   if(autoplay && game.kind==='runner' && obstacle && obstacle.x<170 && game.velocity===0){inputs.push(ticks);jump(game);}
+  if(game.kind==='tower'&&!game.airborne){inputs.push(ticks);jump(game);}
   step(game,TICK,random);ticks++;
  }
  return {inputs,ticks,game};
@@ -77,7 +78,9 @@ test('battle continuation retains points, never applies automatically, and appli
   let progress=newBattleProgress('runner',5);const first=packet(progress);progress=await dispatch(db,a,'checkpointBattle',{sessionId:session.id,revision:0,inputs:first.inputs,ticks:first.ticks});
   assert.deepEqual(await dispatch(db,a,'checkpointBattle',{sessionId:session.id,revision:0,inputs:first.inputs,ticks:first.ticks}),progress);
   assert.equal((await db.one('posts',post.id)).body.oppose,0);
-  const firstScore=progress.game.score;progress=await dispatch(db,a,'continueBattle',{sessionId:session.id,revision:progress.revision});assert.equal(progress.bankedScore,firstScore);
+  const firstScore=progress.game.score, continueRevision=progress.revision;
+  progress=await dispatch(db,a,'continueBattle',{sessionId:session.id,revision:continueRevision});assert.equal(progress.bankedScore,firstScore);
+  assert.deepEqual(await dispatch(db,a,'continueBattle',{sessionId:session.id,revision:continueRevision}),progress);
   const second=packet(progress);progress=await dispatch(db,a,'checkpointBattle',{sessionId:session.id,revision:progress.revision,inputs:second.inputs,ticks:second.ticks});
   assert.equal((await db.one('posts',post.id)).body.oppose,0);
   const results=await Promise.all([dispatch(db,a,'applyBattle',{sessionId:session.id}),dispatch(db,a,'applyBattle',{sessionId:session.id})]);

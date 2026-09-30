@@ -14,10 +14,28 @@ test('new one-touch games score, end and replay identically on the server',()=>{
     }
     assert.ok(g.score>0,kind+' must score');assert.ok(g.ended,kind+' must end');
     const saved=advanceBattle(progress,inputs,ticks,ticks*TICK*1000);assert.deepEqual(saved.game,g);
-    const continued=continueBattleProgress(saved);assert.equal(continued.bankedScore,g.score);assert.equal(continued.game.score,0);assert.equal(continued.game.kind,kind);
+    const continued=continueBattleProgress(saved);assert.equal(continued.bankedScore,g.score);assert.equal(continued.game.score,0);assert.ok(['flappy','runner','tower'].includes(continued.game.kind));
   }
 });
 test('random selection includes only the three retained games',()=>{assert.deepEqual([0,.334,.667].map(chooseGame),['flappy','runner','tower']);assert.equal(chooseGame(.999),'tower');for(const kind of ['stack','dodge'])assert.throws(()=>newGame(kind));});
+
+test('continuation reselects all three games including the previous game and banks points exactly once',()=>{
+  for (const previous of ['flappy','runner','tower']) {
+    const selected=new Set();
+    for (let seed=0;seed<5000;seed+=100) {
+      const progress=newBattleProgress(previous,seed);
+      progress.game.ended=true;progress.game.score=7;progress.bankedScore=11;
+      const next=continueBattleProgress(progress);
+      selected.add(next.game.kind);
+      assert.equal(next.bankedScore,18);assert.equal(next.game.score,0);
+      assert.equal(next.round,1);assert.equal(next.revision,1);
+      assert.deepEqual(continueBattleProgress(progress),next);
+      assert.throws(()=>continueBattleProgress(next));
+      assert.equal(progress.bankedScore,11);
+    }
+    assert.deepEqual([...selected].sort(),['flappy','runner','tower']);
+  }
+});
 test('runner jumps only from ground and lands',()=>{const g=newGame('runner');jump(g);step(g,.05);const v=g.velocity;jump(g);assert.equal(g.velocity,v);for(let i=0;i<90;i++)step(g,1/120);assert.equal(g.y,GROUND-34)});
 test('bird flap and ground collision stop game',()=>{const g=newGame('flappy');jump(g);step(g,.01);assert.ok(g.y<190);for(let i=0;i<240;i++)step(g,1/120);assert.equal(g.reason,'collision');const t=g.time;step(g,1);assert.equal(g.time,t)});
 test('pipe scores once and pipe collision ends game',()=>{const g=newGame('flappy');g.obstacles=[{x:24,w:50,gap:190,passed:false}];step(g,.01);assert.equal(g.score,1);step(g,.01);assert.equal(g.score,1);g.obstacles=[{x:80,w:50,gap:300,passed:false}];step(g,.01);assert.equal(g.reason,'collision')});

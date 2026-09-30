@@ -12,7 +12,7 @@ export function drawExtra(ctx,g,W,H,drawPlayer) {
   block(g.x-62,365-(g.score+1)*120,124,'#6545cb');
   const flight=g.airborne?Math.min(1,g.flight/.8):0;
   const feet=365-g.score*120-120*flight-100*Math.sin(Math.PI*flight);
-  drawPlayer(ctx,180,feet-14,28);
+  drawPlayer(ctx,180,feet-19);
   ctx.restore();
   ctx.fillStyle='#655878';ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText(t('점프 후 발판 중앙에 착지하세요'),180,36);
   return true;

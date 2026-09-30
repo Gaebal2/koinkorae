@@ -1,4 +1,4 @@
-import {newGame,jump,step} from './battle-engine.js';
+import {newGame,jump,step,chooseGame} from './battle-engine.js';
 import {TICK} from './battle-validation.js';
 // Only individual verification packets are bounded; the game itself has no time limit.
 export const CHECKPOINT_TICKS=1200;
@@ -24,5 +24,6 @@ export function advanceBattle(progress,inputs,ticks,elapsedMs) {
 }
 export function continueBattleProgress(progress) {
   if(!progress.game.ended)throw Error('아직 종료되지 않은 게임입니다.');
-  return {...progress,game:newGame(progress.game.kind),bankedScore:progress.bankedScore+progress.game.score,round:progress.round+1,revision:progress.revision+1,lastOp:'continue'};
+  const random=battleRandom(progress.randomState),kind=chooseGame(random());
+  return {...progress,game:newGame(kind),randomState:random.state(),bankedScore:progress.bankedScore+progress.game.score,round:progress.round+1,revision:progress.revision+1,lastOp:'continue'};
 }

@@ -1,10 +1,11 @@
 import { t } from './language.js';
 import {gameLabels,drawExtra} from './arcade-extra.js';
 import React, { useEffect, useRef, useState } from 'react';
-import { Pause, Play, RotateCcw, Trophy } from 'lucide-react';
+import { Pause, Play, Trophy } from 'lucide-react';
 import { Modal } from './ui.jsx';
+import { drawCoinCharacter } from './battle-character.js';
 import { coinImage } from './coin-artwork.js';
-import { newGame, jump, step, WIDTH, HEIGHT, GROUND } from './battle-engine.js';
+import { jump, step, WIDTH, HEIGHT, GROUND } from './battle-engine.js';
 
 import { TICK } from '../functions/battle-validation.js';
 import { battleRandom, CHECKPOINT_TICKS } from '../functions/battle-progress.js';
@@ -12,12 +13,7 @@ import { useLiveProfile } from './live-profile.js';
 import { data } from './data.js';
 import { useFeedback } from './feedback.jsx';
 function draw(context, game, icon, symbol) {
-  const drawPlayer=(ctx,x,y,size)=>{
-    ctx.save();ctx.shadowColor='#44336b33';ctx.shadowBlur=5;
-    if(icon?.complete && icon.naturalWidth)ctx.drawImage(icon,x-size/2,y-size/2,size,size);
-    else {ctx.fillStyle='#7157ff';ctx.beginPath();ctx.arc(x,y,size/2,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='white';ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(symbol.slice(0,4),x,y);}
-    ctx.restore();
-  };
+  const drawPlayer=(ctx,x,y)=>drawCoinCharacter(ctx,{x,y,icon,symbol,kind:game.kind,time:game.time,airborne:game.airborne || game.velocity!==0});
   if(drawExtra(context,game,WIDTH,HEIGHT,drawPlayer))return;
   const bird = game.kind === 'flappy';
   context.clearRect(0, 0, WIDTH, HEIGHT);
@@ -49,12 +45,13 @@ function draw(context, game, icon, symbol) {
   context.fillStyle = '#9adab1'; context.fillRect(0, GROUND, WIDTH, 3);
   if (bird) {
     context.save();context.translate(87,game.y);context.rotate(Math.max(-.4,Math.min(.6,game.velocity/650)));drawPlayer(context,0,0,28);context.restore();
-  } else drawPlayer(context,76,game.y+17,34);
+  } else drawPlayer(context,76,game.y+15);
 }
 
 export function BattleGames({ post, onClose }) {
-  const { confirm } = useFeedback(), author=useLiveProfile(post.authorId);
+  const { confirm, notify } = useFeedback(), author=useLiveProfile(post.authorId);
   const [session,setSession]=useState(null),[mode,setMode]=useState('choose'),[display,setDisplay]=useState({score:0,time:0});
+  const [applying,setApplying]=useState(false);
   const [busy,setBusy]=useState(false),[syncing,setSyncing]=useState(false),[error,setError]=useState(''),[result,setResult]=useState(null);
   const canvas=useRef(null),game=useRef(null),random=useRef(null),inputs=useRef([]),ticks=useRef(0),banked=useRef(0),revision=useRef(0),packets=useRef([]),pumping=useRef(null),locked=useRef(false),request=useRef(null),sessionRef=useRef(null),mounted=useRef(true);
   const pendingAction=useRef(false), playerIcon=useRef(null);
@@ -63,7 +60,7 @@ export function BattleGames({ post, onClose }) {
   const side=session?.side,kind=session?.kind;
   const signed=score=>score===0?'0':(side==='oppose'?'-':'+')+score;
   const paint=()=>{const ctx=canvas.current?.getContext('2d');if(ctx&&game.current)draw(ctx,game.current,playerIcon.current,post.coin);};
-  const install=progress=>{game.current=structuredClone(progress.game);random.current=battleRandom(progress.randomState);banked.current=progress.bankedScore;revision.current=progress.revision;inputs.current=[];ticks.current=0;packets.current=[];setDisplay({score:banked.current+game.current.score,time:game.current.time});};
+  const install=progress=>{game.current=structuredClone(progress.game);random.current=battleRandom(progress.randomState);banked.current=progress.bankedScore;revision.current=progress.revision;inputs.current=[];ticks.current=0;packets.current=[];pendingAction.current=false;setDisplay({score:banked.current+game.current.score,time:game.current.time});};
   const start=async selected=>{
     if(locked.current)return;locked.current=true;setBusy(true);setError('');
     if(!request.current||request.current.side!==selected)request.current={side:selected,id:crypto.randomUUID()};
@@ -84,9 +81,17 @@ export function BattleGames({ post, onClose }) {
   const finishAction=async apply=>{
     if(locked.current||result)return;locked.current=true;setBusy(true);setError('');enqueue();
     try{if(!await sync())return;
-      if(apply)setResult(await data.applyBattle(session.id));
-      else{const progress=await data.continueBattle(session.id,revision.current);install(progress);setMode('ready');}
-    }catch(e){setError(e.message||'요청을 처리하지 못했습니다.');}finally{locked.current=false;setBusy(false);}
+      if(apply){
+        setApplying(true);
+        const applied=await data.applyBattle(session.id);setResult(applied);setApplying(false);
+        await notify('반영 완료했습니다.',{kind:'success',title:'점수 반영 완료'});
+        onClose();
+      } else {
+        const progress=await data.continueBattle(session.id,revision.current);
+        install(progress);setSession(current=>({...current,kind:progress.game.kind}));
+        pendingAction.current=['flappy','runner'].includes(progress.game.kind);setMode('playing');
+      }
+    }catch(e){setError(e.message||'요청을 처리하지 못했습니다.');}finally{setApplying(false);locked.current=false;setBusy(false);}
   };
   useEffect(()=>{if(mode==='ready')paint();},[mode,session]);
   useEffect(()=>{
@@ -103,17 +108,16 @@ export function BattleGames({ post, onClose }) {
   },[mode]);
   const act=()=>{if(!['ready','playing'].includes(mode)||game.current?.ended)return;if(mode==='ready'){setMode('playing');pendingAction.current=['flappy','runner'].includes(kind);}else pendingAction.current=true;canvas.current?.focus();};
   const retrySync=async()=>{setError('');enqueue();if(await sync())setMode(game.current.ended?'ended':'paused');};
-  const close=async()=>{if(locked.current)return;if(session&&!result){if(mode==='playing')setMode('paused');if(!(await confirm('배틀을 종료할까요? 적용하지 않은 점수는 피드에 반영되지 않습니다.',{title:'배틀 종료',confirmLabel:'종료'})))return;}onClose();};
-  const retry=()=>{request.current=null;setSession(null);setResult(null);setError('');setMode('choose');};
+  const close=async()=>{if(locked.current)return;if(session&&game.current?.ended&&!result){await finishAction(true);return;}if(session&&!result){if(mode==='playing')setMode('paused');if(!(await confirm('배틀을 종료할까요? 적용하지 않은 점수는 피드에 반영되지 않습니다.',{title:'배틀 종료',confirmLabel:'종료'})))return;}onClose();};
   return <Modal title={t("배틀")} onClose={close} className="battle-games-modal">
     <p className="battle-post-context">{author?.username||post.author}{t("님의 피드 ·")}{post.coin}</p>
     {mode==='choose'?<section className="battle-choice"><h2>{t("이 피드에 대한 입장을 선택하세요")}</h2><p>{t("게임에서 얻은 점수를 원하는 방향으로 반영하세요.")}</p><div className="side-choice"><button disabled={busy} onClick={()=>start('support')}>{t("지지하기")}<small>{t("지지 점수에 더하기")}</small></button><button disabled={busy} onClick={()=>start('oppose')}>{t("반대하기")}<small>{t("지지 점수에서 빼기")}</small></button></div>{busy&&<p role="status">{t("배틀 준비 중…")}</p>}</section>:<>
       <div className="battle-game-heading"><div><small>{side==='support'?t("지지"):t("반대")}{t("· 점수는 적용 전까지 보관됩니다")}</small><h2>{t(gameLabels[kind]?.[0])}</h2></div></div>
       <div className={'arcade-score '+side}><b>{signed(display.score)}{t("점")}</b><span>{display.time.toFixed(1)}{t("초")}</span>{mode==='playing'&&<button onClick={()=>setMode('paused')} aria-label={t("게임 일시정지")}><Pause/></button>}</div>
       <div className="arcade-board"><canvas ref={canvas} width={WIDTH} height={HEIGHT} tabIndex={0} aria-label={(t(gameLabels[kind]?.[0])||t("배틀"))+t(" 게임 화면")} aria-describedby="arcade-instructions" onPointerDown={e=>{e.preventDefault();act();}} onKeyDown={e=>{if([' ','ArrowUp'].includes(e.key)){e.preventDefault();if(!e.repeat)act();}}}/>
-        {mode!=='playing'&&<div className="arcade-overlay">{mode==='ended'?<><Trophy/><h3>{t("게임 종료")}</h3><strong className={side==='oppose'?'negative':''}>{signed(result?.score??display.score)}{t("점")}</strong><p role="status">{result?t("피드 지지점수에 반영했습니다."):syncing?t("게임 기록 확인 중…"):t("이 점수를 선택한 피드 지지점수에 반영할까요?")}</p>{!result?<div className="battle-end-actions"><button className="primary" disabled={busy||syncing} onClick={()=>finishAction(true)}>{t("점수적용")}</button><button className="primary" disabled={busy||syncing} onClick={()=>finishAction(false)}>{t("게임계속")}</button></div>:<button className="primary" onClick={retry}><RotateCcw/>{t("새 배틀")}</button>}</>:mode==='sync-error'?<><h3>{t("게임 기록을 보관하고 있어요")}</h3><p>{t("연결을 확인한 뒤 이어서 진행하세요.")}</p><button className="primary" disabled={syncing} onClick={retrySync}>{t("연결 다시 시도")}</button></>:mode==='paused'?<><h3>{t("잠시 쉬어가세요")}</h3><button className="primary" onClick={()=>{setMode('playing');canvas.current?.focus();}}><Play/>{t("계속하기")}</button></>:<><h3>{banked.current?t("점수를 유지하고 계속 도전하세요"):t(gameLabels[kind]?.[1])}</h3><p>{t("시간 제한 없이 도전하세요")}</p><button className="primary" onClick={act}><Play/>{banked.current?t("이어 시작"):t("게임 시작")}</button></>}</div>}
+        {mode!=='playing'&&<div className="arcade-overlay">{mode==='ended'?<><Trophy/><h3>{t("게임 종료")}</h3><strong className={side==='oppose'?'negative':''}>{signed(result?.score??display.score)}{t("점")}</strong><p role="status">{result?t('반영 완료했습니다.'):applying?t('최종 점수를 피드에 반영하겠습니다.'):syncing?t('게임 기록 확인 중…'):t('게임계속은 점수를 누적하고, 나가기는 최종 점수를 반영합니다.')}</p><div className="battle-end-actions"><button className="primary" disabled={busy||syncing||!!result} onClick={()=>finishAction(false)}>{t('게임계속')}</button><button className="primary" disabled={busy||syncing} onClick={()=>result?onClose():finishAction(true)}>{t('나가기')}</button></div></>:mode==='sync-error'?<><h3>{t("게임 기록을 보관하고 있어요")}</h3><p>{t("연결을 확인한 뒤 이어서 진행하세요.")}</p><button className="primary" disabled={syncing} onClick={retrySync}>{t("연결 다시 시도")}</button></>:mode==='paused'?<><h3>{t("잠시 쉬어가세요")}</h3><button className="primary" onClick={()=>{setMode('playing');canvas.current?.focus();}}><Play/>{t("계속하기")}</button></>:<><h3>{banked.current?t("점수를 유지하고 계속 도전하세요"):t(gameLabels[kind]?.[1])}</h3><p>{t("시간 제한 없이 도전하세요")}</p><button className="primary" onClick={act}><Play/>{banked.current?t("이어 시작"):t("게임 시작")}</button></>}</div>}
       </div><p id="arcade-instructions" className="arcade-instructions">{t("화면 터치 · Space · ↑ 키로 ")+t(gameLabels[kind]?.[2])}</p>
       {mode==='playing'&&<button className="primary arcade-control" onClick={act}>{t(gameLabels[kind]?.[2])}</button>}
-    </>}{error&&<p className="error" role="alert">{t(error)}</p>}<p className="form-help arcade-note">{t("무료 배틀 · 게임계속은 점수 유지 · 점수적용을 눌러 피드에 반영")}</p>
+    </>}{error&&<p className="error" role="alert">{t(error)}</p>}<p className="form-help arcade-note">{t("무료 배틀 · 게임계속은 점수 누적 · 나가기를 눌러 피드에 반영")}</p>
   </Modal>;
 }
