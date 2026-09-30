@@ -1,6 +1,18 @@
+import { ARENA } from './battle-engine.js';
 import { t } from './language.js';
-export const gameLabels={flappy:['플래피 버드','파이프 사이로 날아보세요','날갯짓'],runner:['공룡 달리기','선인장을 뛰어넘으세요','점프'],tower:['타워 점프','움직이는 발판에 맞춰 점프하세요','점프']};
+export const gameLabels={flappy:['플래피 버드','파이프 사이로 날아보세요','날갯짓'],runner:['공룡 달리기','선인장을 뛰어넘으세요','점프'],bounce:['공 피하기','공과 테두리를 피해 버티세요','드래그 이동'],tower:['타워 점프','움직이는 발판에 맞춰 점프하세요','점프']};
 export function drawExtra(ctx,g,W,H,drawPlayer) {
+  if(g.kind==='bounce') {
+    ctx.fillStyle='#f6f4ff';ctx.fillRect(0,0,W,H);
+    ctx.save();ctx.beginPath();ctx.arc(ARENA.x,ARENA.y,ARENA.radius,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#a68bdc';ctx.lineWidth=2;ctx.stroke();ctx.clip();
+    for(const ball of g.balls){ctx.beginPath();ctx.arc(ball.x,ball.y,ARENA.ballRadius,0,Math.PI*2);ctx.fillStyle=`hsl(${ball.hue} 70% 55%)`;ctx.fill();}
+    drawPlayer(ctx,g.x,g.y);ctx.restore();
+    ctx.fillStyle='#655878';ctx.font='13px sans-serif';ctx.textAlign='center';
+    ctx.fillText(t('어디서든 드래그해서 이동하세요'),W/2,30);
+    ctx.fillText(t('3초마다 공 추가 · 공 1개 = 1점'),W/2,H-20);
+    return true;
+  }
   if(g.kind!=='tower')return false;
   ctx.fillStyle='#f6f4ff';ctx.fillRect(0,0,W,H);
   const camera=g.cameraY ?? g.score*120;

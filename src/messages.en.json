@@ -398,5 +398,11 @@
   "최종 점수를 피드에 반영하겠습니다.": "Applying your final score to the feed.",
   "게임계속은 점수를 누적하고, 나가기는 최종 점수를 반영합니다.": "Continue to add to your score, or exit to apply the total.",
   "나가기": "Exit",
-  "무료 배틀 · 게임계속은 점수 누적 · 나가기를 눌러 피드에 반영": "Free battle · Continue to accumulate points · Exit to apply them to the feed"
+  "무료 배틀 · 게임계속은 점수 누적 · 나가기를 눌러 피드에 반영": "Free battle · Continue to accumulate points · Exit to apply them to the feed",
+  "공 피하기": "Bouncing Ball Dodge",
+  "공과 테두리를 피해 버티세요": "Avoid the balls and the circular border",
+  "드래그 이동": "Drag to move",
+  "어디서든 드래그해서 이동하세요": "Drag anywhere to move",
+  "3초마다 공 추가 · 공 1개 = 1점": "New ball every 3s · 1 ball = 1 point",
+  "화면 어디서든 드래그 · 방향키로 이동": "Drag anywhere on the game screen · Arrow keys to move"
 }

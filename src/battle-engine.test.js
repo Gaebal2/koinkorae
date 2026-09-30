@@ -14,13 +14,13 @@ test('new one-touch games score, end and replay identically on the server',()=>{
     }
     assert.ok(g.score>0,kind+' must score');assert.ok(g.ended,kind+' must end');
     const saved=advanceBattle(progress,inputs,ticks,ticks*TICK*1000);assert.deepEqual(saved.game,g);
-    const continued=continueBattleProgress(saved);assert.equal(continued.bankedScore,g.score);assert.equal(continued.game.score,0);assert.ok(['flappy','runner','tower'].includes(continued.game.kind));
+    const continued=continueBattleProgress(saved);assert.equal(continued.bankedScore,g.score);assert.equal(continued.game.score,0);assert.ok(['flappy','runner','tower','bounce'].includes(continued.game.kind));
   }
 });
-test('random selection includes only the three retained games',()=>{assert.deepEqual([0,.334,.667].map(chooseGame),['flappy','runner','tower']);assert.equal(chooseGame(.999),'tower');for(const kind of ['stack','dodge'])assert.throws(()=>newGame(kind));});
+test('random selection includes all four supported games',()=>{assert.deepEqual([0,.25,.5,.75].map(value=>chooseGame(value)),['flappy','runner','tower','bounce']);assert.equal(chooseGame(.999),'bounce');for(const kind of ['stack','dodge'])assert.throws(()=>newGame(kind));});
 
-test('continuation reselects all three games including the previous game and banks points exactly once',()=>{
-  for (const previous of ['flappy','runner','tower']) {
+test('continuation reselects all four games including the previous game and banks points exactly once',()=>{
+  for (const previous of ['flappy','runner','tower','bounce']) {
     const selected=new Set();
     for (let seed=0;seed<5000;seed+=100) {
       const progress=newBattleProgress(previous,seed);
@@ -33,7 +33,7 @@ test('continuation reselects all three games including the previous game and ban
       assert.throws(()=>continueBattleProgress(next));
       assert.equal(progress.bankedScore,11);
     }
-    assert.deepEqual([...selected].sort(),['flappy','runner','tower']);
+    assert.deepEqual([...selected].sort(),['bounce','flappy','runner','tower']);
   }
 });
 test('runner jumps only from ground and lands',()=>{const g=newGame('runner');jump(g);step(g,.05);const v=g.velocity;jump(g);assert.equal(g.velocity,v);for(let i=0;i<90;i++)step(g,1/120);assert.equal(g.y,GROUND-34)});

@@ -1,13 +1,16 @@
+import {newBounceGame,stepBounce} from './bounce-game.js';
+export {ARENA,MOVE_SCALE,moveBouncePlayer} from './bounce-game.js';
 export const WIDTH = 360, HEIGHT = 440, GROUND = 396;
-export const GAME_KINDS = ['flappy','runner','tower'];
-export const chooseGame = value => GAME_KINDS[Math.min(GAME_KINDS.length-1,Math.max(0,Math.floor(value*GAME_KINDS.length)))];
+export const GAME_KINDS = ['flappy','runner','tower','bounce'];
+export const chooseGame = (value,kinds=GAME_KINDS) => kinds[Math.min(kinds.length-1,Math.max(0,Math.floor(value*kinds.length)))];
 export function newGame(kind) {
   if(!GAME_KINDS.includes(kind))throw Error('지원하지 않는 게임입니다. 새 배틀을 시작해 주세요.');
+  if(kind==='bounce')return newBounceGame();
   if(kind==='tower')return {kind,time:0,score:0,ended:false,reason:'',x:180,phase:0,flight:0,airborne:false,cameraY:0,platforms:[{x:180,y:365}]};
   return { kind, time: 0, score: 0, y: kind === 'flappy' ? 190 : GROUND - 34, velocity: 0, obstacles: [], nextObstacle: kind === 'flappy' ? 1.3 : 1.4, ended: false, reason: '' };
 }
 export function jump(game) {
-  if (game.ended) return;
+  if (game.ended || game.kind==='bounce') return;
 
   if(game.kind==='tower'){if(!game.airborne){game.airborne=true;game.flight=0;}return;}
   if (game.kind === 'flappy') game.velocity = -295;
@@ -16,6 +19,7 @@ export function jump(game) {
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 export function step(game, dt, random = Math.random) {
   if (game.ended) return game;
+  if(game.kind==='bounce')return stepBounce(game,dt,random);
   game.time += dt;
 
   if(game.kind==='tower') {
