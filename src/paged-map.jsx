@@ -5,8 +5,8 @@ import {data} from './data.js';
 import {useCursorPage} from './paged-feed.jsx';
 export function PagedMap({component:Map,ownPins=[],...props}){
   const [bounds,setBounds]=useState(null);
-  const scope=props.me?.id || 'guest';
-  const page=useCursorPage({mode:'pins',bounds},scope,!!bounds);
+  const scope=(props.me?.id || 'guest')+':'+props.coinFilter;
+  const page=useCursorPage({mode:'pins',bounds,...(props.coinFilter?{coin:props.coinFilter}:{})},scope,!!bounds);
   const previous=useRef(null);
   const retained=retainMapResult(previous.current,page,scope);
   useEffect(()=>{previous.current=retained;},[retained]);
@@ -31,6 +31,6 @@ export function PagedMap({component:Map,ownPins=[],...props}){
     const detail=ownPins.find(item=>item.id===pin.id)||(props.selected?.id===pin.id&&!props.selected._detailPending?props.selected:null);
     props.select(detail||{...pin,_detailPending:!('description' in pin)});
   };
-  return <Map {...props} pins={pins} select={select} onBounds={onBounds} ownPinCount={ownPins.length}
+  return <Map {...props} pins={pins} pinCount={page.totalCount ?? '…'} select={select} onBounds={onBounds} ownPinCount={ownPins.length}
     moreControl={<div className="map-results">{(error||page.error)&&<p role="alert">{t(error||"지도를 불러오지 못했습니다.")}<button onClick={()=>error&&props.selected?.id?retryDetail(value=>value+1):page.retry()}>{t("다시 시도")}</button></p>}{page.loading?(!items.length&&<span role="status">{t("주변 Pin 불러오는 중…")}</span>):page.nextCursor?<button onClick={page.more}>{t("주변 Pin 20개 더 보기")}</button>:null}</div>}/>;
 }

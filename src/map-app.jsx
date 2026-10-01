@@ -6,7 +6,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState, useSyncExternalSto
 import { Home, CalendarCheck, Map as MapIcon, MessageCircle, MapPinPlus, LocateFixed, Settings, Swords, X } from 'lucide-react';
 import L from 'leaflet';
 import { data, configured, googleEnabled } from './data.js';
-import { Modal, Field, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage } from './ui.jsx';
+import { Modal, Field, AppSelect, cmcCoins, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage } from './ui.jsx';
 import { PagedHome } from './paged-feed.jsx';
 import { PracticePage } from './practice-page.jsx';
 import { PagedMap } from './paged-map.jsx';
@@ -54,7 +54,7 @@ function GoogleAuth({ close, done }) {
   </Modal>;
 }
 
-export function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick, onBounds, moreControl, ownPinCount }) {
+export function MapPage({ pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick, onBounds, moreControl, ownPinCount, coinFilter = '', onCoinFilter, pinCount }) {
   const element = useRef(null), map = useRef(null), markers = useRef(null), markerById = useRef(new Map());
   const selectPin = useRef(select);
   selectPin.current = select;
@@ -133,7 +133,7 @@ export function MapPage({ pins, selected, select, me, login, edit, onProfile, on
   const pickActions = picking && <div className="pin-pick-actions"><span>{t("첨부할 Pin을 선택하세요")}</span><div><button type="button" onClick={onCancelPick}>{t("취소")}</button><button type="button" className="pin-confirm-selection" disabled={!selected||selected._detailPending} onClick={() => selected && onPick(selected)}>{t("선택")}</button></div></div>;
   return <main className="map-page"><div className="map-stage"><div className="real-map" ref={element}/><div className="map-crosshair" aria-label={t("거래 등록 위치")}/><div className="center-coordinate">{center.lat.toFixed(6)}, {center.lng.toFixed(6)}</div></div>
     {picking && !selected && <div className="pin-detail pin-selection-empty"><p>{t("지도에서 첨부할 Pin을 눌러 주세요.")}</p><div className="pin-detail-footer">{pickActions}</div></div>}
-    {!picking && <div className="map-intro"><b>{t("내 주변 P2P 거래")}</b><small>{configured ? t("{0}개의 거래 정보 · 지도를 움직여 위치를 선택하세요", pins.length) : t("거래 서비스를 준비 중입니다 · 지도를 둘러보세요")}</small></div>}
+    {!picking && <div className="map-intro"><div><b>{t("내 주변 P2P 거래")}</b><small>{t("현재 총 {0}개의 핀이 생성됨", pinCount ?? pins.length)}</small></div><AppSelect title={t("코인 선택")} value={coinFilter} onChange={onCoinFilter} searchable floating options={[{value:"",label:"전체코인"},...cmcCoins.map(c=>({value:c.symbol,label:c.symbol,coin:c.symbol,search:c.name}))]}/></div>}
     {locationError && <div className="map-message" role="alert">{locationError}</div>}{moreControl}
     <div className="map-toolbar"><span>{me ? t("내 거래 {0}/3 · 무료 등록", ownPinCount ?? pins.filter(p => p.owner).length) : t("로그인하고 거래를 등록하세요")}</span><button disabled={picking} aria-label={t("내 위치")} onClick={() => { setLocationError(''); if (!navigator.geolocation) { setLocationError('위치 정보를 지원하지 않는 브라우저입니다.'); return; } navigator.geolocation.getCurrentPosition(p => map.current?.setView([p.coords.latitude, p.coords.longitude], 16), () => setLocationError('위치 권한을 확인하거나 지도를 직접 움직여 주세요.'), { timeout: 10000 }); }}><LocateFixed/></button><button aria-label={t("거래 등록")} disabled={picking || (!!me && (ownPinCount ?? pins.filter(p => p.owner).length) >= 3)} onClick={() => me ? edit({ center }) : login()}><MapPinPlus/></button></div>
     {selected && <div key={selected.id} ref={cardAnchor} className="map-pin-card-anchor" style={{visibility:'hidden'}}><PinDetailCard pin={selected} interactionDisabled={picking} footer={pickActions} onDelete={selected.owner ? onDelete : undefined} onProfile={() => onProfile(selected.ownerId)} onEdit={selected.owner ? p => edit({ initial: p, center }) : undefined} onImage={p => setPhoto(p.image)}/></div>}
@@ -142,7 +142,12 @@ export function MapPage({ pins, selected, select, me, login, edit, onProfile, on
 }
 
 const FeedHome = data.page ? PagedHome : HomePage;
-const MapScreen = props => data.page ? <PagedMap component={MapPage} ownPins={props.pins} {...props}/> : <MapPage {...props}/>;
+function MapScreen(props) {
+  const [coinFilter,setCoinFilter] = useState('');
+  const onCoinFilter = value => {setCoinFilter(value);props.select(null);};
+  const filtered = props.pins.filter(pin => !coinFilter || pin.coin === coinFilter || pin.tradeCoins?.includes(coinFilter));
+  return data.page ? <PagedMap component={MapPage} ownPins={props.pins} {...props} coinFilter={coinFilter} onCoinFilter={onCoinFilter}/> : <MapPage {...props} pins={filtered} pinCount={filtered.length} coinFilter={coinFilter} onCoinFilter={onCoinFilter}/>;
+}
 
 export default function App() {
   useSyncExternalStore(subscribeLanguage, getLanguage);

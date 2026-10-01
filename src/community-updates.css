@@ -415,3 +415,48 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .profile-content-tabs svg { width:20px; height:20px; }
 .pin-category-badge { display:inline-flex; align-items:center; gap:7px; }
 .pin-category-icon { display:inline-block; flex:0 0 15px; width:15px; height:15px; border:2px solid var(--primary); border-radius:50% 50% 50% 3px; transform:rotate(-45deg); background:white; margin:0 2px 3px; }
+
+/* Feed header and reactions share the profile photo's vertical centre. */
+.post-card .post-head { align-items:center; }
+.post-card .post-head > .feed-menu-button { width:37px; height:37px; flex:0 0 37px; border-radius:50%; background:var(--surface-tint); }
+.post-card .repost-context-heading > .feed-menu-button { width:26px; height:26px; flex:0 0 26px; border-radius:50%; background:#e5daf8; margin:0; order:0; }
+.repost-context-heading .repost-author-meta { display:flex; flex-direction:column; align-items:flex-start; gap:3px; min-width:0; }
+.repost-context-heading .repost-author-meta small { font-size:10px; }
+.repost-context-heading .repost-profile { min-width:0; }
+.post-card .feed-coin-button { display:flex; align-items:center; justify-content:center; }
+.feed-battle-meter .meter-total { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.feed-battle-meter .meter-total .zero,.feed-battle-meter .meter-total .meter-volume { color:#000; }
+.feed-battle-meter .meter-total .positive { color:var(--primary); }
+.feed-battle-meter .meter-total .negative { color:#b32647; }
+.post-card .card-actions button { min-height:44px; min-width:44px; font-size:13px; gap:5px; padding:5px; }
+.post-card .card-actions svg { width:23px; height:23px; flex:none; }
+.post-card .card-actions button:not(.like-button):is(:active,[aria-pressed="true"]) { color:var(--primary); }
+.post-card .card-actions button:not(.like-button):is(:active,[aria-pressed="true"]) svg { color:var(--primary); fill:none; }
+.pin-creator > .pin-menu-button { width:28px; height:28px; flex:0 0 28px; padding:0; border:0; border-radius:50%; display:grid; place-items:center; background:var(--surface-tint); color:var(--primary-dark); }
+.pin-menu-button svg { width:17px; height:17px; }
+.pin-detail .pin-creator > .pin-category-badge { gap:3px; padding-inline:4px; flex-basis:96px; width:96px; max-width:96px; }
+.pin-category-badge svg { flex:none; }
+.map-intro { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.map-intro > div { min-width:0; }
+.map-intro .app-select-wrap { pointer-events:auto; flex:none; }
+.map-intro .app-select { width:auto; min-height:40px; padding:7px 9px; gap:4px; font-size:12px; }
+.map-intro .app-select > svg { width:14px; }
+.checkin-calendar { margin:18px 0; padding:16px; border:1px solid var(--line); border-radius:22px; background:#fff; }
+.checkin-calendar header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.checkin-calendar h2 { margin:0; font-size:18px; }
+.checkin-calendar header button { display:grid; place-items:center; width:44px; height:44px; border:0; border-radius:50%; background:var(--surface-tint); color:var(--primary); }
+.calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; text-align:center; }
+.calendar-weekday { padding:6px 0; font-size:12px; color:var(--muted); }
+.calendar-day { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-height:54px; padding:4px; border:1px solid transparent; border-radius:10px; background:#f7f6fa; color:var(--text); }
+.calendar-day.today { background:var(--surface-tint); border-color:var(--primary); }
+.calendar-day.focused { box-shadow:inset 0 0 0 1px var(--primary); }
+.calendar-day .attended { color:var(--primary); }
+.calendar-day .missed { color:#777; }
+.calendar-day .unknown { color:#aaa; }
+.checkin-calendar > p { margin:12px 0 0; font-size:11px; color:var(--muted); text-align:center; }
+@media(max-width:360px) { .post-card .score-row > .card-actions { gap:3px; } .post-card .card-actions button { font-size:12px; padding:3px; gap:3px; } .post-card .card-actions svg { width:21px; height:21px; } .map-intro { padding:10px; } .map-intro b { font-size:14px; } }
+
+.map-intro > div { flex:1; }
+.map-intro .app-select-wrap { width:auto; max-width:45%; }
+
+.feed-battle-meter .meter-total .meter-volume { font-size:inherit; font-weight:inherit; }

@@ -17,7 +17,7 @@ export function createPagedStore({load,saved,observe},maxEntries=30){
           page=await load(options,cursor,true);items.push(...page.items);cursor=page.nextCursor;
           if(!cursor)break;
         }
-        emit({items:[...new Map(items.map(item=>[item.id,item])).values()],nextCursor:cursor});
+        emit({items:[...new Map(items.map(item=>[item.id,item])).values()],nextCursor:cursor,totalCount:page.totalCount});
       }catch(error){stale=true;emit({error});}
       finally{running=false;emit({loading:false});if(queued){queued=false;void refresh();}}
     }
@@ -29,7 +29,7 @@ export function createPagedStore({load,saved,observe},maxEntries=30){
           active++;
           if(!sharedStop)sharedStop=observe(actions=>{if(!actions||actions.includes('page'))for(const item of entries.values())item.invalidate();});
           if(!hydrated){hydrated=true;void Promise.resolve(saved?.(options)).then(row=>{
-            if(row && !snapshot.items.length)emit({items:row.value.items,nextCursor:row.value.nextCursor});
+            if(row && !snapshot.items.length)emit({items:row.value.items,nextCursor:row.value.nextCursor,totalCount:row.value.totalCount});
             if(stale)void refresh();
           });}else if(stale)void refresh();
         }
@@ -38,7 +38,7 @@ export function createPagedStore({load,saved,observe},maxEntries=30){
       async more(){
         if(running||!snapshot.nextCursor)return;
         running=true;emit({loading:true,error:null});
-        try{const page=await load(options,snapshot.nextCursor);loadedPages++;emit({items:[...new Map([...snapshot.items,...page.items].map(item=>[item.id,item])).values()],nextCursor:page.nextCursor});}
+        try{const page=await load(options,snapshot.nextCursor);loadedPages++;emit({items:[...new Map([...snapshot.items,...page.items].map(item=>[item.id,item])).values()],nextCursor:page.nextCursor,totalCount:page.totalCount});}
         catch(error){emit({error});}finally{running=false;emit({loading:false});if(queued){queued=false;void refresh();}}
       },
       refresh,invalidate:()=>{stale=true;if(listeners.size)void refresh();},active:()=>listeners.size,

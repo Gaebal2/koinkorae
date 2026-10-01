@@ -5,7 +5,7 @@ import { useBackDismiss } from './use-back-dismiss.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from 'react-dom';
-import { BarChart3, Check, ChevronDown, ChevronUp, ImagePlus, MapPin, MessageCircle, Repeat2, Search, Shield, Swords, X, Zap } from "lucide-react";
+import { BarChart3, Check, ChevronDown, ChevronUp, ImagePlus, MapPinned, MoreVertical, Pencil, Trash2, MapPin, MessageCircle, Repeat2, Search, Shield, Swords, X, Zap } from "lucide-react";
 import initialCoins from './cmc-top100.json';
 import { prioritizeCoins } from './coins.js';
 import { watchInstallPrompt } from './install-prompt.js';
@@ -117,6 +117,7 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
 
 export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onActivate, topAction, className = "", interactionDisabled = false, footer }) {
   const { confirm } = useFeedback();
+  const [menu, setMenu] = useState(false);
   const creator = useLiveProfile(pin.ownerId);
   const creatorName = creator?.username || pin.creator || '회원';
   const passive = interactionDisabled || !!onActivate;
@@ -125,16 +126,16 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
   return (
     <div className={`pin-detail ${pin.image || pin._detailPending ? 'has-photo-slot' : ''} ${onEdit || onDelete ? 'has-actions' : ''} ${onActivate ? 'pin-card-link' : ''} ${className}`} role={onActivate ? 'button' : undefined} tabIndex={onActivate ? 0 : undefined} aria-label={onActivate ? t("{0} 지도에서 보기", pin.title) : undefined} onClick={onActivate ? () => onActivate(pin) : undefined} onKeyDown={onActivate ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate(pin); } } : undefined}>
         <div className="pin-creator">
-          <span className="pin-category-badge"><span className="map-pin-shell pin-category-icon" aria-hidden="true"/>{pin._detailPending?t('Pin'):normalizePinCategory(pin.category) === '상점 등록' ? t("상점") : t(normalizePinCategory(pin.category))}</span>
+          <span className="pin-category-badge"><MapPinned size={15} aria-hidden="true"/>{pin._detailPending?t('Pin'):normalizePinCategory(pin.category) === '상점 등록' ? t("상점") : t(normalizePinCategory(pin.category))}<MapPinned size={15} aria-hidden="true"/></span>
 
+          {!passive && !pin._detailPending && (onEdit || onDelete) && <button type="button" className="pin-menu-button" aria-label={t("Pin 관리")} aria-haspopup="dialog" onClick={()=>setMenu(true)}><MoreVertical/></button>}
           <Avatar className="pin-creator-profile" onClick={!passive ? () => onProfile?.(pin.creator || "battle_newbie") : undefined} aria-label={!passive ? t("핀 생성자 프로필 보기") : undefined}>
             <img src={creator?.profileImage || profileImage()} alt={t("{0} 프로필", creatorName)} />
           </Avatar>
           <span className="pin-creator-name">@{creatorName}</span>
           <Coin symbol={pin.coin} size="sm" />
           {topAction && <div className="pin-detail-actions">{topAction}</div>}
-          {!passive && !pin._detailPending && (onEdit || onDelete) && <div className="pin-detail-actions">{onEdit && <button type="button" onClick={() => onEdit(pin)}>{t("수정")}</button>}
-          {onDelete && <button disabled={interactionDisabled} type="button" className="pin-delete" aria-label={t("핀 삭제")} onClick={async () => { if (await confirm('이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.', { title: '거래 삭제', confirmLabel: '삭제' })) onDelete(pin); }}>{t("삭제")}</button>}</div>}
+
         </div>
       {(pin.image || pin._detailPending) && (
         <Photo className="pin-detail-photo-button" disabled={!passive && !pin.image} onClick={!passive && pin.image ? () => onImage?.(pin) : undefined} aria-label={!passive && pin.image ? t("사진 전체 화면으로 보기") : undefined}>
@@ -148,6 +149,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
         {pin.link && (passive ? <span className="pin-inactive-link">{pin.link}</span> : <a href={pin.link} target="_blank" rel="noreferrer">{pin.link}</a>)}
       </div>
       {footer && <div className="pin-detail-footer">{footer}</div>}
+      {menu && <Modal title={t("Pin 관리")} onClose={()=>setMenu(false)} floating><div className="app-select-options">{onEdit && <button onClick={()=>{setMenu(false);onEdit(pin);}}><Pencil size={18}/><span>{t("Pin 내용 수정하기")}</span></button>}{onDelete && <button className="danger-text" onClick={async()=>{setMenu(false);if(await confirm("이 거래 정보를 삭제할까요? 삭제 후에는 복구할 수 없습니다.",{title:"거래 삭제",confirmLabel:"삭제"}))await onDelete(pin);}}><Trash2 size={18}/><span>{t("Pin 삭제하기")}</span></button>}</div></Modal>}
     </div>
   );
 }
