@@ -102,13 +102,26 @@ function CommentThread({post,me,close,query}) {
 }
 
 export function CheckinPage({ me, balance, login }) {
-  const { notify } = useFeedback();
+  const { notify, confirm } = useFeedback();
   const [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const today = useCheckinToday();
-  const checked = !!me && balance.day === today;
+  const [completedDay,setCompletedDay] = useState(null);
+  const checked = !!me && (balance.day === today || completedDay === me.id+':'+today);
+  const checkin = async () => {
+    if (busy || checked) return;
+    if (!me) { login(); return; }
+    setBusy(true); setError('');
+    try {
+      if (!(await confirm('오늘 출석체크 하시겠습니까?', {title:'출석체크',confirmLabel:'출석체크'}))) return;
+      await data.checkin();
+      setCompletedDay(me.id+':'+today);
+      void notify('오늘 출석이 완료됐습니다. 10 BP를 받았습니다.', {kind:'success',title:'출석 완료'});
+    } catch { setError('출석을 저장하지 못했습니다. 기기 날짜와 인터넷 연결을 확인해 주세요.'); }
+    finally { setBusy(false); }
+  };
   return <main><PageTitle icon={CalendarCheck} title={t("오늘의 BP")} sub={t("매일 출석하고 Battle Point를 모으세요")}/><section className="balance-card"><span>{t("보유 BP")}</span><strong>{balance.current}</strong><small>Lifetime Earned · {balance.lifetime.toLocaleString()} BP</small></section>
-    <CheckinCalendar key={me?.id || 'guest'} balance={balance} signedIn={!!me} today={today}/>
-    <section className="check-card"><div className="calendar-mark"><CalendarCheck/></div><h2>{checked ? t("오늘 출석 완료!") : t("매일 출석하고 +10 BP")}</h2><p>{checked ? t("내일 다시 만나요") : t("한국 시간 자정에 새 출석이 시작됩니다.")}</p><button className="primary" disabled={busy || checked} onClick={async () => { if (!me) { login(); return; } setBusy(true); setError(''); try { await data.checkin(); void notify('오늘 출석이 완료됐습니다. 10 BP를 받았습니다.', {kind:'success',title:'출석 완료'}); } catch { setError('출석을 저장하지 못했습니다. 기기 날짜와 인터넷 연결을 확인해 주세요.'); } finally { setBusy(false); } }}>{busy ? t("출석 확인 중…") : checked ? <><Check/>{t("지급 완료")}</> : me ? <><Zap/>{t("출석 체크")}</> : t("로그인하고 출석하기")}</button></section>
+    <div className="checkin-action-row"><button type="button" className="primary checkin-action" disabled={busy || checked} onClick={checkin}>{checked ? <Check/> : <CalendarCheck/>}{checked ? t('출석 완료') : busy ? t('출석 확인 중…') : t('출석체크')}</button></div>
+    <CheckinCalendar key={me?.id || 'guest'} balance={checked ? {...balance,day:today} : balance} signedIn={!!me} today={today}/>
     <section className="reward-row"><div><span>REWARDED AD</span><b>{t("광고 보상 준비 중")}</b><small>{t("광고 서비스 연결 후 이용할 수 있어요")}</small></div><button disabled>{t("준비 중")}</button></section>{error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>{t("BP는 커뮤니티 참여 포인트입니다.")}<br/>{t("배틀은 무료로 참여할 수 있습니다.")}</p></div>
   </main>;
 }

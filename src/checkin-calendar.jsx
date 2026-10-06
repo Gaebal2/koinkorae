@@ -18,7 +18,7 @@ export function CheckinCalendar({balance, signedIn, today}) {
     <div className="calendar-grid">{['일','월','화','수','목','금','토'].map(day=><span className="calendar-weekday" key={day}>{t(day)}</span>)}
       {Array.from({length:offset},(_,i)=><span key={'blank'+i}/>)}
       {Array.from({length:count},(_,i)=>{const day=first+i;const status=!signedIn || day>today ? '' : days.has(day) ? 'V' : day>=historySince ? 'X' : '—';
-        return <button key={day} className={'calendar-day'+(day===today?' today':'')+(day===focused?' focused':'')} aria-current={day===today?'date':undefined} aria-label={t('{0}일',i+1)+(status?' · '+t(status==='V'?'출석 완료':status==='X'?'미출석':'기록 없음'):'')} onClick={()=>setFocused(day)}><span>{i+1}</span><strong className={status==='V'?'attended':status==='X'?'missed':'unknown'}>{status || '\u00a0'}</strong></button>;
+        return <button key={day} className={'calendar-day'+(day===today?' today':'')+(day===focused?' focused':'')} aria-current={day===today?'date':undefined} aria-label={t('{0}일',i+1)+(status?' · '+t(status==='V'?'출석 완료':status==='X'?'미출석':'기록 없음'):'')} onClick={()=>setFocused(day)}><span className="calendar-date">{i+1}</span><strong className={status==='V'?'attended':status==='X'?'missed':'unknown'}>{status || '\u00a0'}</strong></button>;
       })}
     </div><p>{signedIn?t('V 출석 완료 · X 미출석 · — 기록 없음'):t('로그인하면 출석 기록을 볼 수 있어요.')}</p>
   </section>;

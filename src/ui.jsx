@@ -397,12 +397,13 @@ export function CoinPicker({values = [], onChange, options, disabled = false, ma
   </div>;
 }
 
-export function AppSelect({ title, value, options, onChange, searchable = false, floating = false }) {
+export function AppSelect({ title, value, options, onChange, searchable = false, floating = false, resetLabel }) {
   const [open, setOpen] = useState(false), [query, setQuery] = useState('');
   const selected = options.find(option => option.value === value);
-  const filtered = options.filter(option => `${option.label} ${option.search || ''}`.toLowerCase().includes(query.toLowerCase()));
+  const listOptions = resetLabel ? options.filter(option=>option.value!=='') : options;
+  const filtered = listOptions.filter(option => `${option.label} ${option.search || ''}`.toLowerCase().includes(query.toLowerCase()));
   return <span className="app-select-wrap"><button type="button" className="app-select" aria-label={`${title}: ${t(selected?.label || value)}`} aria-haspopup="dialog" aria-expanded={open} onClick={() => { setQuery(''); setOpen(true); }}>{selected?.coin && <Coin symbol={selected.coin} size="sm"/>}<span>{t(selected?.label || value)}</span><ChevronDown/></button>
-    {open && <Modal title={title} onClose={() => setOpen(false)} className="app-select-modal" floating={floating}>{options.some(option=>option.coin) ? <CoinPicker values={[value]} options={options} onChange={symbol=>{onChange(symbol);setOpen(false);}}/> : <>{searchable && <label className="search"><Search/><input aria-label={title + t(" 검색")} value={query} onChange={e=>setQuery(e.target.value)} placeholder={t("코인 검색")}/></label>}<div className="app-select-options">{filtered.map(option=><button type="button" key={option.value} aria-pressed={option.value === value} className={option.value === value ? 'selected' : ''} onClick={()=>{onChange(option.value);setOpen(false);}}>{option.coin && <Coin symbol={option.coin} size="sm"/>}<span>{t(option.label)}</span>{option.value === value && <Check/>}</button>)}</div>{!filtered.length && <p>{t("검색 결과가 없습니다.")}</p>}</>}</Modal>}
+    {open && <Modal title={title} onClose={() => setOpen(false)} className="app-select-modal" floating={floating}>{resetLabel && <div className="select-reset-row"><button type="button" disabled={!value} onClick={()=>{onChange('');setOpen(false);}}>{t(resetLabel)}</button></div>}{options.some(option=>option.coin) ? <CoinPicker values={[value]} options={listOptions} onChange={symbol=>{onChange(symbol);setOpen(false);}}/> : <>{searchable && <label className="search"><Search/><input aria-label={title + t(" 검색")} value={query} onChange={e=>setQuery(e.target.value)} placeholder={t("코인 검색")}/></label>}<div className="app-select-options">{filtered.map(option=><button type="button" key={option.value} aria-pressed={option.value === value} className={option.value === value ? 'selected' : ''} onClick={()=>{onChange(option.value);setOpen(false);}}>{option.coin && <Coin symbol={option.coin} size="sm"/>}<span>{t(option.label)}</span>{option.value === value && <Check/>}</button>)}</div>{!filtered.length && <p>{t("검색 결과가 없습니다.")}</p>}</>}</Modal>}
   </span>;
 }
 
