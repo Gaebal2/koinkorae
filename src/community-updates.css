@@ -533,4 +533,4 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .profile-pinned-marker svg { padding:0; border-radius:0; background:none; transform:rotate(-25deg); fill:#d5bdf5; filter:drop-shadow(1px 2px 1px #64439130); }
 .pin-detail.has-photo-slot { grid-template-columns:104px minmax(0,1fr); }
 .pin-detail > .pin-detail-photo-button { width:104px; min-width:104px; }
-.app-select-options > button.select-reset { min-height:56px; justify-content:center; text-align:center; background:#fff; color:var(--text); }
+.app-select-options > button.select-reset { min-height:56px; justify-content:center; text-align:center; color:var(--text); }
