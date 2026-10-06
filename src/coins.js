@@ -5,7 +5,7 @@ export function prioritizeCoins(coins) {
     { id: 'PSL', symbol: 'PSL', name: 'PSL 토큰', aliases: 'PSL token' },
   ];
   const seen = new Set(featured.map(coin => coin.symbol));
-  return [...featured, ...coins.filter(coin => {
+  return [...featured.map(coin => ({...coins.find(item => item.symbol === coin.symbol), ...coin})),  ...coins.filter(coin => {
     const symbol = coin.symbol.toUpperCase();
     if (seen.has(symbol)) return false;
     seen.add(symbol); return true;

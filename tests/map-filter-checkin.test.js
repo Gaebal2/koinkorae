@@ -37,3 +37,19 @@ test('attendance keeps known history through duplicate check-in and unrelated ba
     await assert.rejects(dispatch(db,null,'balance',{uid:'alice'}),/로그인/);
   } finally {await pg.close();}
 });
+
+
+test('pin category filtering includes legacy names and combines with coin and cursor filters',async()=>{
+  const {pg,db}=await communityHarness();
+  try {
+    for(const [id,category,coin] of [['a','P2P 구매 희망','BTC'],['b','P2P 구매','BTC'],['c','상점 등록','BTC'],['d','P2P 구매','ETH']])
+      await db.put({kind:'pins',id,parent:'',owner:'alice',body:{ownerId:'alice',category,coin,tradeCoins:[],lat:37,lng:127,title:id}});
+    const options={mode:'pins',pinCategory:'P2P 구매',coin:'BTC'};
+    const first=await dispatch(db,null,'page',{options,limit:1});
+    assert.equal(first.totalCount,2);assert.equal(first.items[0].id,'a');
+    const next=await dispatch(db,null,'page',{options,limit:1,cursor:first.nextCursor});
+    assert.deepEqual(next.items.map(pin=>pin.id),['b']);assert.equal(next.nextCursor,null);
+    assert.equal((await dispatch(db,null,'page',{options:{mode:'pins',pinCategory:'상점'}})).totalCount,1);
+    await assert.rejects(dispatch(db,null,'page',{options:{mode:'pins',pinCategory:'invalid'}}));
+  } finally {await pg.close();}
+});

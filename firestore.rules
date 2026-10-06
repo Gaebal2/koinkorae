@@ -93,7 +93,7 @@ service cloud.firestore {
           && text(p.coin, 20) && p.coin.matches('[A-Za-z0-9]+')
           && p.tradeCoins is list && p.tradeCoins.size() <= 20 && p.tradeCoins.toSet().size() == p.tradeCoins.size()
           && text(p.link, 500) && (p.link == '' || p.link.matches('https?://.*'))
-          && photo(p.image) && p.category in ['P2P 판매', 'P2P 구매 희망', '상점 등록']
+          && photo(p.image) && p.category in ['P2P 판매', 'P2P 구매', '상점', 'P2P 구매 희망', '상점 등록']
           && p.lat is number && p.lat >= -90 && p.lat <= 90
           && p.lng is number && p.lng >= -180 && p.lng <= 180;
       }

@@ -1,3 +1,4 @@
+import {assertDescription} from '../supabase/functions/community/description.js';
 // Application-facing interface. Replace this adapter when migrating to Supabase.
 import { initializeApp } from 'firebase/app';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -56,6 +57,7 @@ export const data = {
     return row.exists() ? { ...row.data(), id: row.id, owner: row.data().ownerId === auth.currentUser?.uid } : null;
   },
   async savePin(value, id) {
+    assertDescription(value.description);
     const u = user();
     if (typeof value.title !== 'string' || !value.title.trim() || value.title.length > 50) throw Error('Pin 제목은 1~50자로 입력해 주세요.');
     if (typeof value.description !== 'string' || value.description.length > 200) throw Error('Pin 설명은 200자 이내로 입력해 주세요.');
@@ -117,6 +119,7 @@ export const data = {
     return rows.filter(row => row.exists()).map(normalize);
   },
   async publish(value) {
+    assertDescription(value.content);
     const u = user();
     if (typeof value.content !== 'string' || value.content.length > 200) throw Error('피드 본문은 200자 이내로 입력해 주세요.');
     await setDoc(doc(collection(db, 'posts')), { authorId: u.uid, author: displayName(u), content: value.content.trim(), coin: value.coin, image: value.image || '', ...(value.pinId ? { pinId: value.pinId } : {}), createdAt: serverTimestamp(), support: 0, oppose: 0 });

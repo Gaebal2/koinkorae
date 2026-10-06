@@ -1,3 +1,4 @@
+import {assertDescription} from './description.js';
 export function text(value, max, required = false) {
   if (typeof value !== 'string' || value.length > max || (required && !value.trim())) throw Error(`텍스트는 ${max}자 이내로 입력해 주세요.`);
   return value.trim();
@@ -25,10 +26,10 @@ export function enabled(value) {
 export function pin(value) {
   const lat = Number(value.lat), lng = Number(value.lng);
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) throw Error('지도 위치를 확인해 주세요.');
-  if (!['P2P 판매','P2P 구매 희망','상점 등록'].includes(value.category)) throw Error('거래 분류를 선택해 주세요.');
+  if (!['P2P 판매','P2P 구매','상점','P2P 구매 희망','상점 등록'].includes(value.category)) throw Error('거래 분류를 선택해 주세요.');
   if (!Array.isArray(value.tradeCoins) || value.tradeCoins.length > 20 || new Set(value.tradeCoins).size !== value.tradeCoins.length) throw Error('거래 가능한 코인은 중복 없이 최대 20개까지 선택할 수 있습니다.');
   const link = text(value.link || '', 500);
   if (link && !/^https?:\/\//.test(link)) throw Error('HTTP 또는 HTTPS 링크를 입력해 주세요.');
-  return { title: text(value.title,50,true), description: text(value.description,200,true), coin: coin(value.coin),
+  return { title: text(value.title,50,true), description: text(assertDescription(value.description),200,true), coin: coin(value.coin),
     tradeCoins: value.tradeCoins.map(coin), image: photo(value.image), link, category: value.category, lat, lng };
 }

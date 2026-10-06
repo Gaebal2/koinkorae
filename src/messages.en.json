@@ -428,7 +428,7 @@
   "아직 이 피드에 반영한 배틀이 없습니다.": "You have not applied a battle to this post yet.",
   "상위 100명": "Top 100",
   "첫 배틀 참여자가 되어 보세요.": "Be the first to battle for this post.",
-  "순위를 불러오지 못했습니다.": "Could not load the ranking.",
+  "순위를 불러오지 못했습니다.": "Could not load rankings.",
   "20명 더 보기": "Show 20 more",
   "지지 점수 · 배틀 참여자 순위": "Support score · Battle contributors",
   "상세 정보 불러오는 중…": "Loading details…",
@@ -478,5 +478,12 @@
   "수": "Wed",
   "목": "Thu",
   "금": "Fri",
-  "토": "Sat"
+  "토": "Sat",
+  "시총순위": "Market cap",
+  "지지순위": "Support",
+  "상단 고정": "Pinned",
+  "P2P 구매": "P2P Buy",
+  "Pin 종류": "Pin type",
+  "최대 10줄, 연속 엔터 2회까지 입력할 수 있습니다.": "Up to 10 lines and 2 consecutive line breaks.",
+  "순위를 불러오는 중…": "Loading rankings…"
 }

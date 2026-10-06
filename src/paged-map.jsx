@@ -5,8 +5,8 @@ import {data} from './data.js';
 import {useCursorPage} from './paged-feed.jsx';
 export function PagedMap({component:Map,ownPins=[],...props}){
   const [bounds,setBounds]=useState(null);
-  const scope=(props.me?.id || 'guest')+':'+props.coinFilter;
-  const page=useCursorPage({mode:'pins',bounds,...(props.coinFilter?{coin:props.coinFilter}:{})},scope,!!bounds);
+  const scope=(props.me?.id || 'guest')+':'+props.coinFilter+':'+props.pinCategory;
+  const page=useCursorPage({mode:'pins',bounds,...(props.pinCategory?{pinCategory:props.pinCategory}:{}),...(props.coinFilter?{coin:props.coinFilter}:{})},scope,!!bounds);
   const previous=useRef(null);
   const retained=retainMapResult(previous.current,page,scope);
   useEffect(()=>{previous.current=retained;},[retained]);

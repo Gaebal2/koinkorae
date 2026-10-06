@@ -1,3 +1,4 @@
+import {assertDescription} from './description.js';
 import { chooseGame } from '../_shared/battle-engine.js';
 import { text, id, photo, coin, side, enabled, pin } from './validation.js';
 import { replayBattle, scoreResult } from '../_shared/battle-validation.js';
@@ -55,6 +56,7 @@ export async function dispatch(db, identity, action, args = {}) {
       if(mode==='ownComments'&&!uid)throw Object.assign(Error('로그인이 필요합니다.'),{status:401});
       if(mode==='comments')id(options.postId);
       for(const field of ['owner','author','repostedBy'])if(options[field]!==undefined)id(options[field]);
+      if(options.pinCategory!==undefined && !['P2P 판매','P2P 구매','상점'].includes(options.pinCategory))throw Error('거래 분류를 선택해 주세요.');
       if(options.coin!==undefined)coin(options.coin);
       if(options.category!==undefined && !['최신','좋아요','지지','팔로잉','급상승','논쟁'].includes(options.category))throw Error('잘못된 정렬입니다.');
       for(const field of ['since','until','activitySince'])if(options[field]!==undefined && (!Number.isSafeInteger(options[field])||options[field]<0))throw Error('잘못된 기간입니다.');
@@ -122,7 +124,7 @@ export async function dispatch(db, identity, action, args = {}) {
     case 'publish': {
       const value=args.value || {};
       if (value.pinId && !await get('pins',value.pinId)) throw Error('삭제된 거래입니다.');
-      await put('posts',crypto.randomUUID(),{authorId:uid,author:name,content:text(value.content,200,true),coin:coin(value.coin),image:photo(value.image),...(value.additionalImage!==undefined?{additionalImage:photo(value.additionalImage)}:{}),...(value.pinId?{pinId:id(value.pinId)}:{}),createdAt:Date.now(),support:0,oppose:0}); return null;
+      await put('posts',crypto.randomUUID(),{authorId:uid,author:name,content:text(assertDescription(value.content),200,true),coin:coin(value.coin),image:photo(value.image),...(value.additionalImage!==undefined?{additionalImage:photo(value.additionalImage)}:{}),...(value.pinId?{pinId:id(value.pinId)}:{}),createdAt:Date.now(),support:0,oppose:0}); return null;
     }
     case 'deletePost': return mutate('deletePost',id(args.id));
     case 'follow': {
