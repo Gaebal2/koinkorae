@@ -158,6 +158,7 @@ export default function App() {
   const [restored] = useState(() => readViewState());
   const [me, setMe] = useState(null), [page, setPage] = useState(restored.page), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
   const [practiceDraft,setPracticeDraft]=useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [compose, setCompose] = useState(false), [following, setFollowing] = useState([]), [balance, setBalance] = useState({ current: 0, lifetime: 0, day: -1 });
   useEffect(()=>{if(me&&practiceDraft)setCompose(true);},[me,practiceDraft]);
   const sharePractice=draft=>{setPracticeDraft(draft);setAttachedPin(null);if(me)setCompose(true);else setAuth(true);};
@@ -178,7 +179,7 @@ export default function App() {
   const [settings,setSettings]=useState(false);
 
   const refresh = async () => { try { setPins(data.page ? me ? (await data.page({mode:'pins',owner:me.id,detail:true},null,true)).items : [] : await data.listPins()); } catch { setError('거래 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'); } };
-  useEffect(() => data.watchAuth(setMe), []);
+  useEffect(() => data.watchAuth(user => { setMe(user); setAuthReady(true); }), []);
   useEffect(() => { setBalance({ current: 0, lifetime: 0, day: -1 }); return data.watchBalance(me?.id, setBalance, () => setError('BP를 불러오지 못했습니다.')); }, [me?.id]);
   useEffect(() => { setFollowing([]); if(data.page && page!=='profile')return; return data.watchFollowing(me?.id, setFollowing, () => setError('팔로잉 정보를 불러오지 못했습니다.')); }, [me?.id,page]);
   useEffect(() => { select(null); setPins([]); }, [me?.id]);
@@ -197,6 +198,8 @@ export default function App() {
   const openCoin = coin => { setOptions(current=>({...current,feed:'코인 피드',category:'최신',period:'전체',focusCoin:coin,coinSelection:Date.now()})); setPage('home'); };
   const openProfile = (id, feed = '작성 피드') => { setEditing(false); setProfileFeed(feed); setProfileId(id); setPage('profile'); };
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
+  // A pending session is not a signed-out session. Avoid guest UI during restoration.
+  if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main><p className="loading-state" role="status">{t("???? ??")}</p></main></div>;
   return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><img src={myProfile?.profileImage || profileImage()} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={profileImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}{me ? page === 'profile' ? <button className="profile-settings-button" aria-label={t("설정")} onClick={()=>setSettings(true)}><Settings/></button> : <span className="bp-pill">{balance.current} BP</span> : <button className="text-action" disabled={pickingPin} onClick={() => setAuth(true)}>{t("로그인")}</button>}</header>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
     {page === 'home' && <FeedHome onCoin={openCoin} onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setPracticeDraft(null); setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
