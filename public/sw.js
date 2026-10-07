@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v22-refresh-ui';
+const CACHE = 'korae-community-v23-silent-startup';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -14,7 +14,8 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
   const staticAsset = /\.(?:js|css|png|jpg|jpeg|webp|svg|woff2?|webmanifest)$/.test(url.pathname);
   if (event.request.mode !== 'navigate' && !staticAsset) return;
-  event.respondWith(fetch(event.request).then(response => {
+  const request = event.request.mode === 'navigate' ? new Request(event.request, {cache:'no-cache'}) : event.request;
+  event.respondWith(fetch(request).then(response => {
     const type = response.headers.get('content-type') || '';
     const cacheable = type.includes('text/html') || type.includes('text/css') || type.includes('javascript') || type.startsWith('image/') || type.startsWith('font/') || type.includes('manifest+json');
     if (response.ok && cacheable) { const copy = response.clone(); event.waitUntil(caches.open(CACHE).then(cache => cache.put(event.request, copy))); }
