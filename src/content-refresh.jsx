@@ -42,5 +42,5 @@ export function ContentRefresh({page}) {
     return () => { active = false; document.removeEventListener('touchstart', begin); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); document.removeEventListener('touchcancel', reset); };
   }, [page]);
   if(!distance && !busy && !error) return null;
-  return <div className="content-refresh-status" role="status" onClick={() => setError(false)}>{error ? t('?????? ?????. ?? ?? ???.') : busy ? t('?? ??') : distance >= 64 ? t('??? ????') : t('??? ????')}</div>;
+  return <div className="content-refresh-status" role="status" onClick={() => setError(false)}>{error ? t('새로고침하지 못했습니다. 다시 당겨 주세요.') : busy ? t('갱신 중…') : distance >= 64 ? t('놓으면 새로고침') : t('당겨서 새로고침')}</div>;
 }
