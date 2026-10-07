@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v23-silent-startup';
+const CACHE = 'korae-community-v24-trial-reset';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();

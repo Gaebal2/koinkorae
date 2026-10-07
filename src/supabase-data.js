@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, deleteUser, getAdditionalUserInfo } from 'firebase/auth';
 import publicConfig from './firebase-config.json';
 import { createCommunityClient } from './supabase-client.js';
 import { createQueryStorage } from './query-storage.js';
@@ -24,18 +24,23 @@ const client=createCommunityClient({
 });
 export const dayNumber=(time=Date.now())=>Math.floor((time+9*3600000)/86400000);
 const call=client.call, watch=client.watch;
+const admissionMessage = error => error.message?.includes('Trial capacity reached') ? '시험 운영 참여 인원 50명이 마감되었습니다.' : error.message?.includes('Service maintenance') ? '서비스 점검 중입니다. 잠시 후 다시 시도해 주세요.' : error.message;
+async function admitUser(user, newlyCreated=false) {
+ try { await call('ensureProfile'); return toUser(user); }
+ catch(error) { if(newlyCreated && error.message?.includes('Trial capacity reached')) { try { await deleteUser(user); } catch {} } await signOut(auth); throw Error(admissionMessage(error)); }
+}
 export const data={
   battleRankings:(postId,cursor=null)=>call('battleRankings',{postId,cursor}),
-  watchAuth(callback) { if(!auth){callback(null);return()=>{};} return onAuthStateChanged(auth,u=>{client.setScope(u?.uid||'guest');callback(toUser(u));}); },
+  watchAuth(callback) { if(!auth){callback(null);return()=>{};} let active=true, version=0;const stop=onAuthStateChanged(auth,async u=>{const current=++version;client.setScope(u?.uid||'guest');if(!u){callback(null);return;}try{await call('ensureProfile');if(active&&current===version)callback(toUser(u));}catch{if(active&&current===version){callback(null);await signOut(auth);}}});return()=>{active=false;stop();}; },
   page:(options,cursor=null,force=false)=>call('page',{options,cursor,limit:20},force),
   savedPage:options=>client.saved('page',{options,cursor:null,limit:20}),
   watchPinPage:(owner,callback,error)=>watch('page',{options:{mode:'pins',owner,detail:true},cursor:null,limit:20},page=>callback(page.items),error),
   observeChanges:client.observe,
   profiles:async ids=>{const rows=[];for(let i=0;i<ids.length;i+=100)rows.push(...await call('profiles',{ids:ids.slice(i,i+100)}));return rows;},
   watchPins:(callback,error)=>watch('listPins',{},callback,error),
-  async login(email,password) { ready();const {user}=await signInWithEmailAndPassword(auth,email,password);await call('ensureProfile');return toUser(user); },
-  async register(email,password,username) { ready();const {user}=await createUserWithEmailAndPassword(auth,email,password);await updateProfile(user,{displayName:username.trim()});await user.getIdToken(true);await call('ensureProfile');return toUser(user); },
-  async loginGoogle() { ready();const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});const {user}=await signInWithPopup(auth,provider);await call('ensureProfile');return toUser(user); },
+  async login(email,password) { ready();const {user}=await signInWithEmailAndPassword(auth,email,password);return admitUser(user); },
+  async register(email,password,username) { ready();const {user}=await createUserWithEmailAndPassword(auth,email,password);await updateProfile(user,{displayName:username.trim()});await user.getIdToken(true);const admitted=await admitUser(user,true);await call('saveProfile',{value:{username:username.trim(),bio:'',profileImage:''}});return admitted; },
+  async loginGoogle() { ready();const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});const credential=await signInWithPopup(auth,provider);return admitUser(credential.user,!!getAdditionalUserInfo(credential)?.isNewUser); },
   async resetPassword(email) { ready();await sendPasswordResetEmail(auth,email); },
   async logout() { ready();await signOut(auth); },
   listPins:()=>call('listPins'),

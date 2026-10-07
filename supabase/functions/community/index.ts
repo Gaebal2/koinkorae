@@ -60,6 +60,7 @@ Deno.serve(async request=>{
         identity={uid:payload.sub,name:typeof payload.name==='string'?payload.name:'회원'};
       } catch { return reply({error:'로그인이 만료되었습니다. 다시 로그인해 주세요.'},401); }
     }
+    if(identity) await result(client.rpc('korae_admit',{p_uid:identity.uid,p_name:identity.name}));
     if(action==='subscribe') return await changeStream(request,identity?.uid || null,cors);
     if(!identity && !publicActions.has(action)) return reply({error:'로그인이 필요합니다.'},401);
     return reply({data:await dispatch(db,identity,action,args)});

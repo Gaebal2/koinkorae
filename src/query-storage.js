@@ -1,10 +1,12 @@
 // IndexedDB is optional: private browsing/quota failures never block online use.
 export function createQueryStorage(indexedDB=globalThis.indexedDB) {
+  // Retire pre-trial public activity snapshots after the service reset.
+  try { indexedDB?.deleteDatabase('korae-public-cache-v1'); } catch {}
   let opening;
   const db=()=>opening??=new Promise(resolve=>{
     if(!indexedDB){resolve(null);return;}
     try {
-      const request=indexedDB.open('korae-public-cache-v1',1);
+      const request=indexedDB.open('korae-public-cache-v2-trial-reset',1);
       request.onupgradeneeded=()=>request.result.createObjectStore('queries',{keyPath:'key'});
       request.onsuccess=()=>resolve(request.result);request.onerror=()=>resolve(null);request.onblocked=()=>resolve(null);
     }catch{resolve(null);}
