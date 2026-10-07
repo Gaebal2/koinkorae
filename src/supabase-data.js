@@ -67,6 +67,7 @@ export const data={
   watchComments:(postId,callback,error)=>watch('comments',{postId},callback,error),
   comment:(postId,content,side,replyToId)=>call('comment',{postId,content,side,replyToId}),
   deleteComment:(postId,id)=>call('deleteComment',{postId,id}),
+  refreshFriends:()=>call('friends',{},true),
   watchFriends:(callback,error)=>watch('friends',{},callback,error,5000),
   watchMessages:(friendId,callback,error)=>watch('messages',{friendId},callback,error,2000),
   olderMessages:(friendId,before)=>call('messages',{friendId,before}),

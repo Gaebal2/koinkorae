@@ -1,3 +1,4 @@
+import {ContentRefresh} from './content-refresh.jsx';
 import {pinCategories, normalizePinCategory} from './pin-categories.js';
 import { t, getLanguage, subscribeLanguage } from './language.js';
 import { LanguageSettings } from './language-settings.jsx';
@@ -201,6 +202,7 @@ export default function App() {
   // A pending session is not a signed-out session. Avoid guest UI during restoration.
   if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main><p className="loading-state" role="status">{t("???? ??")}</p></main></div>;
   return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><img src={myProfile?.profileImage || profileImage()} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={profileImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}{me ? page === 'profile' ? <button className="profile-settings-button" aria-label={t("설정")} onClick={()=>setSettings(true)}><Settings/></button> : <span className="bp-pill">{balance.current} BP</span> : <button className="text-action" disabled={pickingPin} onClick={() => setAuth(true)}>{t("로그인")}</button>}</header>
+    <ContentRefresh page={page}/>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
     {page === 'home' && <FeedHome onCoin={openCoin} onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setPracticeDraft(null); setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
     {page === 'battle' && <PracticePage onShare={sharePractice}/>}

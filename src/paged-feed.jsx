@@ -1,3 +1,4 @@
+import {useContentRefresh} from './content-refresh.jsx';
 import { FeedControls } from './feed-controls.jsx';
 import { FeedScrollTop } from './feed-scroll-top.jsx';
 import { t } from './language.js';
@@ -35,6 +36,7 @@ export function MoreResults({page}){
 }
 export function PagedPosts({options,me,onPin,onProfile,actions,onReady,excludeId}){
   const page=useCursorPage(options,me?.id);
+  useContentRefresh('home', page.retry, options.mode === 'posts' && !!options.coin);
   useEffect(()=>{if(!page.loading&&!page.error)onReady?.();},[page.loading,page.error,onReady]);
   return <><div className="feed">{page.items.filter(post=>post.id!==excludeId).map(post=><CommunityPost key={post.id} post={post} onPin={onPin} onProfile={onProfile} {...actions}/>)}</div>{!excludeId&&!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 게시물이 없습니다")}/>}<MoreResults page={page}/></>;
 }
@@ -50,6 +52,7 @@ function CoinGroup({focused=false,group,options,me,onPin,onProfile,actions}){
 }
 export function PagedHome({onCoin,me,options,setOptions,onPin,onProfile,onReposted,login,compose}){
   const query=feedOptions(options),page=useCursorPage(query,me?.id);
+  useContentRefresh('home', page.retry);
   const {actions,overlays}=useFeedActions(me,login,onReposted,true);
   actions.onCoin=onCoin;
   const scrollKey='home:'+JSON.stringify(options);

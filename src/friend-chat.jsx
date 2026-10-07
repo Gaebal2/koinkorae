@@ -1,3 +1,4 @@
+import {useContentRefresh} from './content-refresh.jsx';
 import { t, getLocale } from './language.js';
 import React,{useEffect,useRef,useState} from 'react';
 import {MessageCircle,Send,ArrowLeft} from 'lucide-react';
@@ -38,6 +39,7 @@ function Conversation({friend,me,onClose}) {
 }
 function SignedInChat({me}) {
   const [friends,setFriends]=useState(null),[selected,setSelected]=useState(null),[error,setError]=useState('');
+  useContentRefresh('chat', async () => { const rows = await data.refreshFriends(); setFriends(rows); setError(''); }, !selected && !!data.refreshFriends);
   useEffect(()=>data.watchFriends(setFriends,e=>setError(e.message)),[me.id]);
   useEffect(()=>{if(selected&&friends&&!friends.some(friend=>friend.id===selected.id))setSelected(null);},[friends,selected]);
   useBackDismiss(!!selected,()=>setSelected(null),40);

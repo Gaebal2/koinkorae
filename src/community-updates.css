@@ -534,3 +534,7 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .pin-detail.has-photo-slot { grid-template-columns:104px minmax(0,1fr); }
 .pin-detail > .pin-detail-photo-button { width:104px; min-width:104px; }
 .app-select-options > button.select-reset { min-height:56px; justify-content:center; text-align:center; color:var(--text); }
+
+/* Content refresh owns the pull gesture; never restart the PWA document. */
+html, body { overscroll-behavior-y: none; }
+.content-refresh-status { position: fixed; top: 76px; left: 50%; transform: translateX(-50%); z-index: 35; padding: 8px 16px; border-radius: 20px; background: #fff; color: var(--muted); box-shadow: 0 2px 12px #27305520; font-size: 12px; pointer-events: auto; }
