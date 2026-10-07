@@ -1,7 +1,7 @@
 import { t } from './language.js';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PagedPosts, PagedOwnComments, useCursorPage } from './paged-feed.jsx';
-import { Trophy, FileText, Repeat2, Users, MapPin, MessageCircle, Pin } from 'lucide-react';
+import { Trophy, FileText, Repeat2, Users, MapPin, MessageCircle, Pin, UserPlus, UserCheck } from 'lucide-react';
 import { PointsPolicy } from './points-policy.jsx';
 import { data } from './data.js';
 import { age } from './api.js';
@@ -11,9 +11,14 @@ import { CommunityPost, useFeedActions } from './community-feed.jsx';
 import { relationshipsFor, tierFor } from './community-model.js';
 import { useLiveProfile } from './live-profile.js';
 
+function FollowButton({following, disabled, onClick}) {
+  const Icon = following ? UserCheck : UserPlus;
+  return <button type="button" className="follow-button" data-following={following} disabled={disabled} onClick={onClick}><Icon aria-hidden="true"/><span>{following ? t("팔로잉 취소") : t("팔로우")}</span></button>;
+}
+
 function Person({person,me,following,onFollow,onProfile}) {
   const live=useLiveProfile(person.id), shown=live || person;
-  return <div><button className="person-profile" onClick={() => onProfile(person.id)}><img src={shown.profileImage || profileImage()} alt=""/><span><b>{shown.username}</b><small>{shown.bio}</small></span></button>{person.id !== me?.id && <button onClick={() => onFollow(person.id)}>{following.includes(person.id) ? t("팔로잉 취소") : t("팔로우")}</button>}</div>;
+  return <div><button className="person-profile" onClick={() => onProfile(person.id)}><img src={shown.profileImage || profileImage()} alt=""/><span><b>{shown.username}</b><small>{shown.bio}</small></span></button>{person.id !== me?.id && <FollowButton following={following.includes(person.id)} onClick={() => onFollow(person.id)}/>}</div>;
 }
 function People({ ids, me, following, onFollow, onProfile }) {
   const [people, setPeople] = useState(null), [, setError] = useAppMessage();
@@ -56,7 +61,7 @@ function ProfileContent({ onCoin, initialFeed = '작성 피드', onPin, profileI
   const own = profileId === me?.id, graph = relationshipsFor(edges, profileId), tier = tierFor(balance.lifetime), mine = pins.filter(p => p.ownerId === profileId);
   const shown = feed === '작성 피드' ? authored : sharedPosts;
   const peopleIds = { '팔로워': graph.followers, '팔로잉': graph.following, '맞팔친구': graph.friends };
-  return <main className="profile-page-x"><section className="profile-head"><img className="profile-avatar" src={profile.profileImage || profileImage()} alt={t("{0} 프로필", profile.username)}/><div className="profile-name-row"><h1>{profile.username}</h1>{!own && <button disabled={busy} onClick={() => onFollow(profileId)}>{following.includes(profileId) ? t("팔로잉 취소") : t("팔로우")}</button>}</div><p>{profile.bio || t("내 주변에서 코인 이야기를 나누세요.")}</p><div className="profile-social"><button onClick={() => setView('팔로워')}><b>{graph.followers.length}</b> {t("팔로워")}</button><button onClick={() => setView('팔로잉')}><b>{graph.following.length}</b> {t("팔로잉")}</button></div></section>
+  return <main className="profile-page-x"><section className="profile-head"><img className="profile-avatar" src={profile.profileImage || profileImage()} alt={t("{0} 프로필", profile.username)}/><div className="profile-name-row"><h1>{profile.username}</h1>{!own && <FollowButton following={following.includes(profileId)} disabled={busy} onClick={() => onFollow(profileId)}/>}</div><p>{profile.bio || t("내 주변에서 코인 이야기를 나누세요.")}</p><div className="profile-social"><button onClick={() => setView('팔로워')}><b>{graph.followers.length}</b> {t("팔로워")}</button><button onClick={() => setView('팔로잉')}><b>{graph.following.length}</b> {t("팔로잉")}</button></div></section>
     {own ? <><button type="button" className="tier-card" onClick={() => setPolicy(true)} aria-haspopup="dialog"><Trophy/><div><small>{t("현재 등급 · 누적")}{balance.lifetime.toLocaleString()} BP</small><b>{tier.tier}</b><span>{t("보유")}{balance.current.toLocaleString()} BP · PIN {mine.length}/3</span><span>{tier.next ? t("다음 등급까지 {0} BP", Math.max(0,tier.next-balance.lifetime).toLocaleString()) : t("최고 등급입니다")}</span></div><i style={{width:`${tier.progress}%`}}/></button></> : null}
     <div ref={feedStart} className="profile-menu-box" style={{scrollMarginTop:80}}><div className="segments profile-content-tabs" role="tablist" aria-label={t("프로필")}>{[['작성 피드',FileText],['리포스트',Repeat2],['맞팔친구',Users],['PIN',MapPin],...(own?[['내 댓글',MessageCircle]]:[])].map(([label,Icon])=><button key={label} type="button" role="tab" aria-selected={feed===label} aria-controls="profile-content-panel" aria-label={t(label)} title={t(label)} className={feed===label?'active':''} onClick={()=>setFeed(label)}><Icon aria-hidden="true"/></button>)}</div><h2 className="profile-feed-title" aria-live="polite"><span>{t(feed)}</span></h2></div>
     <section id="profile-content-panel" role="tabpanel" aria-label={t(feed)}>

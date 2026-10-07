@@ -538,3 +538,17 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 /* Content refresh owns the pull gesture; never restart the PWA document. */
 html, body { overscroll-behavior-y: none; }
 .content-refresh-status { position: fixed; top: 76px; left: 50%; transform: translateX(-50%); z-index: 35; padding: 8px 16px; border-radius: 20px; background: #fff; color: var(--muted); box-shadow: 0 2px 12px #27305520; font-size: 12px; pointer-events: auto; }
+
+/* Consistent relationship actions on profiles and people lists. */
+.profile-name-row > .follow-button, .people-list .follow-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:none; min-height:40px; padding:9px 16px; border:1px solid transparent; border-radius:999px; background:var(--primary); color:#fff; font-size:13px; font-weight:700; line-height:1.3; white-space:nowrap; box-shadow:0 3px 10px #7157ff20; transition:background .15s, border-color .15s; }
+.profile-name-row > .follow-button[data-following="true"], .people-list .follow-button[data-following="true"] { color:var(--primary-dark); background:var(--surface-tint); border-color:#ded6ff; box-shadow:none; }
+.follow-button svg { width:16px; height:16px; flex:none; }
+.follow-button:disabled { opacity:.55; cursor:wait; }
+.direct-composer .chat-input-row textarea { overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none; -webkit-appearance:none; appearance:none; }
+.direct-composer .chat-input-row textarea::-webkit-scrollbar { display:none; width:0; height:0; }
+.content-refresh-status { width:36px; height:36px; padding:8px; display:flex; align-items:center; justify-content:center; color:var(--primary); pointer-events:none; }
+.content-refresh-status svg { width:20px; height:20px; flex:none; transition:transform .15s; }
+.content-refresh-status.has-error { width:max-content; max-width:calc(100vw - 32px); height:auto; gap:8px; border-radius:12px; }
+.refresh-spinner { animation:refresh-turn .8s linear infinite; }
+@keyframes refresh-turn { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .refresh-spinner { animation:none; } }

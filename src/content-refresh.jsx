@@ -1,3 +1,4 @@
+import {ArrowDown, LoaderCircle, CircleAlert} from 'lucide-react';
 import React, {useEffect, useRef, useState} from 'react';
 import {contentRefresh} from './content-refresh.js';
 import {t} from './language.js';
@@ -42,5 +43,8 @@ export function ContentRefresh({page}) {
     return () => { active = false; document.removeEventListener('touchstart', begin); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); document.removeEventListener('touchcancel', reset); };
   }, [page]);
   if(!distance && !busy && !error) return null;
-  return <div className="content-refresh-status" role="status" onClick={() => setError(false)}>{error ? t('새로고침하지 못했습니다. 다시 당겨 주세요.') : busy ? t('갱신 중…') : distance >= 64 ? t('놓으면 새로고침') : t('당겨서 새로고침')}</div>;
+  const label = error ? t('새로고침하지 못했습니다. 다시 당겨 주세요.') : busy ? t('갱신 중…') : distance >= 64 ? t('놓으면 새로고침') : t('당겨서 새로고침');
+  return <div className={'content-refresh-status'+(error ? ' has-error' : '')} role="status" aria-label={label}>
+    {error ? <><CircleAlert aria-hidden="true"/><span>{label}</span></> : busy ? <LoaderCircle className="refresh-spinner" aria-hidden="true"/> : <ArrowDown style={{transform:distance >= 64 ? 'rotate(180deg)' : undefined}} aria-hidden="true"/>}
+  </div>;
 }
