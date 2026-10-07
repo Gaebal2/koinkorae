@@ -2,6 +2,7 @@ import { createRemoteJWKSet, jwtVerify } from 'npm:jose@6';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { dispatch, publicActions } from './handler.js';
 import { changeStream } from './stream.ts';
+import { createPhotoStore, MEDIA_BUCKET } from './media.js';
 
 const project = Deno.env.get('FIREBASE_PROJECT_ID') || 'koinkorae-map';
 const jwks = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
@@ -9,6 +10,10 @@ const client = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABAS
 const table = () => client.from('korae_documents');
 async function result(query: any) { const {data,error}=await query; if(error) throw Error(error.message); return data; }
 const db = {
+  storePhoto: createPhotoStore({baseUrl:Deno.env.get('SUPABASE_URL')!,upload:async (key:string,bytes:Uint8Array,options:any)=>{
+    const {error}=await client.storage.from(MEDIA_BUCKET).upload(key,bytes,options);
+    if(error && error.message!=='The resource already exists' && String((error as any).statusCode)!=='409') throw Error('사진을 저장하지 못했습니다. 다시 시도해 주세요.');
+  }}),
   battleRankings: (post:string,uid:string|null,cursor:any) => result(client.rpc('korae_battle_rankings',{p_post:post,p_uid:uid,p_cursor:cursor})),
   one: (kind:string,id:string,parent='') => result(table().select('id,body').eq('kind',kind).eq('id',id).eq('parent',parent).maybeSingle()),
   many: (kind:string,ids:string[]) => ids.length ? result(table().select('id,body').eq('kind',kind).eq('parent','').in('id',ids)) : Promise.resolve([]),

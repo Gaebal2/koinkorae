@@ -34,7 +34,7 @@ export function PhotoCropper({ source,onClose,onApply,profile=true }) {
     <button type="button" className="app-select photo-tools-toggle" aria-expanded={toolsOpen} aria-controls={toolsId} onClick={()=>setToolsOpen(value=>!value)}><span>{t(toolsOpen?'사진편집 툴 닫기':'사진편집 툴 열기(손가락 제스쳐 사용불가 시 사용)')}</span>{toolsOpen?<ChevronUp/>:<ChevronDown/>}</button>
     <div className="photo-editor-stage"><div className={'photo-editor-preview'+(profile?' is-profile':'')} style={{aspectRatio:ratio,width:`min(100%, ${Math.min(340,340*ratio)}px)`}} onContextMenu={e=>e.preventDefault()}
       onPointerDown={e=>{e.preventDefault();contacts.current.set(e.pointerId,{x:e.clientX,y:e.clientY});e.currentTarget.setPointerCapture(e.pointerId);}} onPointerMove={move} onPointerUp={e=>contacts.current.delete(e.pointerId)} onPointerCancel={e=>contacts.current.delete(e.pointerId)} onLostPointerCapture={e=>contacts.current.delete(e.pointerId)}>
-      <img src={source} draggable={false} alt={t('사진 편집 미리보기')} onLoad={e=>setImage(e.currentTarget)} onError={()=>setError('사진을 열지 못했습니다. PNG, JPEG 또는 WebP 사진을 선택해 주세요.')} style={{width:`${width*100}%`,height:`${height*100}%`,left:`${(1-width)*x}%`,top:`${(1-height)*y}%`}}/>
+      <img crossOrigin="anonymous" src={source} draggable={false} alt={t('사진 편집 미리보기')} onLoad={e=>setImage(e.currentTarget)} onError={()=>setError('사진을 열지 못했습니다. PNG, JPEG 또는 WebP 사진을 선택해 주세요.')} style={{width:`${width*100}%`,height:`${height*100}%`,left:`${(1-width)*x}%`,top:`${(1-height)*y}%`}}/>
     </div></div>
     <div id={toolsId} hidden={!toolsOpen}>
     <Field label={t('확대 · {0}배',zoom.toFixed(1))}><input aria-label={t('확대')} type="range" min="1" max="4" step="0.01" value={zoom} onChange={e=>setZoom(+e.target.value)}/></Field>

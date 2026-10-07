@@ -12,6 +12,7 @@ const newest = (a,b) => (b.createdAt || 0) - (a.createdAt || 0);
 export async function dispatch(db, identity, action, args = {}) {
   if (!publicActions.has(action) && !identity) throw Object.assign(Error('로그인이 필요합니다.'), { status: 401 });
   const uid = identity?.uid;
+  const storePhoto = value => db.storePhoto ? db.storePhoto(value) : photo(value);
   const needsName = ['ensureProfile','saveProfile','savePin','publish','comment'].includes(action);
   const storedProfile = uid && needsName ? present(await db.one('profiles',uid,'')) : null;
   const name = (storedProfile?.username || identity?.name || '회원').slice(0,24);
@@ -116,15 +117,19 @@ export async function dispatch(db, identity, action, args = {}) {
     case 'ensureProfile': {
       await put('profiles',uid,{username:name,bio:'',profileImage:''},'',true); return null;
     }
-    case 'saveProfile': return mutate('updateProfile','',{username:args.value?.username === undefined ? name : text(args.value.username,24,true),bio:text(args.value?.bio,200),profileImage:photo(args.value?.profileImage)});
+    case 'saveProfile': return mutate('updateProfile','',{username:args.value?.username === undefined ? name : text(args.value.username,24,true),bio:text(args.value?.bio,200),profileImage:await storePhoto(args.value?.profileImage)});
     case 'pinProfilePost': return mutate('pinProfilePost',id(args.id),{enabled:enabled(args.enabled)});
-    case 'savePin': return mutate('savePin',args.id ? id(args.id) : '',{...pin(args.value || {}),creator:name});
+    case 'savePin': {
+      const value=pin({...args.value,image:''});
+      if(args.id && (await db.one('pins',id(args.id),''))?.body?.ownerId!==uid) throw Object.assign(Error('수정할 수 없는 거래입니다.'),{status:403});
+      return mutate('savePin',args.id ? id(args.id) : '',{...value,image:await storePhoto(args.value?.image),creator:name});
+    }
     case 'deletePin': await db.remove('pins',id(args.id),'',uid); return null;
     case 'checkin': return mutate('checkin');
     case 'publish': {
       const value=args.value || {};
       if (value.pinId && !await get('pins',value.pinId)) throw Error('삭제된 거래입니다.');
-      await put('posts',crypto.randomUUID(),{authorId:uid,author:name,content:text(assertDescription(value.content),200,true),coin:coin(value.coin),image:photo(value.image),...(value.additionalImage!==undefined?{additionalImage:photo(value.additionalImage)}:{}),...(value.pinId?{pinId:id(value.pinId)}:{}),createdAt:Date.now(),support:0,oppose:0}); return null;
+      await put('posts',crypto.randomUUID(),{authorId:uid,author:name,content:text(assertDescription(value.content),200,true),coin:coin(value.coin),image:await storePhoto(value.image),...(value.additionalImage!==undefined?{additionalImage:await storePhoto(value.additionalImage)}:{}),...(value.pinId?{pinId:id(value.pinId)}:{}),createdAt:Date.now(),support:0,oppose:0}); return null;
     }
     case 'deletePost': return mutate('deletePost',id(args.id));
     case 'follow': {
