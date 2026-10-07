@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: { proxy: { '/api': 'http://127.0.0.1:3001' } },
-  base: process.env.GITHUB_ACTIONS ? '/koinkorae/' : '/',
+  base: process.env.VITE_BASE_PATH ?? (process.env.GITHUB_ACTIONS ? '/koinkorae/' : '/'),
 });

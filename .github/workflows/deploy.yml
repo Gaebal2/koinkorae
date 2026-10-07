@@ -25,8 +25,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - uses: actions/configure-pages@v5
+        id: pages
+        with:
+          enablement: true
       - run: npm run build
         env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
           VITE_GOOGLE_SIGNIN_ENABLED: ${{ vars.GOOGLE_SIGNIN_ENABLED }}
           VITE_DATA_BACKEND: ${{ vars.DATA_BACKEND }}
           VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
@@ -35,9 +40,6 @@ jobs:
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
           VITE_FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
