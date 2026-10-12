@@ -161,8 +161,8 @@ export async function dispatch(db, identity, action, args = {}) {
     }
     case 'startBattle': {
       const seed=crypto.getRandomValues(new Uint32Array(1))[0];
-      const gameVersion=args.gameVersion===3?3:2;
-      const kind=args.protocol===2 && [2,3].includes(args.gameVersion) ? chooseGame(seed/4294967296,gameVersion===3?undefined:['flappy','runner','tower']) : seed<2147483648?'flappy':'runner';
+      const gameVersion=args.gameVersion===4?4:args.gameVersion===3?3:2;
+      const kind=args.protocol===2 && [2,3,4].includes(args.gameVersion) ? chooseGame(seed/4294967296,gameVersion===4?undefined:gameVersion===3?['flappy','runner','tower','bounce']:['flappy','runner','tower']) : seed<2147483648?'flappy':'runner';
       const session=await mutate('startBattle',id(args.requestId),{postId:id(args.postId),side:side(args.side),kind,seed,gameVersion,...(args.protocol===2 ? {protocol:2,progress:newBattleProgress(kind,seed)} : {})});
       return {id:session.id,kind:session.progress?.game.kind || session.kind,seed:session.seed,side:session.side,...(session.progress ? {progress:session.progress} : {})};
     }
@@ -174,7 +174,7 @@ export async function dispatch(db, identity, action, args = {}) {
       if(!Number.isSafeInteger(args.revision)||args.revision<0)throw Error('잘못된 게임 순서입니다.');
       if(session.progress.revision===args.revision+1 && session.progress.lastOp===op)return session.progress;
       if(session.progress.revision!==args.revision)throw Error('게임 기록 순서가 일치하지 않습니다.');
-      const next=op==='checkpoint'?advanceBattle(session.progress,args.inputs,args.ticks,Date.now()-session.startedAt):continueBattleProgress(session.progress,session.gameVersion===3?undefined:['flappy','runner','tower']);
+      const next=op==='checkpoint'?advanceBattle(session.progress,args.inputs,args.ticks,Date.now()-session.startedAt):continueBattleProgress(session.progress,session.gameVersion===4?undefined:session.gameVersion===3?['flappy','runner','tower','bounce']:['flappy','runner','tower']);
       return mutate('battleProgress',session.id,{expectedRevision:args.revision,next,op});
     }
     case 'applyBattle': return mutate('applyBattle',id(args.sessionId));

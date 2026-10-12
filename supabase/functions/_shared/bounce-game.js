@@ -22,12 +22,12 @@ export function moveBouncePlayer(game,dx,dy) {
   }
 }
 export function stepBounce(game,dt,random) {
-  game.time+=dt;
-  while(game.time+1e-9>=game.nextBall) {
+  game.simulationTime=(game.simulationTime ?? game.time)+dt;
+  while(game.simulationTime+1e-9>=game.nextBall) {
     const angle=random()*Math.PI*2,dx=Math.cos(angle),dy=Math.sin(angle);
     const radius=ARENA.radius-ARENA.ballRadius;
     game.balls.push({x:ARENA.x+radius*dx,y:ARENA.y+radius*dy,vx:-dx*ARENA.speed,vy:-dy*ARENA.speed,hue:Math.floor(random()*360)});
-    game.score++;game.nextBall+=3;
+    game.nextBall+=3;
   }
   for(const ball of game.balls) {
     const oldX=ball.x,oldY=ball.y;

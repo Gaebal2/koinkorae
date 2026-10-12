@@ -6,7 +6,7 @@ import { Modal } from './ui.jsx';
 import { createRelativeDrag } from './relative-drag.js';
 import { drawCoinCharacter } from './battle-character.js';
 import { coinImage } from './coin-artwork.js';
-import { jump, step, moveBouncePlayer, MOVE_SCALE, WIDTH, HEIGHT, GROUND } from './battle-engine.js';
+import { jump, step, isMovementGame, moveBouncePlayer, MOVE_SCALE, WIDTH, HEIGHT, GROUND } from './battle-engine.js';
 
 import { TICK } from '../functions/battle-validation.js';
 import { battleRandom, CHECKPOINT_TICKS, newBattleProgress } from '../functions/battle-progress.js';
@@ -123,7 +123,7 @@ export function BattleGames({ post, onClose, practiceKind, onShare }) {
     let frame,previous=null,accumulator=0,displayedAt=-1;
     const tick=time=>{
       if(previous!==null)accumulator+=Math.min((time-previous)/1000,.05);previous=time;
-      while(accumulator>=TICK&&!game.current.ended){if(game.current.kind==='bounce'){
+      while(accumulator>=TICK&&!game.current.ended){if(isMovementGame(game.current.kind)){
         const [dx,dy]=drag.current.take(),keys=heldKeys.current;
         const keyX=Number(keys.has('ArrowRight'))-Number(keys.has('ArrowLeft')),keyY=Number(keys.has('ArrowDown'))-Number(keys.has('ArrowUp'));
         const length=Math.hypot(keyX,keyY)||1,keyboardStep=210*TICK*MOVE_SCALE;
@@ -148,25 +148,25 @@ export function BattleGames({ post, onClose, practiceKind, onShare }) {
       <div className="arcade-board"><canvas ref={canvas} width={WIDTH} height={kind === 'runner' ? GROUND + (HEIGHT - GROUND) * 3 : HEIGHT} tabIndex={0} aria-label={(t(gameLabels[kind]?.[0])||t("배틀"))+t(" 게임 화면")} aria-describedby="arcade-instructions" onPointerDown={e=>{
           if(!e.isPrimary || e.button!==0)return;
           e.preventDefault();
-          if(kind==='bounce'){
+          if(isMovementGame(kind)){
             if(!['ready','playing'].includes(mode))return;
             canvas.current?.focus();if(mode==='ready')act();
             if(drag.current.begin(e.pointerId,e.clientX,e.clientY))e.currentTarget.setPointerCapture(e.pointerId);
           }else act();
         }} onPointerMove={e=>{
-          if(kind!=='bounce'||mode!=='playing')return;
+          if(!isMovementGame(kind)||mode!=='playing')return;
           e.preventDefault();const rect=e.currentTarget.getBoundingClientRect();
           drag.current.move(e.pointerId,e.clientX,e.clientY,WIDTH/rect.width,HEIGHT/rect.height);
         }} onPointerUp={e=>{drag.current.end(e.pointerId);if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);}}
         onPointerCancel={()=>drag.current.reset()} onLostPointerCapture={e=>drag.current.end(e.pointerId)} onBlur={()=>{heldKeys.current.clear();drag.current.reset();}}
         onKeyDown={e=>{
-          if(kind==='bounce'&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+          if(isMovementGame(kind)&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
             e.preventDefault();if(mode==='ready')act();if(['ready','playing'].includes(mode))heldKeys.current.add(e.key);
           }else if([' ','ArrowUp'].includes(e.key)){e.preventDefault();if(!e.repeat)act();}
-        }} onKeyUp={e=>{if(kind==='bounce'&&e.key.startsWith('Arrow'))e.preventDefault();heldKeys.current.delete(e.key);}}/>
+        }} onKeyUp={e=>{if(isMovementGame(kind)&&e.key.startsWith('Arrow'))e.preventDefault();heldKeys.current.delete(e.key);}}/>
         {mode!=='playing'&&<div className="arcade-overlay">{mode==='ended'?(practice?<><Trophy/><h3>{t('연습 완료')}</h3><strong>{signed(display.score)}{t('점')}</strong><p>{t('연습 점수는 피드에 반영되지 않습니다.')}</p><button className="primary" onClick={sharePractice}>{t('결과 피드로 공유')}</button><div className="battle-end-actions"><button className="secondary" onClick={startPractice}>{t('다시 연습')}</button><button className="secondary" onClick={onClose}>{t('나가기')}</button></div></>:<><Trophy/><h3>{t("게임 종료")}</h3><strong className={side==='oppose'?'negative':''}>{signed(result?.score??display.score)}{t("점")}</strong><p role="status">{result?t('반영 완료했습니다.'):applying?t('최종 점수를 피드에 반영하겠습니다.'):syncing?t('게임 기록 확인 중…'):t('게임계속은 점수를 누적하고, 나가기는 최종 점수를 반영합니다.')}</p><div className="battle-end-actions"><button className="primary" disabled={busy||syncing||!!result} onClick={()=>finishAction(false)}>{t('게임계속')}</button><button className="primary" disabled={busy||syncing} onClick={()=>result?onClose():finishAction(true)}>{t('나가기')}</button></div></>):mode==='sync-error'?<><h3>{t("게임 기록을 보관하고 있어요")}</h3><p>{t("연결을 확인한 뒤 이어서 진행하세요.")}</p><button className="primary" disabled={syncing} onClick={retrySync}>{t("연결 다시 시도")}</button></>:mode==='paused'?<><h3>{t("잠시 쉬어가세요")}</h3><button className="primary" onClick={()=>{setMode('playing');canvas.current?.focus();}}><Play/>{t("계속하기")}</button></>:<><h3>{banked.current?t("점수를 유지하고 계속 도전하세요"):t(gameLabels[kind]?.[1])}</h3><p>{t("시간 제한 없이 도전하세요")}</p><button className="primary" onClick={act}><Play/>{banked.current?t("이어 시작"):t("게임 시작")}</button></>}</div>}
-      </div><p id="arcade-instructions" className="arcade-instructions">{kind==='bounce'?t('화면 어디서든 드래그 · 방향키로 이동'):t("화면 터치 · Space · ↑ 키로 ")+t(gameLabels[kind]?.[2])}</p>
-      {mode==='playing'&&kind!=='bounce'&&<button className="primary arcade-control" onClick={act}>{t(gameLabels[kind]?.[2])}</button>}
+      </div><p id="arcade-instructions" className="arcade-instructions">{isMovementGame(kind)?t('화면 어디서든 드래그 · 방향키로 이동'):t("화면 터치 · Space · ↑ 키로 ")+t(gameLabels[kind]?.[2])}</p>
+      {mode==='playing'&&!isMovementGame(kind)&&<button className="primary arcade-control" onClick={act}>{t(gameLabels[kind]?.[2])}</button>}
     </>}{error&&<p className="error" role="alert">{t(error)}</p>}<p className="form-help arcade-note">{practice?t("원하는 게임을 연습하고 결과를 공유해 보세요."):t("무료 배틀 · 게임계속은 점수 누적 · 나가기를 눌러 피드에 반영")}</p>
   </Modal>;
 }

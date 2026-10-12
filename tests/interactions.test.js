@@ -52,7 +52,7 @@ function packet(progress,autoplay=false){
  const game=structuredClone(progress.game),random=battleRandom(progress.randomState),inputs=[];let ticks=0;
  while(!game.ended && ticks<CHECKPOINT_TICKS){
   const obstacle=game.obstacles?.find(o=>o.x+o.w>63);
-  if(autoplay && game.kind==='runner' && obstacle && obstacle.x<170 && game.velocity===0){inputs.push(ticks);jump(game);}
+  if(autoplay && game.kind==='runner' && obstacle && obstacle.x<140 && game.velocity===0){inputs.push(ticks);jump(game);}
   if(game.kind==='tower'&&!game.airborne){inputs.push(ticks);jump(game);}
   step(game,TICK,random);ticks++;
  }
