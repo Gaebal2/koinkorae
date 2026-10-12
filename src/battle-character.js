@@ -4,9 +4,13 @@ export const CHARACTER_ICON_SIZE = 20;
 export function drawCoinCharacter(ctx, { x, y, icon, symbol, kind, time = 0, airborne = false }) {
   ctx.save();
   ctx.translate(x, y);
+  const iconSize = symbol === 'SL' ? CHARACTER_ICON_SIZE * .8 : CHARACTER_ICON_SIZE;
   if (kind === 'bounce' || kind === 'breakout') {
+    if (symbol === 'SL') {
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, CHARACTER_SIZE / 2, 0, Math.PI * 2); ctx.fill();
+    }
     if (icon?.complete && icon.naturalWidth) {
-      const scale = CHARACTER_SIZE / Math.max(icon.naturalWidth, icon.naturalHeight);
+      const scale = (symbol === 'SL' ? iconSize : CHARACTER_SIZE) / Math.max(icon.naturalWidth, icon.naturalHeight);
       const width = icon.naturalWidth * scale, height = icon.naturalHeight * scale;
       ctx.drawImage(icon, -width / 2, -height / 2, width, height);
     } else {
@@ -35,7 +39,7 @@ export function drawCoinCharacter(ctx, { x, y, icon, symbol, kind, time = 0, air
   ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, CHARACTER_SIZE / 2, 0, Math.PI * 2); ctx.fill();
   ctx.shadowBlur = 0;
   if (icon?.complete && icon.naturalWidth) {
-    const scale = CHARACTER_ICON_SIZE / Math.max(icon.naturalWidth, icon.naturalHeight);
+    const scale = iconSize / Math.max(icon.naturalWidth, icon.naturalHeight);
     const width = icon.naturalWidth * scale, height = icon.naturalHeight * scale;
     ctx.drawImage(icon, -width / 2, -height / 2, width, height);
   } else {
