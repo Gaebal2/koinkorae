@@ -598,3 +598,7 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .policy-planned summary { cursor:pointer; font-weight:650; padding:12px 0; }
 .policy-planned table { min-width:740px; }
 @media(max-width:380px) { .policy-summary { grid-template-columns:1fr; } .policy-summary .balance-card,.policy-summary .tier-card { min-height:130px; } }
+
+.pin-creator > .external-share-button { margin-left:auto; flex:0 0 40px; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; padding:8px; border:0; border-radius:10px; background:transparent; color:var(--muted); }
+.pin-creator > .external-share-button svg { width:22px; height:22px; }
+.pin-creator > .external-share-button + .coin { margin-left:0; }

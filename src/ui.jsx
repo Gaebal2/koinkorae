@@ -1,3 +1,4 @@
+import {ShareButton} from './share-button.jsx';
 import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
 import {handleDescriptionInput} from './description-input.js';
 import {validDescription, lineLimitMessage} from '../supabase/functions/community/description.js';
@@ -137,7 +138,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
             <img src={creator?.profileImage || profileImage()} alt={t("{0} 프로필", creatorName)} />
           </Avatar>
           <span className="pin-creator-name">@{creatorName}</span>
-          <Coin symbol={pin.coin} size="sm" />
+          {!passive && !pin._detailPending && <ShareButton kind="pin" item={pin}/>}<Coin symbol={pin.coin} size="sm" />
           {topAction && <div className="pin-detail-actions">{topAction}</div>}
 
         </div>

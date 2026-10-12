@@ -9,13 +9,14 @@ export function useContentRefresh(page, callback, enabled = true) {
 export function ContentRefresh({page}) {
   const [distance, setDistance] = useState(0), [busy, setBusy] = useState(false), [error, setError] = useState(false);
   useEffect(() => {
-    let start = null, amount = 0, running = false, active = true;
+    let start = null, amount = 0, running = false, active = true, suppressClickUntil = 0;
     setDistance(0); setBusy(false); setError(false);
     const reset = () => { start = null; amount = 0; if(active) setDistance(0); };
     const begin = event => {
+      reset(); suppressClickUntil = 0;
       if(running || event.touches.length !== 1 || window.scrollY > 0 || !contentRefresh.has(page)) return;
       const target = event.target;
-      if(target.closest('button, input, textarea, select, a, .overlay, .real-map, canvas, .direct-messages')) return;
+      if(target.closest('button:not(.post-image), input, textarea, select, a, .overlay, .real-map, canvas, .direct-messages')) return;
       for(let el = target; el && el !== document.body; el = el.parentElement) {
         if(el.scrollHeight > el.clientHeight && /auto|scroll/.test(getComputedStyle(el).overflowY)) return;
       }
@@ -25,7 +26,9 @@ export function ContentRefresh({page}) {
       if(!start) return;
       if(event.touches.length !== 1) { reset(); return; }
       const dx = event.touches[0].clientX-start.x, dy = event.touches[0].clientY-start.y;
+      if(Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
       if(dy < 0 || Math.abs(dx) > Math.abs(dy)) { reset(); return; }
+      suppressClickUntil = Date.now() + 700;
       if(event.cancelable) event.preventDefault();
       amount = Math.min(100, dy * .5); setDistance(amount);
     };
@@ -36,11 +39,13 @@ export function ContentRefresh({page}) {
       try { await contentRefresh.run(page); } catch { if(active) setError(true); }
       finally { running = false; if(active) setBusy(false); }
     };
+    const suppressClick = event => { if(Date.now() < suppressClickUntil) { event.preventDefault(); event.stopPropagation(); } };
+    document.addEventListener('click', suppressClick, true);
     document.addEventListener('touchstart', begin, {passive:true});
     document.addEventListener('touchmove', move, {passive:false});
     document.addEventListener('touchend', end);
     document.addEventListener('touchcancel', reset);
-    return () => { active = false; document.removeEventListener('touchstart', begin); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); document.removeEventListener('touchcancel', reset); };
+    return () => { active = false; document.removeEventListener('click', suppressClick, true); document.removeEventListener('touchstart', begin); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); document.removeEventListener('touchcancel', reset); };
   }, [page]);
   if(!distance && !busy && !error) return null;
   const label = error ? t('새로고침하지 못했습니다. 다시 당겨 주세요.') : busy ? t('갱신 중…') : distance >= 64 ? t('놓으면 새로고침') : t('당겨서 새로고침');

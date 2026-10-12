@@ -1,3 +1,4 @@
+import {SharedPost} from './shared-post.jsx';
 import {PointsPolicy} from './points-policy.jsx';
 import {POINTS_POLICY,levelFor} from '../supabase/functions/_shared/points-policy.js';
 import {ContentRefresh} from './content-refresh.jsx';
@@ -159,6 +160,9 @@ export default function App() {
   useSyncExternalStore(subscribeLanguage, getLanguage);
   const { notify } = useFeedback();
   const [restored] = useState(() => readViewState());
+  const [sharedPost,setSharedPost] = useState(()=>new URLSearchParams(window.location.search).get('post'));
+  const sharedPin = useRef(new URLSearchParams(window.location.search).get('pin'));
+  const closeSharedPost = () => {setSharedPost(null);const url=new URL(window.location.href);url.searchParams.delete('post');history.replaceState(history.state,'',url);};
   const [me, setMe] = useState(null), [page, setPage] = useState(restored.page), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
   const [practiceDraft,setPracticeDraft]=useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -199,6 +203,11 @@ export default function App() {
   },[me?.id,profileId,page,compose]);
   useEffect(() => { setProfile(viewedProfile); }, [viewedProfile]);
   const openPin = async id => { try { const pin = await data.getPin(id); if (!pin) { setError('삭제되었거나 더 이상 존재하지 않는 Pin입니다.'); return; } select(pin); setPage('map'); } catch { setError('Pin을 불러오지 못했습니다.'); } };
+  useEffect(()=>{
+    if(!authReady || !sharedPin.current)return;
+    const id=sharedPin.current;sharedPin.current=null;void openPin(id);
+    const url=new URL(window.location.href);url.searchParams.delete('pin');history.replaceState(history.state,'',url);
+  },[authReady]);
   const openCoin = coin => { setOptions(current=>({...current,feed:'코인 피드',category:'지지',period:'전체',focusCoin:coin,coinSelection:Date.now()})); setPage('home'); };
   const openProfile = (id, feed = '작성 피드') => { setEditing(false); setProfileFeed(feed); setProfileId(id); setPage('profile'); };
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
@@ -219,6 +228,7 @@ export default function App() {
     {form && <PinForm {...form} pinCost={POINTS_POLICY.costs.pins} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin); setPage('map'); }}/>}
     {editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}
 
+    {sharedPost && <SharedPost id={sharedPost} me={me} login={()=>setAuth(true)} onClose={closeSharedPost} onPin={id=>{closeSharedPost();void openPin(id);}} onProfile={id=>{closeSharedPost();openProfile(id);}} onCoin={coin=>{closeSharedPost();openCoin(coin);}}/>}
     {settings && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><LanguageSettings/><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}>{t("프로필 수정")}</button><button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}
     {auth && <Auth close={() => setAuth(false)} done={u => { setMe(u); setAuth(false); if (page === 'profile') setProfileId(u.id); }}/>}
     {!auth && !form && !editing && !compose && <InstallPrompt/>}

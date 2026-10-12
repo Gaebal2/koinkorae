@@ -29,3 +29,23 @@ test('feed keeps existing rows while fetching and after a failed refresh',async(
  load=async()=>{throw Error('offline');};await entry.refresh();assert.equal(entry.getSnapshot().items.length,2);
  stop();
 });
+
+test('image pull refreshes, taps remain clickable, and controls/horizontal gestures are excluded', async()=>{
+ const {readFileSync}=await import('node:fs');
+ const source=readFileSync(new URL('../src/content-refresh.jsx',import.meta.url),'utf8');
+ const body=source.slice(source.indexOf('    let start = null'),source.indexOf('  }, [page]);'));
+ const listeners=new Map();let runs=0,distance=0;
+ const document={body:{},addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
+ const cleanup=new Function('document','window','contentRefresh','page','setDistance','setBusy','setError','getComputedStyle',body)(document,{scrollY:0},{has:()=>true,run:async()=>{runs++;}},'home',value=>{distance=value;},()=>{},()=>{},()=>({overflowY:'visible'}));
+ const image={closest:selector=>selector.includes('button:not(.post-image)')?null:{},parentElement:document.body};
+ const control={closest:()=>({}),parentElement:document.body};
+ const touch=(target,x,y)=>({target,touches:[{clientX:x,clientY:y}],cancelable:true,preventDefault(){}});
+ listeners.get('touchstart')(touch(image,0,0));listeners.get('touchmove')(touch(image,1,150));assert.equal(distance,75);
+ await listeners.get('touchend')();assert.equal(runs,1);
+ let prevented=false;listeners.get('click')({preventDefault(){prevented=true;},stopPropagation(){}});assert.equal(prevented,true);
+ listeners.get('touchstart')(touch(image,0,0));await listeners.get('touchend')();prevented=false;listeners.get('click')({preventDefault(){prevented=true;},stopPropagation(){}});assert.equal(prevented,false);assert.equal(runs,1);
+ listeners.get('touchstart')(touch(control,0,0));listeners.get('touchmove')(touch(control,0,150));await listeners.get('touchend')();assert.equal(runs,1);
+ listeners.get('touchstart')(touch(image,0,0));listeners.get('touchmove')(touch(image,160,20));await listeners.get('touchend')();assert.equal(runs,1);
+ listeners.get('touchstart')(touch(image,0,0));listeners.get('touchmove')(touch(image,0,150));listeners.get('touchcancel')();await listeners.get('touchend')();assert.equal(runs,1);
+ cleanup();assert.equal(listeners.size,0);
+});

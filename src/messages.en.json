@@ -491,5 +491,10 @@
   "출석체크": "Check in",
   "오늘 출석체크 하시겠습니까?": "Would you like to check in today?",
   "총점 {0} · 절대점수 {1}": "Net score {0} · Total activity {1}",
-  "여기를 드래그하여 이동": "Drag here to move"
+  "여기를 드래그하여 이동": "Drag here to move",
+  "공유": "Share",
+  "공유 링크를 복사했습니다.": "Share link copied.",
+  "공유 링크를 복사해 주세요.": "Copy the share link.",
+  "공유 피드": "Shared post",
+  "삭제되었거나 더 이상 존재하지 않는 피드입니다.": "This post was deleted or is no longer available."
 }
