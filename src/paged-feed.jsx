@@ -1,3 +1,4 @@
+import {sharedPostStatus} from './shared-link.js';
 import {useContentRefresh} from './content-refresh.jsx';
 import { FeedControls } from './feed-controls.jsx';
 import { FeedScrollTop } from './feed-scroll-top.jsx';
@@ -34,11 +35,14 @@ export function MoreResults({page}){
   },[page.nextCursor,page.loading,page.error,page.more]);
   return <div ref={target} className="more-results">{page.error?<><p role="alert">{t("목록을 불러오지 못했습니다.")}</p><button onClick={page.retry}>{t("다시 시도")}</button></>:page.loading?<p role="status">{t("불러오는 중…")}</p>:page.nextCursor?<button onClick={page.more}>{t("더 보기")}</button>:null}</div>;
 }
-export function PagedPosts({options,me,onPin,onProfile,actions,onReady,excludeId}){
+export function PagedPosts({options,me,onPin,onProfile,actions,onReady,excludeId,focusPostId}){
   const page=useCursorPage(options,me?.id);
   useContentRefresh('home', page.retry, options.mode === 'posts' && !!options.coin);
+  useEffect(()=>{
+    if(sharedPostStatus(page,focusPostId,excludeId)==='more')void page.more();
+  },[focusPostId,excludeId,page.loading,page.error,page.nextCursor,page.items,page.more]);
   useEffect(()=>{if(!page.loading&&!page.error)onReady?.();},[page.loading,page.error,onReady]);
-  return <><div className="feed">{page.items.filter(post=>post.id!==excludeId).map(post=><CommunityPost key={post.id} post={post} onPin={onPin} onProfile={onProfile} {...actions}/>)}</div>{!excludeId&&!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 게시물이 없습니다")}/>}<MoreResults page={page}/></>;
+  return <>{sharedPostStatus(page,focusPostId,excludeId)==='missing'&&<p role="status">{t('삭제되었거나 더 이상 존재하지 않는 피드입니다.')}</p>}<div className="feed">{page.items.filter(post=>post.id!==excludeId).map(post=><CommunityPost focusPostId={focusPostId} key={post.id} post={post} onPin={onPin} onProfile={onProfile} {...actions}/>)}</div>{!excludeId&&!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 게시물이 없습니다")}/>}<MoreResults page={page}/></>;
 }
 export function PagedOwnComments({me,onComment}){
   const page=useCursorPage({mode:'ownComments'},me.id);

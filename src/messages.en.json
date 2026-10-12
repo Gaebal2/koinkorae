@@ -496,5 +496,6 @@
   "공유 링크를 복사했습니다.": "Share link copied.",
   "공유 링크를 복사해 주세요.": "Copy the share link.",
   "공유 피드": "Shared post",
-  "삭제되었거나 더 이상 존재하지 않는 피드입니다.": "This post was deleted or is no longer available."
+  "삭제되었거나 더 이상 존재하지 않는 피드입니다.": "This post was deleted or is no longer available.",
+  "피드를 불러오지 못했습니다. 다시 시도해 주세요.": "Could not load the post. Please try again."
 }

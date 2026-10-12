@@ -1,4 +1,4 @@
-import {SharedPost} from './shared-post.jsx';
+import {resolveSharedPost} from './shared-link.js';
 import {PointsPolicy} from './points-policy.jsx';
 import {POINTS_POLICY,levelFor} from '../supabase/functions/_shared/points-policy.js';
 import {ContentRefresh} from './content-refresh.jsx';
@@ -161,8 +161,9 @@ export default function App() {
   const { notify } = useFeedback();
   const [restored] = useState(() => readViewState());
   const [sharedPost,setSharedPost] = useState(()=>new URLSearchParams(window.location.search).get('post'));
+  const [focusPostId,setFocusPostId] = useState(null), [shareError,setShareError] = useState(''), [shareRevision,retryShare] = useState(0);
   const sharedPin = useRef(new URLSearchParams(window.location.search).get('pin'));
-  const closeSharedPost = () => {setSharedPost(null);const url=new URL(window.location.href);url.searchParams.delete('post');history.replaceState(history.state,'',url);};
+
   const [me, setMe] = useState(null), [page, setPage] = useState(restored.page), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
   const [practiceDraft,setPracticeDraft]=useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -177,7 +178,7 @@ export default function App() {
     const frame=requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
     return()=>cancelAnimationFrame(frame);
   },[profileEntry]);
-  const myProfile=useLiveProfile(me?.id), viewedProfile=useLiveProfile(me && page === 'profile' ? profileId : null);
+  const myProfile=useLiveProfile(me?.id), viewedProfile=useLiveProfile(page === 'profile' ? profileId : null);
   const [pickingPin, setPickingPin] = useState(false), [attachedPin, setAttachedPin] = useState(null);
   useEffect(() => { saveViewState(undefined, { page: pickingPin ? 'home' : page, profileId, options }); }, [page, profileId, options, pickingPin]);
   const finishPick = pin => { if (pin) setAttachedPin(pin); setPickingPin(false); setPage('home'); };
@@ -209,7 +210,17 @@ export default function App() {
     const url=new URL(window.location.href);url.searchParams.delete('pin');history.replaceState(history.state,'',url);
   },[authReady]);
   const openCoin = coin => { setOptions(current=>({...current,feed:'코인 피드',category:'지지',period:'전체',focusCoin:coin,coinSelection:Date.now()})); setPage('home'); };
-  const openProfile = (id, feed = '작성 피드') => { setEditing(false); setProfileFeed(feed); setProfileId(id); setPage('profile'); };
+  const openProfile = (id, feed = '작성 피드') => { setFocusPostId(null); setEditing(false); setProfileFeed(feed); setProfileId(id); setPage('profile'); };
+  useEffect(()=>{
+    if(!authReady || !sharedPost)return;
+    let active=true;setShareError('');
+    resolveSharedPost(data,sharedPost).then(({post,profile:author})=>{
+      if(!active)return;
+      setProfile(author);setProfileId(post.authorId);setProfileFeed('작성 피드');setFocusPostId(post.id);setPage('profile');setSharedPost(null);
+      const url=new URL(window.location.href);url.searchParams.delete('post');history.replaceState(history.state,'',url);
+    }).catch(error=>{if(active)setShareError(error.message==='missing'?'삭제되었거나 더 이상 존재하지 않는 피드입니다.':'피드를 불러오지 못했습니다. 다시 시도해 주세요.');});
+    return()=>{active=false;};
+  },[authReady,sharedPost,shareRevision]);
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
   // A pending session is not a signed-out session. Avoid guest UI during restoration.
   if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main aria-label={t("불러오는 중…")}/></div>;
@@ -222,13 +233,13 @@ export default function App() {
     {page === 'points' && <PointsPolicy me={me} balance={balance} login={()=>setAuth(true)} onBack={goBack}/>}
     {page === 'check' && <CheckinPage me={me} balance={balance} login={() => setAuth(true)}/>}
     {page === 'map' && <MapScreen pinLimit={levelFor(balance).current.pins} picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
-    {page === 'profile' && <CommunityProfile onCoin={openCoin} key={profileEntry} initialFeed={profileFeed} onPin={openPin} profileId={profileId} profile={viewedProfile || profile} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
+    {page === 'profile' && <CommunityProfile focusPostId={focusPostId} onCoin={openCoin} key={profileEntry} initialFeed={profileFeed} onPin={openPin} profileId={profileId} profile={viewedProfile || (profile?.id===profileId ? profile : null)} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
     <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessageCircle], ['battle', '연습', Swords]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><span>{t(label)}</span></button>)}</nav>
     {compose && <Composer initialDraft={practiceDraft} hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setPracticeDraft(null); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setPracticeDraft(null); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
     {form && <PinForm {...form} pinCost={POINTS_POLICY.costs.pins} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin); setPage('map'); }}/>}
     {editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}
 
-    {sharedPost && <SharedPost id={sharedPost} me={me} login={()=>setAuth(true)} onClose={closeSharedPost} onPin={id=>{closeSharedPost();void openPin(id);}} onProfile={id=>{closeSharedPost();openProfile(id);}} onCoin={coin=>{closeSharedPost();openCoin(coin);}}/>}
+    {sharedPost && <Modal title={t('공유 피드')} onClose={()=>setSharedPost(null)}>{shareError?<><p role="alert">{t(shareError)}</p><button onClick={()=>retryShare(value=>value+1)}>{t('다시 시도')}</button></>:<p role="status">{t('불러오는 중…')}</p>}</Modal>}
     {settings && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><LanguageSettings/><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}>{t("프로필 수정")}</button><button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}
     {auth && <Auth close={() => setAuth(false)} done={u => { setMe(u); setAuth(false); if (page === 'profile') setProfileId(u.id); }}/>}
     {!auth && !form && !editing && !compose && <InstallPrompt/>}

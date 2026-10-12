@@ -1,4 +1,4 @@
-export function shareUrl(kind, id, base = window.location.href) {
+export function shareUrl(kind, id, base = 'https://koinkorae.com/') {
  const url = new URL(base); url.search = ''; url.hash = ''; url.searchParams.set(kind, id); return url.href;
 }
 export async function shareContent(payload, browser = navigator) {

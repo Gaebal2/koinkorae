@@ -602,3 +602,5 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .pin-creator > .external-share-button { margin-left:auto; flex:0 0 40px; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; padding:8px; border:0; border-radius:10px; background:transparent; color:var(--muted); }
 .pin-creator > .external-share-button svg { width:22px; height:22px; }
 .pin-creator > .external-share-button + .coin { margin-left:0; }
+
+.post-card[data-shared-target] { scroll-margin-top:80px; outline:2px solid var(--primary); outline-offset:2px; }

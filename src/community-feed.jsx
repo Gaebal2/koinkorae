@@ -77,12 +77,17 @@ function AttachedPin({ id, onPin }) {
   return <PinDetailCard pin={pin} className="feed-pin-card" onActivate={() => onPin?.(id)}/>;
 }
 
-export function CommunityPost({ onCoin, onPin, post, onProfile, me, reposts, likes = [], busy, repostNavigates, onBattle, onComment, onRepost, onCancelRepost, onLike, onPhoto, onDelete, onPinProfile, pinnedPostId, pinnedRepostId, activeCommentId }) {
+export function CommunityPost({ focusPostId, onCoin, onPin, post, onProfile, me, reposts, likes = [], busy, repostNavigates, onBattle, onComment, onRepost, onCancelRepost, onLike, onPhoto, onDelete, onPinProfile, pinnedPostId, pinnedRepostId, activeCommentId }) {
   const [ranking,setRanking]=useState(false), [menu,setMenu]=useState(false), [managing,setManaging]=useState(false);
   const {notify}=useFeedback();
   const own=(post.repostAuthorId || post.authorId)===me?.id;
   const manage=async action=>{if(managing)return;setManaging(true);try{await action();setMenu(false);}catch{void notify(t("피드 설정을 저장하지 못했습니다. 다시 시도해 주세요."),{kind:"error"});}finally{setManaging(false);}};
   const element = useRef(null);
+  useEffect(()=>{
+    if(focusPostId!==post.id)return;
+    const frame=requestAnimationFrame(()=>{element.current?.scrollIntoView({block:'start',behavior:'instant'});element.current?.focus({preventScroll:true});});
+    return()=>cancelAnimationFrame(frame);
+  },[focusPostId,post.id]);
   const [nearViewport, setNearViewport] = useState(false);
   useEffect(() => {
     if (!globalThis.IntersectionObserver) { setNearViewport(true); return; }
@@ -105,7 +110,7 @@ export function CommunityPost({ onCoin, onPin, post, onProfile, me, reposts, lik
   const postLikes = likes.filter(like => like.postId === post.id);
   const likeCount = post.likeCount ?? postLikes.length;
   const liked = post.liked ?? postLikes.some(like => like.userId === me?.id);
-  return <article ref={element} className="post-card">
+  return <article ref={element} tabIndex={focusPostId===post.id ? -1 : undefined} data-shared-target={focusPostId===post.id || undefined} className="post-card">
     {post.originalPostId && <div className="repost-context"><div className="repost-context-heading">{own ? <button type="button" className="feed-menu-button" aria-label={t('리포스트 관리')} aria-haspopup="dialog" disabled={busy} onClick={()=>setMenu(true)}><MoreVertical/></button> : <span className="repost-badge" aria-hidden="true"><Repeat2 size={16}/></span>}<button className="repost-profile" onClick={() => onProfile(post.repostAuthorId)}><img src={post.repostProfile?.profileImage || profileImage()} alt=""/><span className="repost-author-meta"><b>{post.repostProfile?.username || t('사용자')}</b><small>{t('리포스트')} · {age(post.createdAt)}</small></span></button></div>{post.repostComment && <p>{post.repostComment}</p>}</div>}
     <div className="post-head">{!post.originalPostId && own&&<button type="button" className="feed-menu-button" aria-label={t("피드 관리")} aria-haspopup="dialog" onClick={()=>setMenu(true)}><MoreVertical/></button>}<button className="avatar tone-purple" onClick={() => onProfile(post.authorId)} aria-label={t("{0} 프로필 보기", authorName)}>{authorProfile?.profileImage ? <img src={authorProfile.profileImage} alt=""/> : authorName.slice(0,2)}</button><div><div className="post-author-line"><b>{authorName}</b></div><span>{age(post.originalCreatedAt ?? post.createdAt)}</span></div><button className="feed-coin-button" onClick={()=>onCoin?.(post.coin)} aria-label={t("코인 피드")+": "+post.coin}><Coin symbol={post.coin}/></button></div>
     <p className="post-body">{post.content}</p>{post.image && <button className="post-image" onClick={() => onPhoto(post.image)} aria-label={t("피드 이미지 크게 보기")}><img loading="lazy" decoding="async" src={post.image} alt={t("피드 첨부 사진")}/></button>}
