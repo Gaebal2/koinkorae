@@ -31,7 +31,7 @@ function Auth({ onClose, onLogin }) {
     try { const user = await api(`/auth/${mode === '로그인' ? 'login' : 'register'}`, 'POST', { username, password, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }); onLogin(user); }
     catch (error) { setError(error.message); } finally { setBusy(false); }
   }}>
-    <p className="form-help">계정으로 로그인하면 피드와 활동, BP를 이어서 사용할 수 있어요.</p>
+    <p className="form-help">계정으로 로그인하면 피드와 활동, KK를 이어서 사용할 수 있어요.</p>
     <Field label="사용자 이름"><input required autoComplete="username" minLength={3} maxLength={24} pattern="[a-zA-Z0-9_]+" value={username} onChange={e => setUsername(e.target.value)} placeholder="영문·숫자·밑줄 3~24자"/></Field>
     <Field label="비밀번호"><input required type="password" minLength={mode === '회원가입' ? 10 : 1} maxLength={128} autoComplete={mode === '회원가입' ? 'new-password' : 'current-password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="10자 이상"/></Field>
     {error && <p role="alert" className="error">{error}</p>}
@@ -108,9 +108,9 @@ function Battle({ post, me, config, onClose, onUpdated }) {
   return <Modal title="배틀 참여" onClose={close}>{!session ? <>
     <p className="battle-question">이 피드를 지지합니까? 반대합니까?</p>
     <div className="battle-explain"><span><Shield/>지지 점수는 지지 점수에 더해집니다.</span><span><Swords/>반대 점수는 지지 점수에서 빠집니다.</span></div>
-    <p className="form-help">시작 시 {config.battleCost} BP를 사용합니다. 도중에 나가도 사용한 BP는 반환되지 않습니다. 게임은 무작위로 배정됩니다.</p>
+    <p className="form-help">시작 시 {config.battleCost} KK를 사용합니다. 도중에 나가도 사용한 KK는 반환되지 않습니다. 게임은 무작위로 배정됩니다.</p>
     <div className="side-choice"><button disabled={busy || me.current_bp < config.battleCost} onClick={() => start('support')}>지지</button><button disabled={busy || me.current_bp < config.battleCost} onClick={() => start('oppose')}>반대</button></div>
-    {me.current_bp < config.battleCost && <p className="error">BP가 부족합니다. 체크인으로 BP를 받아보세요.</p>}
+    {me.current_bp < config.battleCost && <p className="error">KK가 부족합니다. 체크인으로 KK를 받아보세요.</p>}
   </> : <div className="minigame">
     <span className="game-label">{({ speed: '스피드 탭', timing: '타이밍 챌린지', reaction: '반응 속도' })[game]}</span>
     {result ? <><Trophy/><h2>{result.score}점 반영 완료</h2><p>{side === 'support' ? '지지' : '반대'} 점수에 반영했습니다.{post.repostId && ' 원본에도 같은 점수가 반영됩니다.'}</p><button className="primary" onClick={onClose}>완료</button></> : <>
@@ -124,10 +124,10 @@ function Battle({ post, me, config, onClose, onUpdated }) {
 function Checkin({ me, config, refresh, login }) {
   const [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const check = async () => { if (!me) { login(); return; } setBusy(true); setError(''); try { await api('/checkin', 'POST'); await refresh(); } catch (error) { setError(error.message); } finally { setBusy(false); } };
-  return <main><PageTitle icon={CalendarCheck} title="오늘의 BP" sub="참여에 필요한 Battle Point를 모으세요"/><section className="balance-card"><span>사용 가능한 BP</span><strong>{me?.current_bp ?? 0}</strong><small>Lifetime Earned · {(me?.lifetime_bp ?? 0).toLocaleString()} BP</small></section>
-    <section className="check-card"><div className="calendar-mark"><CalendarCheck/></div><h2>{me?.checked ? '오늘 출석 완료!' : `매일 출석하고 +${config.checkinReward} BP`}</h2><p>{me?.checked ? '내일 다시 만나요.' : '꾸준한 참여로 커뮤니티 영향력을 키워보세요.'}</p><button className="primary" disabled={busy || me?.checked} onClick={check}>{me?.checked ? <><Check/>지급 완료</> : me ? <><Zap/>출석 체크</> : '로그인하고 출석하기'}</button></section>
-    <section className="reward-row"><div><span>REWARDED AD</span><b>{config.adsEnabled ? `광고 보고 +${config.adReward} BP` : '광고 보상 준비 중'}</b><small>{config.adsEnabled ? `오늘 ${me?.adCount || 0}/${config.adDailyLimit}회 참여` : '광고 연결이 완료되면 이용할 수 있어요.'}</small></div><button disabled={!config.adsEnabled || busy || (me?.adCount || 0) >= config.adDailyLimit} onClick={async () => { if (!me) { login(); return; } setBusy(true); try { const ad = await api('/ads/start', 'POST'); if (!ad.url || !ad.url.startsWith('https://')) throw Error('광고를 준비하지 못했습니다.'); window.location.assign(ad.url); } catch (error) { setError(error.message); } finally { setBusy(false); } }}>{config.adsEnabled ? '광고 보기' : '준비 중'}</button></section>
-    {error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>BP는 플랫폼 참여 자원입니다.<br/>현금이나 암호화폐가 아니며 전송·교환할 수 없습니다.</p></div>
+  return <main><PageTitle icon={CalendarCheck} title="오늘의 KK" sub="참여에 필요한 KK를 모으세요"/><section className="balance-card"><span>사용 가능한 KK</span><strong>{me?.current_bp ?? 0}</strong><small>Lifetime Earned · {(me?.lifetime_bp ?? 0).toLocaleString()} KK</small></section>
+    <section className="check-card"><div className="calendar-mark"><CalendarCheck/></div><h2>{me?.checked ? '오늘 출석 완료!' : `매일 출석하고 +${config.checkinReward} KK`}</h2><p>{me?.checked ? '내일 다시 만나요.' : '꾸준한 참여로 커뮤니티 영향력을 키워보세요.'}</p><button className="primary" disabled={busy || me?.checked} onClick={check}>{me?.checked ? <><Check/>지급 완료</> : me ? <><Zap/>출석 체크</> : '로그인하고 출석하기'}</button></section>
+    <section className="reward-row"><div><span>REWARDED AD</span><b>{config.adsEnabled ? `광고 보고 +${config.adReward} KK` : '광고 보상 준비 중'}</b><small>{config.adsEnabled ? `오늘 ${me?.adCount || 0}/${config.adDailyLimit}회 참여` : '광고 연결이 완료되면 이용할 수 있어요.'}</small></div><button disabled={!config.adsEnabled || busy || (me?.adCount || 0) >= config.adDailyLimit} onClick={async () => { if (!me) { login(); return; } setBusy(true); try { const ad = await api('/ads/start', 'POST'); if (!ad.url || !ad.url.startsWith('https://')) throw Error('광고를 준비하지 못했습니다.'); window.location.assign(ad.url); } catch (error) { setError(error.message); } finally { setBusy(false); } }}>{config.adsEnabled ? '광고 보기' : '준비 중'}</button></section>
+    {error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>KK는 플랫폼 참여 자원입니다.<br/>현금이나 암호화폐가 아니며 전송·교환할 수 없습니다.</p></div>
   </main>;
 }
 function MapPage({ me, config, revision, refresh, onProfile, login }) {
@@ -153,7 +153,7 @@ function MapPage({ me, config, revision, refresh, onProfile, login }) {
   const mine = resource.data?.filter(p => p.owner).length || 0;
   return <main className="map-page"><div className="map-stage"><div className="real-map" ref={el}/><div className="map-crosshair" aria-label="핀 생성 위치"/><div className="center-coordinate">{center.lat.toFixed(6)}, {center.lng.toFixed(6)}</div></div>
     {(resource.error || error) && <div className="map-message" role="alert">{resource.error || error}<button onClick={refresh}>다시 시도</button></div>}
-    <div className="map-toolbar"><span>내 핀 {mine}/{me?.tier.limit || 1} · 보유 {me?.current_bp || 0} BP</span><button aria-label="지도 위에 핀 추가" disabled={!!me && (mine >= me.tier.limit || me.current_bp < config.pinCost)} onClick={() => me ? setForm({}) : login()}><MapPinPlus/></button></div>
+    <div className="map-toolbar"><span>내 핀 {mine}/{me?.tier.limit || 1} · 보유 {me?.current_bp || 0} KK</span><button aria-label="지도 위에 핀 추가" disabled={!!me && (mine >= me.tier.limit || me.current_bp < config.pinCost)} onClick={() => me ? setForm({}) : login()}><MapPinPlus/></button></div>
     {selected && <PinDetailCard pin={selected} onProfile={onProfile} onImage={p => setPhoto(p.image)} onEdit={selected.owner ? p => setForm(p) : null} onDelete={selected.owner ? async p => { try { await api(`/pins/${p.id}`, 'DELETE'); setSelected(null); refresh(); } catch (error) { setError(error.message); } } : null}/>}
     {form && <PinForm initial={form.id ? form : undefined} center={center} pinCost={config.pinCost} onClose={() => setForm(null)} onSave={async value => { const pin = await api(form.id ? `/pins/${form.id}` : '/pins', form.id ? 'PATCH' : 'POST', value); setForm(null); setSelected(pin); refresh(); }}/>} 
     {photo && <div className="image-lightbox" role="dialog" aria-modal="true" aria-label="핀 사진" onClick={() => setPhoto(null)}><button aria-label="사진 닫기" onClick={() => setPhoto(null)}><X/></button><img src={photo} alt="핀 사진 전체"/></div>}
@@ -167,7 +167,7 @@ function Profile({ username, me, revision, refresh, actions, login, onLogout }) 
   const profile = resource.data;
   return <main><Status {...resource} retry={refresh}/>{profile && <>
     <section className="profile-head"><img className="profile-avatar" src={profile.profileImage || profileImage()} alt={`${username} 프로필`}/><h1>@{profile.username}</h1><p>{profile.bio || '아직 소개가 없습니다.'}</p><div className="profile-social"><button onClick={() => setView('팔로워')}><b>{profile.followers.length}</b> 팔로워</button><button onClick={() => setView('팔로잉')}><b>{profile.following.length}</b> 팔로잉</button></div></section>
-    <section className="tier-card"><Trophy/><div><small>현재 등급</small><b>{profile.tier.name}</b><span>누적 {profile.lifetime.toLocaleString()} BP · 핀 {profile.tier.limit}개 사용 가능</span></div></section>
+    <section className="tier-card"><Trophy/><div><small>현재 등급</small><b>{profile.tier.name}</b><span>누적 {profile.lifetime.toLocaleString()} KK · 핀 {profile.tier.limit}개 사용 가능</span></div></section>
     <div className="profile-links">{profile.isMe ? <><button onClick={() => { setBio(profile.bio); setPhoto(profile.profileImage); setEditing(true); }}>프로필 수정</button><button onClick={onLogout}>로그아웃</button></> : <button disabled={busy} onClick={async () => { if (!me) { login(); return; } setBusy(true); try { await api(`/profiles/${encodeURIComponent(username)}/follow`, profile.isFollowing ? 'DELETE' : 'POST'); refresh(); } catch (error) { setError(error.message); } finally { setBusy(false); } }}>{profile.isFollowing ? '팔로잉 취소' : '팔로우'}</button>}</div>
     <div className="profile-tabs"><Segments compact items={['피드', '리포스트', 'PIN', '댓글', '활동']} value={view} onChange={setView}/></div>
     {['피드', '리포스트'].includes(view) && <div className="feed">{profile[view === '피드' ? 'posts' : 'reposts'].map(p => <PostCard key={p.repostId || p.id} post={presentationPost(p)} {...actions}/>)}{!profile[view === '피드' ? 'posts' : 'reposts'].length && <Empty text="아직 활동이 없습니다"/>}</div>}

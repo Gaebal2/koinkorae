@@ -1,3 +1,4 @@
+import { FEED_CATEGORIES } from './view-state.js';
 import React from 'react';
 import { Segments, AppSelect } from './ui.jsx';
 import { t } from './language.js';
@@ -8,7 +9,7 @@ export function FeedControls({ options, setOptions }) {
   </div>;
   return <div className="feed-controls">
     <div className="feed-toggle"><Segments items={['유저 피드', '코인 피드']} value={options.feed} onChange={feed => setOptions({ ...options, focusCoin:undefined, coinSelection:undefined, feed })}/></div>
-    {select('category', ['최신', '좋아요', '지지', '팔로잉', '급상승', '논쟁'])}
+    {select('category', FEED_CATEGORIES)}
     {select('period', ['오늘', '이번 달', '올해', '전체'])}
   </div>;
 }

@@ -1,10 +1,11 @@
 import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
-export async function communityHarness() {
+export async function communityHarness({pointsPolicy=false}={}) {
   const pg=new PGlite();
   await pg.exec('create role anon; create role authenticated; create role service_role;');
   await pg.exec("create schema realtime; create table realtime.test_events(payload jsonb,event text,topic text,private boolean); create function realtime.send(payload jsonb,event text,topic text,private boolean) returns void language sql as $$ insert into realtime.test_events values(payload,event,topic,private); $$;");
   for(const file of ['202609280001_community.sql','202609290001_chat_and_battle_progress.sql','202609300001_read_optimization.sql','202609300002_likes_and_trade_coins.sql','202609300003_repost_feeds.sql','202609300004_battle_rankings.sql','202609300005_profile_pinned_feed.sql','202609300006_separate_profile_pins.sql','202609300007_feed_activity_ranking.sql','202609300008_period_activity_ranking.sql','202610010001_map_filter_checkin_history.sql','202610060001_pin_category_filter.sql'])await pg.exec(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8'));
+  if(pointsPolicy)await pg.exec(await readFile(new URL('../supabase/migrations/202610120001_points_policy.sql',import.meta.url),'utf8'));
   const db={
     async battleRankings(post,uid,cursor){return (await pg.query('select korae_battle_rankings($1,$2,$3) as result',[post,uid,cursor===null?null:JSON.stringify(cursor)])).rows[0].result;},
     async one(kind,id,parent=''){return (await pg.query('select * from korae_documents where kind=$1 and id=$2 and parent=$3',[kind,id,parent])).rows[0]||null;},
@@ -18,5 +19,6 @@ export async function communityHarness() {
     async remove(kind,id,parent,owner){await pg.query('delete from korae_documents where kind=$1 and id=$2 and parent=$3 and owner=$4',[kind,id,parent,owner]);},
     async mutate(action,uid,id,value){return (await pg.query('select korae_mutate($1,$2,$3,$4) as result',[action,uid,id,JSON.stringify(value)])).rows[0].result;},
   };
+  if(pointsPolicy)db.pointsBalance=uid=>db.mutate('pointsBalance',uid,'',{});
   return {pg,db};
 }

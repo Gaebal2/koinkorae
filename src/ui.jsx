@@ -1,3 +1,4 @@
+import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
 import {handleDescriptionInput} from './description-input.js';
 import {validDescription, lineLimitMessage} from '../supabase/functions/community/description.js';
 import {data} from './data.js';
@@ -44,7 +45,7 @@ export function Header({ bp, onProfile }) {
         <div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div>
       </div>
       <div className="bp-pill">
-        <Zap /> <b>{bp}</b> BP
+        <Zap /> <b>{bp}</b> KK
       </div>
     </header>
   );
@@ -271,7 +272,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
         disabled={!valid || busy}
         onClick={async () => { setBusy(true); setError(''); try { await onSave({ ...form, lat: +form.lat, lng: +form.lng }); void notify(initial ? '거래 정보를 수정했습니다.' : '지도에 거래 정보를 등록했습니다.', { kind: 'success', title: '저장 완료' }); } catch(error) { setError(error.message); } finally { setBusy(false); } }}
       >
-        {busy ? t("저장 중…") : initial ? t("수정 저장") : pinCost ? t("이 위치에 핀 등록 · {0} BP", pinCost) : t("이 위치에 거래 무료 등록")}
+        {busy ? t("저장 중…") : initial ? t("수정 저장") : pinCost ? t("이 위치에 핀 등록 · {0} KK", pinCost) : t("이 위치에 거래 무료 등록")}
       </button>
       {error && <p role="alert" className="error">{error}</p>}
       <button className="secondary pin-form-cancel" type="button" disabled={busy} onClick={onClose}>{t("취소")}</button>
@@ -310,7 +311,7 @@ export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChan
     {image && <div className={"feed-image-preview"+(practice?" practice-capture-preview":"")}><img src={image} alt={t("피드 이미지 미리보기")}/>{!practice&&<button type="button" onClick={() => setImage('')} aria-label={t("이미지 제거")}><X/></button>}</div>}
     {practice&&additionalImage&&<div className="feed-image-preview"><img src={additionalImage} alt={t("추가 사진 미리보기")}/><button type="button" onClick={()=>setAdditionalImage('')} aria-label={t("추가 사진 제거")}><X/></button></div>}
     {selectedPin && <div className="composer-pin-attachment"><PinDetailCard pin={selectedPin} interactionDisabled className="composer-pin-card"/><button className="attachment-remove" type="button" onClick={() => onPinChange?.(null)} aria-label={t("첨부 Pin 제거")}><X/></button></div>}
-    <button className="primary" disabled={!validDescription(content) || !content.trim() || content.length > 200 || busy} onClick={async () => { setBusy(true); setError(''); try { await onPublish({ coin:practice?initialDraft.coin:coin, content: content.trim(), image:practice?initialDraft.image:image, ...(practice&&additionalImage?{additionalImage}:{}), ...(selectedPin ? { pinId: selectedPin.id } : {}) }); } catch (error) { setError(error.message); } finally { setBusy(false); } }}>{busy ? t("게시 중…") : t("게시하기")}</button>
+    <button className="primary" disabled={!validDescription(content) || !content.trim() || content.length > 200 || busy} onClick={async () => { setBusy(true); setError(''); try { await onPublish({ coin:practice?initialDraft.coin:coin, content: content.trim(), image:practice?initialDraft.image:image, ...(practice&&additionalImage?{additionalImage}:{}), ...(selectedPin ? { pinId: selectedPin.id } : {}) }); } catch (error) { setError(error.message); } finally { setBusy(false); } }}>{busy ? t("게시 중…") : t("게시하기 · {0} KK",POINTS_POLICY.costs.posts)}</button>
     {error && <p className="error" role="alert">{error}</p>}
   </Modal>{editor}</>;
 }

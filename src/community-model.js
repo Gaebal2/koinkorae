@@ -1,3 +1,4 @@
+import {levelFor} from '../supabase/functions/_shared/points-policy.js';
 export function coinRanks(posts) {
   const totals = new Map();
   for (const p of posts) totals.set(p.coin, (totals.get(p.coin) || 0) + p.support - p.oppose);
@@ -8,8 +9,7 @@ export function relationshipsFor(edges, uid) {
   const followers = [...new Set(edges.filter(e => e.to === uid).map(e => e.from))];
   return { following, followers, friends: following.filter(id => followers.includes(id)) };
 }
-export function tierFor(lifetime) {
-  const tier = lifetime >= 10000 ? 'Gold' : lifetime >= 1000 ? 'Silver' : 'Bronze';
-  const next = tier === 'Bronze' ? 1000 : tier === 'Silver' ? 10000 : null;
-  return { tier, next, progress: next ? Math.min(100, lifetime / next * 100) : 100 };
+export function tierFor(balance={}) {
+  const result=levelFor(typeof balance==='number'?{lifetime:balance}:balance);
+  return {tier:result.current.name,next:result.next?.bp??null,progress:result.progress};
 }

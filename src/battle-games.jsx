@@ -1,3 +1,4 @@
+import { surfaceHeight, drawGestureSpace } from './battle-surface.js';
 import { t } from './language.js';
 import {gameLabels,drawExtra} from './arcade-extra.js';
 import React, { useEffect, useRef, useState } from 'react';
@@ -16,12 +17,12 @@ import { data } from './data.js';
 import { useFeedback } from './feedback.jsx';
 function draw(context, game, icon, symbol) {
   const drawPlayer=(ctx,x,y)=>drawCoinCharacter(ctx,{x,y,icon,symbol,kind:game.kind,time:game.time,airborne:game.airborne || game.velocity!==0});
-  if(drawExtra(context,game,WIDTH,HEIGHT,drawPlayer))return;
+  if(drawExtra(context,game,WIDTH,HEIGHT,drawPlayer)){drawGestureSpace(context,game.kind,t('여기를 드래그하여 이동'));return;}
   const bird = game.kind === 'flappy';
-  const surfaceHeight = game.kind === 'runner' ? GROUND + (HEIGHT - GROUND) * 3 : HEIGHT;
-  context.clearRect(0, 0, WIDTH, surfaceHeight);
+  const height = surfaceHeight(game.kind);
+  context.clearRect(0, 0, WIDTH, height);
   const sky = context.createLinearGradient(0, 0, 0, HEIGHT); sky.addColorStop(0, '#eeebff'); sky.addColorStop(1, '#fafaff');
-  context.fillStyle = sky; context.fillRect(0, 0, WIDTH, surfaceHeight);
+  context.fillStyle = sky; context.fillRect(0, 0, WIDTH, height);
   context.fillStyle = '#ffffff';
   for (let i = 0; i < 4; i++) { const x = (i * 115 + 390 - game.time * 16) % 460 - 40; context.beginPath(); context.ellipse(x, 65 + i % 2 * 44, 31, 10, 0, 0, Math.PI * 2); context.fill(); }
   for (const obstacle of game.obstacles) {
@@ -44,7 +45,7 @@ function draw(context, game, icon, symbol) {
       context.fillRect(obstacle.x + obstacle.w - 6, GROUND - obstacle.h * .95, 6, obstacle.h * .3);
     }
   }
-  context.fillStyle = '#baf7d0'; context.fillRect(0, GROUND, WIDTH, surfaceHeight - GROUND);
+  context.fillStyle = '#baf7d0'; context.fillRect(0, GROUND, WIDTH, height - GROUND);
   context.fillStyle = '#9adab1'; context.fillRect(0, GROUND, WIDTH, 3);
   if (bird) {
     context.save();context.translate(87,game.y);context.rotate(Math.max(-.4,Math.min(.6,game.velocity/650)));drawPlayer(context,0,0,28);context.restore();
@@ -145,7 +146,7 @@ export function BattleGames({ post, onClose, practiceKind, onShare }) {
     {mode==='choose'?(practice?<p>{t('배틀 준비 중…')}</p>:<section className="battle-choice"><h2>{t("이 피드에 대한 입장을 선택하세요")}</h2><p>{t("게임에서 얻은 점수를 원하는 방향으로 반영하세요.")}</p><div className="side-choice"><button disabled={busy} onClick={()=>start('support')}>{t("지지하기")}<small>{t("지지 점수에 더하기")}</small></button><button disabled={busy} onClick={()=>start('oppose')}>{t("반대하기")}<small>{t("지지 점수에서 빼기")}</small></button></div>{busy&&<p role="status">{t("배틀 준비 중…")}</p>}</section>):<>
       <div className="battle-game-heading"><div><h2>{t(gameLabels[kind]?.[0])}</h2></div></div>
       <div className={'arcade-score '+side}><b>{signed(display.score)}{t("점")}</b><span>{display.time.toFixed(1)}{t("초")}</span>{mode==='playing'&&<button onClick={()=>setMode('paused')} aria-label={t("게임 일시정지")}><Pause/></button>}</div>
-      <div className="arcade-board"><canvas ref={canvas} width={WIDTH} height={kind === 'runner' ? GROUND + (HEIGHT - GROUND) * 3 : HEIGHT} tabIndex={0} aria-label={(t(gameLabels[kind]?.[0])||t("배틀"))+t(" 게임 화면")} aria-describedby="arcade-instructions" onPointerDown={e=>{
+      <div className="arcade-board"><canvas ref={canvas} width={WIDTH} height={surfaceHeight(kind)} tabIndex={0} aria-label={(t(gameLabels[kind]?.[0])||t("배틀"))+t(" 게임 화면")} aria-describedby="arcade-instructions" onPointerDown={e=>{
           if(!e.isPrimary || e.button!==0)return;
           e.preventDefault();
           if(isMovementGame(kind)){
@@ -156,7 +157,7 @@ export function BattleGames({ post, onClose, practiceKind, onShare }) {
         }} onPointerMove={e=>{
           if(!isMovementGame(kind)||mode!=='playing')return;
           e.preventDefault();const rect=e.currentTarget.getBoundingClientRect();
-          drag.current.move(e.pointerId,e.clientX,e.clientY,WIDTH/rect.width,HEIGHT/rect.height);
+          drag.current.move(e.pointerId,e.clientX,e.clientY,WIDTH/rect.width,surfaceHeight(kind)/rect.height);
         }} onPointerUp={e=>{drag.current.end(e.pointerId);if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);}}
         onPointerCancel={()=>drag.current.reset()} onLostPointerCapture={e=>drag.current.end(e.pointerId)} onBlur={()=>{heldKeys.current.clear();drag.current.reset();}}
         onKeyDown={e=>{

@@ -1,3 +1,4 @@
+import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
 import {CheckinCalendar, useCheckinToday} from './checkin-calendar.jsx';
 import { FeedControls } from './feed-controls.jsx';
 import { t } from './language.js';
@@ -73,7 +74,7 @@ function CommentThread({post,me,close,query}) {
     if (sending.current || !content.trim()) return;
     sending.current = true; setBusy(true); setError('');
     try { const saved=await data.comment(post.id, content, side, reply?.id); setPendingScroll(saved.id); setContent(''); setReply(null); }
-    catch { setError('댓글을 저장하지 못했습니다.'); }
+    catch (error) { setError(error.message || '댓글을 저장하지 못했습니다.'); }
     finally { sending.current = false; setBusy(false); }
   };
   return <Modal title={t("댓글")} onClose={close} className="comments-modal">
@@ -97,7 +98,7 @@ function CommentThread({post,me,close,query}) {
     {me ? <form className="chat-composer" onSubmit={e => e.preventDefault()}>
       {reply && <div className="chat-reply-preview"><div><b>{reply.author}{t("에게 답글")}</b><span>{reply.content}</span></div><button type="button" disabled={busy} onClick={() => setReply(null)} aria-label={t("답글 취소")}>×</button></div>}
       <div className="chat-input-row"><button type="button" className="chat-send support" disabled={busy || !content.trim()} onClick={() => send('support')}>{t("지지")}</button><textarea ref={input} aria-label={t("댓글")} disabled={busy} maxLength={1000} value={content} onChange={e => setContent(e.target.value)} placeholder={t("댓글을 입력하세요")}/><button type="button" className="chat-send oppose" disabled={busy || !content.trim()} onClick={() => send('oppose')}>{t("반대")}</button></div>
-      <small>{t("댓글을 길게 눌러 답글 · 인용문을 두 번 눌러 원댓글 보기")}</small>
+      <small>{t("댓글 작성 {0} KK · ",POINTS_POLICY.costs.comments)}{t("댓글을 길게 눌러 답글 · 인용문을 두 번 눌러 원댓글 보기")}</small>
     </form> : <p className="form-help">{t("로그인하면 댓글을 남길 수 있습니다.")}</p>}{error && <p className="error" role="alert">{error}</p>}</Modal>;
 }
 
@@ -113,15 +114,15 @@ export function CheckinPage({ me, balance, login }) {
     setBusy(true); setError('');
     try {
       if (!(await confirm('오늘 출석체크 하시겠습니까?', {title:'출석체크',confirmLabel:'출석체크'}))) return;
-      await data.checkin();
+      const result=await data.checkin();
       setCompletedDay(me.id+':'+today);
-      void notify('오늘 출석이 완료됐습니다. 10 BP를 받았습니다.', {kind:'success',title:'출석 완료'});
-    } catch { setError('출석을 저장하지 못했습니다. 기기 날짜와 인터넷 연결을 확인해 주세요.'); }
+      void notify(t('오늘 출석이 완료됐습니다. {0} KK를 받았습니다.',result.lastCheckinReward ?? 20), {kind:'success',title:'출석 완료'});
+    } catch (error) { setError(error.message || '출석을 저장하지 못했습니다. 인터넷 연결을 확인해 주세요.'); }
     finally { setBusy(false); }
   };
-  return <main><PageTitle icon={CalendarCheck} title={t("오늘의 BP")} sub={t("매일 출석하고 Battle Point를 모으세요")}/><section className="balance-card"><span>{t("보유 BP")}</span><strong>{balance.current}</strong><small>Lifetime Earned · {balance.lifetime.toLocaleString()} BP</small></section>
+  return <main><PageTitle icon={CalendarCheck} title={t("오늘의 KK")} sub={t("매일 출석하고 KK를 모으세요")}/>
     <div className="checkin-action-row"><button type="button" className="primary checkin-action" disabled={busy || checked} onClick={checkin}>{checked ? <Check/> : <CalendarCheck/>}{checked ? t('출석 완료') : busy ? t('출석 확인 중…') : t('출석체크')}</button></div>
     <CheckinCalendar key={me?.id || 'guest'} balance={checked ? {...balance,day:today} : balance} signedIn={!!me} today={today}/>
-    <section className="reward-row"><div><span>REWARDED AD</span><b>{t("광고 보상 준비 중")}</b><small>{t("광고 서비스 연결 후 이용할 수 있어요")}</small></div><button disabled>{t("준비 중")}</button></section>{error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>{t("BP는 커뮤니티 참여 포인트입니다.")}<br/>{t("배틀은 무료로 참여할 수 있습니다.")}</p></div>
+    <section className="reward-row"><div><span>REWARDED AD</span><b>{t("광고 보상 준비 중")}</b><small>{t("광고 서비스 연결 후 이용할 수 있어요")}</small></div><button disabled>{t("준비 중")}</button></section>{error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>{t("KK는 커뮤니티 참여 포인트입니다.")}<br/>{t("배틀은 무료로 참여할 수 있습니다.")}</p></div>
   </main>;
 }

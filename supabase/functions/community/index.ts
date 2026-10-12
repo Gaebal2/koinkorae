@@ -10,6 +10,7 @@ const client = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABAS
 const table = () => client.from('korae_documents');
 async function result(query: any) { const {data,error}=await query; if(error) throw Error(error.message); return data; }
 const db = {
+  pointsBalance: (uid:string) => result(client.rpc('korae_mutate',{p_action:'pointsBalance',p_uid:uid})),
   storePhoto: createPhotoStore({baseUrl:Deno.env.get('SUPABASE_URL')!,upload:async (key:string,bytes:Uint8Array,options:any)=>{
     const {error}=await client.storage.from(MEDIA_BUCKET).upload(key,bytes,options);
     if(error && error.message!=='The resource already exists' && String((error as any).statusCode)!=='409') throw Error('사진을 저장하지 못했습니다. 다시 시도해 주세요.');

@@ -85,3 +85,28 @@ test('bounce score is accumulated and applied once through the production transa
 test('deployed bounce simulation is identical to the browser engine',async()=>{
   assert.equal(await readFile(new URL('../functions/bounce-game.js',import.meta.url),'utf8'),await readFile(new URL('../supabase/functions/_shared/bounce-game.js',import.meta.url),'utf8'));
 });
+
+
+test('expanded gesture surfaces preserve drag distances below the playfield', async()=>{
+  const {surfaceHeight}=await import('../src/battle-surface.js');
+  for(const kind of ['rain','traffic','breakout']){
+    const height=surfaceHeight(kind);
+    assert.equal(height,surfaceHeight('runner'));
+    const drag=createRelativeDrag();
+    drag.begin(1,90,240);
+    drag.move(1,100,250,360/180,height/(height/2));
+    assert.deepEqual(drag.take(),[20*MOVE_SCALE,20*MOVE_SCALE]);
+  }
+  assert.equal(surfaceHeight('bounce'),440);
+});
+
+test('bounce and breakout render only the coin image without body decorations',async()=>{
+  const {drawCoinCharacter}=await import('../src/battle-character.js');
+  for(const kind of ['bounce','breakout']){
+    const calls=[];
+    const ctx=new Proxy({}, {get:(_,key)=>(...args)=>calls.push([key,...args]),set:()=>true});
+    drawCoinCharacter(ctx,{x:10,y:20,icon:{complete:true,naturalWidth:32,naturalHeight:32},symbol:'BTC',kind});
+    assert.deepEqual(calls.map(call=>call[0]),['save','translate','drawImage','restore']);
+    assert.deepEqual(calls[2].slice(2),[-14,-14,28,28]);
+  }
+});

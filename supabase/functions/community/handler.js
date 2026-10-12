@@ -111,8 +111,8 @@ export async function dispatch(db, identity, action, args = {}) {
     case 'commentCount': return await get('posts',args.postId) ? db.count('comments',id(args.postId)) : 0;
     case 'comments': return await get('posts',args.postId) ? withAuthors((await list('comments',{parent:id(args.postId),oldest:true})).sort((a,b)=>a.createdAt-b.createdAt)) : [];
     case 'balance': {
-      if (args.uid !== uid) throw Object.assign(Error('본인 BP만 조회할 수 있습니다.'),{status:403});
-      return await get('balances',uid) || {current:0,lifetime:0,day:-1};
+      if (args.uid !== uid) throw Object.assign(Error('본인 KK만 조회할 수 있습니다.'),{status:403});
+      return db.pointsBalance ? db.pointsBalance(uid) : await get('balances',uid) || {current:0,lifetime:0,day:-1};
     }
     case 'ensureProfile': {
       await put('profiles',uid,{username:name,bio:'',profileImage:''},'',true); return null;

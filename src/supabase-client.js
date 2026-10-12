@@ -4,10 +4,10 @@ const silentWrites=new Set(['checkpointBattle','continueBattle']);
 const affected={
   pinProfilePost:['profile','profiles'],
   ensureProfile:['profile'], saveProfile:['battleRankings','profile','posts','authorPosts','postsById','listPins','getPin','comments','friends','ownComments'],
-  savePin:['listPins','getPin'], deletePin:['listPins','getPin'], checkin:['balance'],
-  publish:['posts','authorPosts','postsById'], deletePost:['profile','profiles','battleRankings','posts','authorPosts','postsById','comments','commentCount','ownComments','reposts'],
-  follow:['following','relationships','friends','messages'], repost:['battleRankings','reposts','posts','authorPosts','postsById'], like:['posts','authorPosts','postsById'],
-  comment:['comments','commentCount','ownComments'], deleteComment:['comments','commentCount','ownComments'],
+  savePin:['balance','listPins','getPin'], deletePin:['listPins','getPin'], checkin:['balance'],
+  publish:['balance','posts','authorPosts','postsById'], deletePost:['profile','profiles','battleRankings','posts','authorPosts','postsById','comments','commentCount','ownComments','reposts'],
+  follow:['following','relationships','friends','messages'], repost:['balance','battleRankings','reposts','posts','authorPosts','postsById'], like:['posts','authorPosts','postsById'],
+  comment:['balance','comments','commentCount','ownComments'], deleteComment:['comments','commentCount','ownComments'],
   sendMessage:['messages'], startBattle:['balance'], applyBattle:['battleRankings','balance','posts','authorPosts','postsById'], finishBattle:['battleRankings','balance','posts','authorPosts','postsById'],
 };
 const canonical=value=>Array.isArray(value)?value.map(canonical):value && typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;

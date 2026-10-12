@@ -17,9 +17,11 @@ export function usePageBack(page,profileId,setPage,setProfileId) {
       restoring.current=false;previous.current={page,profileId};
     }
   },[page,profileId]);
-  useBackDismiss(true,()=>{
+  const goBack=()=>{
     const destination=visits.current.pop() || {page:'home',profileId:null};
     if(destination.page===page&&destination.profileId===profileId)return;
     restoring.current=true;setProfileId(destination.profileId);setPage(destination.page);
-  },0);
+  };
+  useBackDismiss(true,goBack,0);
+  return goBack;
 }

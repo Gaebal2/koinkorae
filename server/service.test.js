@@ -43,7 +43,7 @@ test('check-in is idempotent and awards both balances across local midnight', as
 
 test('battle deducts once on start and server computes result exactly once', async t => {
   const f = await fixture(); t.after(() => f.service.db.close());
-  assert.throws(() => f.service.startBattle(f.alice, { postId: f.post.id, side: 'support', requestKey: 'one' }), /BP/);
+  assert.throws(() => f.service.startBattle(f.alice, { postId: f.post.id, side: 'support', requestKey: 'one' }), /KK/);
   f.service.checkin(f.alice);
   const body = { postId: f.post.id, side: 'support', requestKey: 'one' };
   const first = f.service.startBattle(f.alice, body);
@@ -121,7 +121,7 @@ test('comments are saved, deletes require owner and hide original plus repost', 
   assert.equal(f.service.profile(f.bob, 'bob').reposts.length, 0);
 });
 
-test('unconfigured ads cannot grant BP; verified callback grants once', async t => {
+test('unconfigured ads cannot grant KK; verified callback grants once', async t => {
   const f = await fixture(); t.after(() => f.service.db.close());
   await assert.rejects(f.service.startAd(f.alice), /준비/);
   const g = await fixture({ ads: { start: async () => ({}), verify: async value => JSON.parse(value) } }); t.after(() => g.service.db.close());

@@ -33,7 +33,7 @@ export function createService({ filename = ':memory:', config = {}, clock = Date
     return value;
   };
   const ledger = (id, amount, reason, reference) => {
-    if (amount < 0 && userById(id).current_bp < -amount) fail('BP가 부족합니다.', 409);
+    if (amount < 0 && userById(id).current_bp < -amount) fail('KK가 부족합니다.', 409);
     run('INSERT INTO bp_ledger VALUES (?,?,?,?,?,?)', randomUUID(), id, amount, reason, reference, clock());
     run('UPDATE users SET current_bp=current_bp+?, lifetime_bp=lifetime_bp+? WHERE id=?', amount, Math.max(0, amount), id);
   };

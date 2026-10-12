@@ -15,7 +15,7 @@ export function drawExtra(ctx,g,W,H,drawPlayer) {
     if(g.kind==='breakout') {
       for(const b of g.bricks){ctx.fillStyle=['#9775fa','#748ffc','#4dabf7','#38d9a9','#ffd43b'][Math.round((b.y-55)/25)];ctx.fillRect(b.x,b.y,b.w,b.h);}
       ctx.fillStyle='#6545cb';ctx.fillRect(g.paddleX-42,395,84,12);
-      ctx.save();ctx.translate(g.x,g.y);ctx.scale(.6,.6);drawPlayer(ctx,0,0);ctx.restore();
+      ctx.save();ctx.translate(g.x,g.y);ctx.scale(20/28,20/28);drawPlayer(ctx,0,0);ctx.restore();
     } else drawPlayer(ctx,g.x,g.y);
     return true;
   }

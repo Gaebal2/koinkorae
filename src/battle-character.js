@@ -4,6 +4,19 @@ export const CHARACTER_ICON_SIZE = 20;
 export function drawCoinCharacter(ctx, { x, y, icon, symbol, kind, time = 0, airborne = false }) {
   ctx.save();
   ctx.translate(x, y);
+  if (kind === 'bounce' || kind === 'breakout') {
+    if (icon?.complete && icon.naturalWidth) {
+      const scale = CHARACTER_SIZE / Math.max(icon.naturalWidth, icon.naturalHeight);
+      const width = icon.naturalWidth * scale, height = icon.naturalHeight * scale;
+      ctx.drawImage(icon, -width / 2, -height / 2, width, height);
+    } else {
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, CHARACTER_SIZE / 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#7157ff'; ctx.font = 'bold 8px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(symbol.slice(0, 4), 0, 0);
+    }
+    ctx.restore();
+    return;
+  }
   ctx.fillStyle = '#b9a5f1';
   const flap = Math.sin(time * 16) * (kind === 'flappy' ? 0.6 : 0.2);
   ctx.beginPath(); ctx.ellipse(-17, 1, 7, 4, flap, 0, Math.PI * 2); ctx.fill();
