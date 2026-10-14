@@ -306,8 +306,8 @@ export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChan
     <input ref={fileRef} type="file" accept="image/*" hidden onChange={chooseImage}/>
     <div className="composer-tools">
       <button type="button" disabled={practice} aria-label={t("지지 코인 선택: {0}", coin)} title={t("지지 코인 선택")} onClick={() => setPicker('coin')}><Coin symbol={coin}/><span>{coin}</span></button>
-      <button type="button" aria-label={t("사진 추가")} title={t("사진 추가")} onClick={() => fileRef.current?.click()}><ImagePlus/></button>
-      <button type="button" aria-label={t("Pin 추가")} title={t("Pin 추가")} onClick={() => setPicker('pin')}><MapPin/></button>
+      <button type="button" disabled={practice} aria-label={t("사진 추가")} title={t("사진 추가")} onClick={() => fileRef.current?.click()}><ImagePlus/></button>
+      <button type="button" disabled={practice} aria-label={t("Pin 추가")} title={t("Pin 추가")} onClick={() => setPicker('pin')}><MapPin/></button>
     </div>
     {image && <div className={"feed-image-preview"+(practice?" practice-capture-preview":"")}><img src={image} alt={t("피드 이미지 미리보기")}/>{!practice&&<button type="button" onClick={() => setImage('')} aria-label={t("이미지 제거")}><X/></button>}</div>}
     {practice&&additionalImage&&<div className="feed-image-preview"><img src={additionalImage} alt={t("추가 사진 미리보기")}/><button type="button" onClick={()=>setAdditionalImage('')} aria-label={t("추가 사진 제거")}><X/></button></div>}
