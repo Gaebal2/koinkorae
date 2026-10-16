@@ -75,3 +75,23 @@ CLI 인증이 없으면 `npx supabase login`을 먼저 실행한다. 브라우�
 - 프런트엔드는 이 변경이 포함된 `main` 푸시로 GitHub Pages 워크플로가 배포한다.
 
 참고: [Supabase Database Broadcast](https://supabase.com/docs/guides/realtime/broadcast), [Realtime Authorization](https://supabase.com/docs/guides/realtime/authorization).
+
+## 2026-10-16 푸시 알림 준비
+
+프런트엔드만 배포해서는 푸시가 활성화되지 않는다. 적용 순서는 `node scripts/prepare-notifications.mjs`가 출력한다.
+이 스크립트는 VAPID 공개/개인 키와 작업자 인증 비밀을 Git에서 제외된 `.runtime/notifications`에 준비하며, 재실행해도 기존 키를 보존한다. 키를 변경하면 기기 구독을 다시 받아야 한다.
+
+- 새 SQL migration → Edge secrets → community/push-dispatch 함수 → Vault 및 cron SQL → 프런트엔드 순으로 배포한다.
+- `WEB_PUSH_PUBLIC_KEY`만 로그인한 클라이언트에 전달된다. 개인 키와 작업자 인증 비밀은 서버에만 보관한다.
+- 매분 작업자가 대기열을 처리하므로 일반 알림과 한국 시간 자정 체크인 알림은 보통 1분 이내에 발송을 시도한다. OS·네트워크에 따른 도착 지연은 발생할 수 있다.
+- 체크인 알림은 마지막 체크인의 다음 한국 날짜에 한 번 발생한다. 이미 당일 체크인했으면 대기 알림도 폐기한다.
+- 댓글/리포스트/좋아요/맞팔 채팅은 실제 DB insert 트리거로 생성한다. 본인의 활동은 제외한다.
+- 공유는 공유 완료가 아닌 버튼 클릭을 뜻한다. 로그인 사용자는 사용자·피드·날짜당 한 번, 비로그인 사용자는 피드·날짜당 한 번 묶어 알린다. 좋아요/리포스트 취소 후 재등록도 같은 날 반복 알리지 않는다.
+- 알림은 기본 꺼짐이며 전체 스위치를 처음 켤 때 6개 항목을 활성화한다. 이후 전체 끄기는 개별 선택을 보존한다.
+- 계정 설정과 기기 권한은 별개다. 각 기기에서 알림을 허용해야 한다. iOS/iPadOS 16.4 이상은 홈 화면 설치 앱이 필요하다.
+- 로그아웃 시 현재 기기 구독을 해제한다. 기기 구독의 계정이 바뀌면 이전 계정의 대기 알림을 제거한다.
+- 비공개 채팅 본문은 잠금 화면에 포함하지 않는다. 알림을 누르면 피드 원문, 친구 채팅 목록, 체크인 화면으로 이동한다.
+- 일시 오류는 최대 5회 재시도하고 만료된 구독(404/410)은 정리한다. 최소 한 번 전달 방식이므로 OS 알림 tag로 재전송을 병합한다. 생성 후 24시간 이상 된 알림은 버린다.
+- `npm test`, `npm run build`, `node scripts/bundle-edge.mjs` 후 실제 허용 기기에서 수신·클릭·전체 끄기·로그아웃 동작을 확인한다.
+
+참고: [WebKit Web Push 지원](https://webkit.org/blog/13878/), [web-push 전송 API](https://github.com/web-push-libs/web-push), [Supabase 스케줄 함수](https://supabase.com/docs/guides/functions/schedule-functions).

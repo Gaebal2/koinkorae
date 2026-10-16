@@ -1,3 +1,4 @@
+import {OwnCommentCard} from './own-comment-card.jsx';
 import {sharedPostStatus} from './shared-link.js';
 import {useContentRefresh} from './content-refresh.jsx';
 import { FeedControls } from './feed-controls.jsx';
@@ -46,7 +47,7 @@ export function PagedPosts({options,me,onPin,onProfile,actions,onReady,excludeId
 }
 export function PagedOwnComments({me,onComment}){
   const page=useCursorPage({mode:'ownComments'},me.id);
-  return <><div className="profile-comments">{page.items.map(comment=><article key={comment.id}><b>{comment.post.author} · {comment.post.coin}</b><small>{age(comment.createdAt)}</small><p>{comment.content}</p><button className="text-action" onClick={()=>onComment(comment.post)}>{t("원문과 댓글 보기")}</button></article>)}</div><MoreResults page={page}/></>;
+  return <><div className="profile-comments">{page.items.map(comment=><OwnCommentCard key={`${comment.post.id}_${comment.id}`} comment={comment} onComment={onComment}/>)}</div>{!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 작성한 댓글이 없습니다")}/>}<MoreResults page={page}/></>;
 }
 const expanded=new Map();
 function CoinGroup({focused=false,group,options,me,onPin,onProfile,actions}){

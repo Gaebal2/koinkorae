@@ -13,6 +13,7 @@ import L from 'leaflet';
 import { data, configured, googleEnabled } from './data.js';
 import { Modal, Field, AppSelect, cmcCoins, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage } from './ui.jsx';
 import { PagedHome } from './paged-feed.jsx';
+const NotificationSettings = lazy(() => import('./notification-settings.jsx').then(module => ({default:module.NotificationSettings})));
 const PracticePage = lazy(() => import('./practice-page.jsx').then(module => ({default: module.PracticePage})));
 import { PagedMap } from './paged-map.jsx';
 import { debounce } from './query-timing.js';
@@ -164,7 +165,8 @@ export default function App() {
   const [focusPostId,setFocusPostId] = useState(null), [shareError,setShareError] = useState(''), [shareRevision,retryShare] = useState(0);
   const sharedPin = useRef(new URLSearchParams(window.location.search).get('pin'));
 
-  const [me, setMe] = useState(null), [page, setPage] = useState(restored.page), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
+  const [me, setMe] = useState(null), [page, setPage] = useState(()=>{const screen=new URLSearchParams(window.location.search).get('screen');return ['chat','check'].includes(screen)?screen:restored.page;}), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
+  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.has('screen')){url.searchParams.delete('screen');history.replaceState(history.state,'',url);}},[]);
   const [practiceDraft,setPracticeDraft]=useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [compose, setCompose] = useState(false), [following, setFollowing] = useState([]), [balance, setBalance] = useState({ current: 0, lifetime: 0, day: -1 });
@@ -188,6 +190,7 @@ export default function App() {
   const [settings,setSettings]=useState(false);
 
   const refresh = async () => { try { setPins(data.page ? me ? (await data.page({mode:'pins',owner:me.id,detail:true},null,true)).items : [] : await data.listPins()); } catch { setError('거래 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'); } };
+  useEffect(()=>{if(!me?.id||!data.subscribePush)return;void import('./push-notifications.js').then(({syncDevicePush})=>syncDevicePush(data)).catch(()=>{});},[me?.id]);
   useEffect(() => data.watchAuth(user => { setMe(user); setAuthReady(true); }), []);
   useEffect(() => { setBalance({ current: 0, lifetime: 0, day: -1 }); return data.watchBalance(me?.id, setBalance, () => setError('KK를 불러오지 못했습니다.')); }, [me?.id]);
   useEffect(() => { setFollowing([]); if(data.page && page!=='profile')return; return data.watchFollowing(me?.id, setFollowing, () => setError('팔로잉 정보를 불러오지 못했습니다.')); }, [me?.id,page]);
@@ -225,7 +228,7 @@ export default function App() {
   // A pending session is not a signed-out session. Avoid guest UI during restoration.
   if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main aria-label={t("불러오는 중…")}/></div>;
   return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><img src={myProfile?.profileImage || profileImage()} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={profileImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}<div className="header-actions"><button type="button" className="bp-pill" disabled={pickingPin} onClick={openPolicy} aria-label={t('보유 {0} KK · 포인트 정책 보기',balance.current.toLocaleString())}>{balance.current.toLocaleString()} KK</button>{me ? page==='profile'&&<button className="profile-settings-button" aria-label={t('설정')} onClick={()=>setSettings(true)}><Settings/></button> : <button className="text-action" disabled={pickingPin} onClick={()=>setAuth(true)}>{t('로그인')}</button>}</div></header>
-    <Suspense fallback={<main role="status"><p className="loading-state">{t("???? ??")}</p></main>}>
+    <Suspense fallback={<main role="status"><p className="loading-state">{t("불러오는 중…")}</p></main>}>
     <ContentRefresh page={page}/>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
     {page === 'home' && <FeedHome onCoin={openCoin} onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setPracticeDraft(null); setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
@@ -239,10 +242,10 @@ export default function App() {
     <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessageCircle], ['battle', '연습', Swords]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><span>{t(label)}</span></button>)}</nav>
     {compose && <Composer initialDraft={practiceDraft} hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setPracticeDraft(null); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setPracticeDraft(null); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
     {form && <PinForm {...form} pinCost={POINTS_POLICY.costs.pins} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin); setPage('map'); }}/>}
-    <Suspense fallback={<p role="status">{t("???? ??")}</p>}>{editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}</Suspense>
+    <Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}>{editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}</Suspense>
 
     {sharedPost && <Modal title={t('공유 피드')} onClose={()=>setSharedPost(null)}>{shareError?<><p role="alert">{t(shareError)}</p><button onClick={()=>retryShare(value=>value+1)}>{t('다시 시도')}</button></>:<p role="status">{t('불러오는 중…')}</p>}</Modal>}
-    {settings && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><LanguageSettings/><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}>{t("프로필 수정")}</button><button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}
+    {settings && me && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><LanguageSettings/><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}>{t("프로필 수정")}</button>{data.notificationSettings&&<Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}><NotificationSettings key={me.id} me={me}/></Suspense>}<button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}
     {auth && <Auth close={() => setAuth(false)} done={u => { setMe(u); setAuth(false); if (page === 'profile') setProfileId(u.id); }}/>}
     {!auth && !form && !editing && !compose && <InstallPrompt/>}
   </div>;

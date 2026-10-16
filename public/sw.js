@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v25-fast-start';
+const CACHE = 'korae-community-v26-notifications';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -44,4 +44,25 @@ self.addEventListener('fetch', event => {
     }
     return pending.catch(() => cached || Response.error());
   })());
+});
+
+self.addEventListener('push', event => {
+ let payload;try{payload=event.data?.json();}catch{}
+ if(!payload)return;
+ let url;try{url=new URL(payload.url||'./',ROOT);}catch{url=new URL(ROOT);}
+ event.waitUntil(self.registration.showNotification(payload.title||'ㅋㅇㄱㄹ',{
+  body:payload.body||'',icon:new URL('koin-korae-splash-v4-192.png',ROOT).href,
+  tag:payload.tag,data:{url:url.origin===self.location.origin?url.href:ROOT},
+ }));
+});
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();
+ event.waitUntil((async()=>{
+  const url=new URL(event.notification.data?.url||ROOT,ROOT);
+  const target=url.origin===self.location.origin?url.href:ROOT;
+  const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  const existing=windows.find(client=>client.url.startsWith(ROOT));
+  if(existing){const navigated=await existing.navigate(target);if(navigated)return navigated.focus();}
+  return self.clients.openWindow(target);
+ })());
 });

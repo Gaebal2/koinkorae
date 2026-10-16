@@ -1,6 +1,6 @@
 import {createReadBatcher} from './read-batcher.js';
 const reads=new Set(['battleRankings','page','profiles','commentCounts','listPins','getPin','profile','posts','authorPosts','postsById','following','relationships','reposts','commentCount','comments','balance','ownComments','friends','messages']);
-const silentWrites=new Set(['checkpointBattle','continueBattle']);
+const silentWrites=new Set(['notificationSettings','saveNotificationSettings','subscribePush','unsubscribePush','recordShare','checkpointBattle','continueBattle']);
 const affected={
   pinProfilePost:['profile','profiles'],
   ensureProfile:['profile'], saveProfile:['battleRankings','profile','posts','authorPosts','postsById','listPins','getPin','comments','friends','ownComments'],

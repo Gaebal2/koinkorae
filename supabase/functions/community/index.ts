@@ -10,6 +10,8 @@ const client = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABAS
 const table = () => client.from('korae_documents');
 async function result(query: any) { const {data,error}=await query; if(error) throw Error(error.message); return data; }
 const db = {
+  pushPublicKey: Deno.env.get('WEB_PUSH_PUBLIC_KEY') || '',
+  notifications: (uid:string|null,action:string,value:any={}) => result(client.rpc('korae_notification_settings',{p_uid:uid,p_action:action,p_value:value})),
   pointsBalance: (uid:string) => result(client.rpc('korae_mutate',{p_action:'pointsBalance',p_uid:uid})),
   storePhoto: createPhotoStore({baseUrl:Deno.env.get('SUPABASE_URL')!,upload:async (key:string,bytes:Uint8Array,options:any)=>{
     const {error}=await client.storage.from(MEDIA_BUCKET).upload(key,bytes,options);

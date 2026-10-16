@@ -604,3 +604,43 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .pin-creator > .external-share-button + .coin { margin-left:0; }
 
 .post-card[data-shared-target] { scroll-margin-top:80px; outline:2px solid var(--primary); outline-offset:2px; }
+
+/* Account notifications and comment history share the profile card system. */
+.notification-settings { border:1px solid #e7e1ef; border-radius:18px; padding:18px; background:#fff; }
+.notification-heading { display:flex; align-items:center; gap:11px; margin-bottom:16px; }
+.notification-heading-icon,.own-comment-icon { display:grid; place-items:center; flex-shrink:0; width:38px; height:38px; border-radius:12px; background:var(--surface-tint); color:var(--primary); }
+.notification-heading h3 { margin:0; font-size:15px; color:var(--ink); }
+.notification-heading p { margin:4px 0 0; font-size:12px; color:var(--muted); }
+.notification-master,.notification-option { display:flex; align-items:center; gap:12px; }
+.notification-master { padding:14px; border-radius:12px; background:#f6f3fc; }
+.notification-master > div,.notification-option > div { flex:1; min-width:0; }
+.notification-master b,.notification-option b { display:block; color:var(--ink); font-size:13px; }
+.notification-master small,.notification-option small { display:block; margin-top:4px; font-size:11px; line-height:1.5; font-weight:400; color:var(--muted); }
+.notification-option { padding:14px 0; border-bottom:1px solid var(--line); }
+.notification-option > svg { flex-shrink:0; color:#8b7fa3; }
+.notification-option:last-child { border-bottom:0; }
+.profile-settings-menu .notification-switch { position:relative; flex:0 0 44px; width:44px; min-height:44px; padding:0; border:0; background:transparent; border-radius:22px; }
+.notification-switch::before { content:""; position:absolute; left:0; right:0; top:9px; height:26px; border-radius:20px; background:#d8d4e2; transition:background .15s; }
+.notification-switch > span { position:absolute; top:12px; left:3px; height:20px; width:20px; border-radius:50%; background:white; box-shadow:0 1px 3px #30235425; transition:transform .15s; }
+.notification-switch[aria-checked="true"]::before { background:var(--primary); }
+.notification-switch[aria-checked="true"] > span { transform:translateX(18px); }
+.notification-switch:disabled { opacity:.45; cursor:not-allowed; }
+.notification-help { color:var(--muted); font-size:11px; line-height:1.7; margin:12px 0 0; }
+.notification-error { color:#b13c55; font-size:12px; line-height:1.6; }
+.profile-settings-menu .notification-device { margin-top:12px; width:100%; text-align:center; padding:10px; font-size:12px; color:var(--primary); background:var(--surface-tint); }
+.profile-comments { gap:14px; }
+.profile-comments > .own-comment-card { padding:18px; border:1px solid var(--line); border-radius:20px; background:white; box-shadow:var(--card-shadow); }
+.own-comment-heading { display:flex; align-items:center; gap:8px; }
+.own-comment-heading .own-comment-icon { width:30px; height:30px; border-radius:10px; }
+.own-comment-heading b { color:var(--primary-dark); font-size:12px; }
+.own-comment-heading time { margin-left:auto; font-size:11px; color:var(--muted); }
+.profile-comments .own-comment-body { margin:14px 0 16px; font-size:14px; line-height:1.8; color:var(--ink); white-space:pre-wrap; overflow-wrap:anywhere; }
+.own-comment-source { display:flex; align-items:center; gap:10px; width:100%; padding:12px; border:1px solid #eeeaf5; background:#f8f6fc; border-radius:13px; text-align:left; }
+.own-comment-source > span:not(.coin) { min-width:0; flex:1; }
+.own-comment-source > span > b { display:block; color:var(--ink); font-size:12px; }
+.profile-comments .own-comment-source small { display:inline; margin:0; font-size:11px; font-weight:400; }
+.own-comment-source > span > span { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top:4px; font-size:12px; font-weight:400; line-height:1.6; color:var(--muted); overflow-wrap:anywhere; }
+.own-comment-source > svg { flex-shrink:0; color:var(--primary); }
+@media(prefers-reduced-motion:reduce) { .notification-switch::before,.notification-switch > span { transition:none; } }
+
+.profile-settings-menu .notification-device:last-child { color:var(--primary); }

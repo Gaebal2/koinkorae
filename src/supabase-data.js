@@ -30,6 +30,11 @@ async function admitUser(user, newlyCreated=false) {
  catch(error) { if(newlyCreated && error.message?.includes('Trial capacity reached')) { try { await deleteUser(user); } catch {} } await signOut(auth); throw Error(admissionMessage(error)); }
 }
 export const data={
+  notificationSettings:()=>call('notificationSettings'),
+  saveNotificationSettings:value=>call('saveNotificationSettings',{value}),
+  subscribePush:value=>call('subscribePush',{value}),
+  unsubscribePush:endpoint=>call('unsubscribePush',{endpoint}),
+  recordShare:postId=>call('recordShare',{postId}),
   battleRankings:(postId,cursor=null)=>call('battleRankings',{postId,cursor}),
   watchAuth(callback) { if(!auth){callback(null);return()=>{};} let active=true, version=0;const stop=onAuthStateChanged(auth,async u=>{const current=++version;client.setScope(u?.uid||'guest');if(!u){callback(null);return;}try{await call('ensureProfile');if(active&&current===version)callback(toUser(u));}catch{if(active&&current===version){callback(null);await signOut(auth);}}});return()=>{active=false;stop();}; },
   page:(options,cursor=null,force=false)=>call('page',{options,cursor,limit:20},force),
@@ -42,7 +47,7 @@ export const data={
   async register(email,password,username) { ready();const {user}=await createUserWithEmailAndPassword(auth,email,password);await updateProfile(user,{displayName:username.trim()});await user.getIdToken(true);const admitted=await admitUser(user,true);await call('saveProfile',{value:{username:username.trim(),bio:'',profileImage:''}});return admitted; },
   async loginGoogle() { ready();const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});const credential=await signInWithPopup(auth,provider);return admitUser(credential.user,!!getAdditionalUserInfo(credential)?.isNewUser); },
   async resetPassword(email) { ready();await sendPasswordResetEmail(auth,email); },
-  async logout() { ready();await signOut(auth); },
+  async logout() { ready();const {detachDevicePush}=await import('./push-notifications.js');try{await detachDevicePush(data);}catch{console.warn('Push subscription cleanup deferred.');}await signOut(auth); },
   listPins:()=>call('listPins'),
   getPin:id=>call('getPin',{id}),
   watchPin:(id,callback,error)=>watch('getPin',{id},callback,error),
