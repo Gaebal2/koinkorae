@@ -1,3 +1,4 @@
+import {requireAdministrator,reportTarget} from './moderation.js';
 import {preferences,subscription,defaultPreferences} from './notifications.js';
 import {assertDescription} from './description.js';
 import { chooseGame } from '../_shared/battle-engine.js';
@@ -43,6 +44,17 @@ export async function dispatch(db, identity, action, args = {}) {
     return {target,parent:JSON.stringify([uid,target].sort())};
   };
   switch (action) {
+    case 'reportContent': {const target=reportTarget(args);return db.reportContent(uid,target.kind,target.id);}
+    case 'adminReports': {
+      requireAdministrator(identity);
+      const before=args.before??null;if(before!==null&&(!Number.isSafeInteger(before)||before<1))throw Error('잘못된 목록 위치입니다.');
+      return db.adminReports(identity,before);
+    }
+    case 'moderateContent': {
+      requireAdministrator(identity);const target=reportTarget(args);
+      if(typeof args.hidden!=='boolean')throw Error('처리 상태를 확인해 주세요.');
+      return db.moderateContent(identity,target.kind,target.id,args.hidden);
+    }
     case 'notificationSettings': return {preferences:{...defaultPreferences,...await db.notifications(uid,'get')},publicKey:db.pushPublicKey||''};
     case 'saveNotificationSettings': return db.notifications(uid,'save',preferences(args.value));
     case 'subscribePush': return db.notifications(uid,'subscribe',subscription(args.value));
@@ -50,7 +62,7 @@ export async function dispatch(db, identity, action, args = {}) {
       if(typeof args.endpoint!=='string'||args.endpoint.length>2048)throw Error('잘못된 알림 구독입니다.');
       return db.notifications(uid,'unsubscribe',{endpoint:args.endpoint});
     }
-    case 'recordShare': return db.notifications(uid||null,'recordShare',{postId:id(args.postId)});
+    case 'recordShare': if(!await get('posts',args.postId))return null;return db.notifications(uid||null,'recordShare',{postId:id(args.postId)});
     case 'battleRankings': {
       const cursor=args.cursor??null;
       if(cursor!==null && (!Array.isArray(cursor)||cursor.length!==2||!Number.isSafeInteger(cursor[0])||cursor[0]<0||typeof cursor[1]!=='string'))throw Error('잘못된 페이지입니다.');

@@ -17,7 +17,7 @@ test('notification validation rejects arbitrary endpoints, malformed keys and no
  assert.ok(!JSON.stringify(notificationPayload({kind:'chat',content:'secret'})).includes('secret'));
 });
 test('notification actions require verified identity and cannot select another account',async()=>{
- const calls=[],db={notifications:async(...args)=>{calls.push(args);return {};},pushPublicKey:'public'};
+ const calls=[],db={one:async()=>({id:'post',body:{authorId:'owner'}}),notifications:async(...args)=>{calls.push(args);return {};},pushPublicKey:'public'};
  for(const action of ['notificationSettings','saveNotificationSettings','subscribePush','unsubscribePush'])await assert.rejects(dispatch(db,null,action),/로그인/);
  await dispatch(db,{uid:'alice'},'saveNotificationSettings',{uid:'bob',value:enabled});
  assert.equal(calls[0][0],'alice');

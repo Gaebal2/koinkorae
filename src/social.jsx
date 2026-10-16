@@ -9,19 +9,19 @@ import { CalendarCheck, Check, Shield, SquarePen, Zap, ChevronDown, ChevronUp } 
 import { data, dayNumber } from './data.js';
 import { age } from './api.js';
 import { filterFeed } from './feed-model.js';
-import { Coin, Empty, Modal, Field, PageTitle } from './ui.jsx';
+import { Coin, Empty, Modal, Field, PageTitle, profileImage } from './ui.jsx';
 import { useLiveProfile } from './live-profile.js';
 import {useCursorPage} from './paged-feed.jsx';
 
-function CommentAuthor({ id, name, initial }) {
+function CommentAuthor({ id, name, initial, onProfile }) {
   const live = useLiveProfile(initial ? null : id), profile=initial || live;
-  return <span className="comment-author">{profile?.profileImage && <img src={profile.profileImage} alt=""/>}<b>{profile?.username || name}</b></span>;
+  return <span className="comment-author">{onProfile&&id?<button type="button" className="comment-profile-button" aria-label={t('{0} 프로필 보기',profile?.username||name)} onClick={()=>onProfile(id)}><img src={profile?.profileImage||profileImage()} alt=""/></button>:profile?.profileImage&&<img src={profile.profileImage} alt=""/>}<b>{profile?.username || name}</b></span>;
 }
 
 export function HomePage({ onCoin, onPin, onReposted, me, options, setOptions, following, onProfile, compose, login }) {
   const [posts, setPosts] = useState([]), [error, setError] = useAppMessage(), [loading, setLoading] = useState(true), [open, setOpen] = useState({});
   useEffect(() => data.watchPosts(value => { setPosts(value); setLoading(false); setError(''); }, () => { setError('피드를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'); setLoading(false); }), []);
-  const { actions, overlays } = useFeedActions(me, login, onReposted);
+  const { actions, overlays } = useFeedActions(me, login, onReposted, false, onProfile);
   actions.onCoin=onCoin;
   useEffect(()=>{if(options.focusCoin){setOpen(current=>({...current,[options.focusCoin]:true}));window.scrollTo(0,0);}},[options.focusCoin,options.coinSelection]);
   const result = filterFeed(posts.map(post => ({...post, likeCount: actions.likes.filter(like => like.postId === post.id).length})), options, following);
@@ -35,14 +35,14 @@ export function HomePage({ onCoin, onPin, onReposted, me, options, setOptions, f
   </main>;
 }
 
-export function Comments({ post, me, close }) {
-  return data.page ? <CursorComments post={post} me={me} close={close}/> : <CommentThread post={post} me={me} close={close}/>;
+export function Comments({ post, me, close, onProfile }) {
+  return data.page ? <CursorComments post={post} me={me} close={close} onProfile={onProfile}/> : <CommentThread post={post} me={me} close={close} onProfile={onProfile}/>;
 }
 function CursorComments(props){
   const page=useCursorPage({mode:'comments',postId:props.post.id},props.me?.id);
   return <CommentThread {...props} query={page}/>;
 }
-function CommentThread({post,me,close,query}) {
+function CommentThread({post,me,close,query,onProfile}) {
   const { confirm } = useFeedback();
   const [deleting, setDeleting] = useState(null);
   const [pendingScroll, setPendingScroll] = useState(null);
@@ -83,7 +83,7 @@ function CommentThread({post,me,close,query}) {
       {query?.error&&<button onClick={query.retry}>{t("댓글 다시 불러오기")}</button>}
       {!items.length && <p className="form-help">{query?.loading?t("댓글을 불러오는 중…"):t("첫 댓글을 남겨보세요.")}</p>}
       {items.map(c => <article key={c.id} ref={node => { if (node) nodes.current.set(c.id, node); else nodes.current.delete(c.id); }} tabIndex={-1} className={'chat-message ' + (c.side || 'neutral')}>
-        <div className="chat-message-head"><CommentAuthor id={c.authorId} name={c.author} initial={c.authorProfile}/>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label={t("내 댓글 삭제")}>×</button>}</div>
+        <div className="chat-message-head"><CommentAuthor id={c.authorId} name={c.author} initial={c.authorProfile} onProfile={onProfile? id=>{close();onProfile(id);}:undefined}/>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label={t("내 댓글 삭제")}>×</button>}</div>
         <div className="chat-bubble" tabIndex={0} aria-label={c.author + (c.side === 'support' ? t(" 지지") : c.side === 'oppose' ? t(" 반대") : '') + t(" 댓글. 길게 누르거나 Enter 키로 답글 작성")}
           onPointerDown={e => { if (e.button !== 0) return; cancelPress(); origin.current = { x:e.clientX, y:e.clientY }; timer.current = setTimeout(() => selectReply(c), 550); }}
           onPointerMove={e => { if (origin.current && Math.hypot(e.clientX-origin.current.x,e.clientY-origin.current.y)>10) cancelPress(); }}

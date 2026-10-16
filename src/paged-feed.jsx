@@ -58,7 +58,7 @@ function CoinGroup({focused=false,group,options,me,onPin,onProfile,actions}){
 export function PagedHome({onCoin,me,options,setOptions,onPin,onProfile,onReposted,login,compose}){
   const query=feedOptions(options),page=useCursorPage(query,me?.id);
   useContentRefresh('home', page.retry);
-  const {actions,overlays}=useFeedActions(me,login,onReposted,true);
+  const {actions,overlays}=useFeedActions(me,login,onReposted,true,onProfile);
   actions.onCoin=onCoin;
   const scrollKey='home:'+JSON.stringify(options);
   useEffect(()=>{

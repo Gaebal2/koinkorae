@@ -3,7 +3,7 @@ import {Bell,MessageCircle,Repeat2,Heart,Share2,MessagesSquare,CalendarCheck} fr
 import {data} from './data.js';
 import {enableDevicePush,pushSupported} from './push-notifications.js';
 import {t} from './language.js';
-const options=[['comment','댓글','내 피드에 달린 새 댓글',MessageCircle],['repost','리포스트','내 피드를 리포스트한 소식',Repeat2],['like','좋아요','내 피드에 도착한 좋아요',Heart],['share','공유','내 피드의 공유 버튼을 누른 소식',Share2],['chat','친구 채팅','맞팔 친구의 새 메시지',MessagesSquare],['checkin','체크인','다음 체크인이 가능해질 때',CalendarCheck]];
+const options=[['comment','댓글','내 피드에 달린 새 댓글',MessageCircle],['reply','내 댓글의 답글','내가 남긴 댓글에 달린 답글',MessageCircle],['repost','리포스트','내 피드를 리포스트한 소식',Repeat2],['like','좋아요','내 피드에 도착한 좋아요',Heart],['share','공유','내 피드의 공유 버튼을 누른 소식',Share2],['chat','친구 채팅','맞팔 친구의 새 메시지',MessagesSquare],['checkin','체크인','다음 체크인이 가능해질 때',CalendarCheck]];
 export function NotificationSettings({me}) {
  const [state,setState]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[revision,retry]=useState(0),lock=useRef(false),alive=useRef(true);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);

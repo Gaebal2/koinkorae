@@ -1,3 +1,4 @@
+import {ReportButton} from './report-button.jsx';
 import {ShareButton} from './share-button.jsx';
 import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
 import {handleDescriptionInput} from './description-input.js';
@@ -10,7 +11,7 @@ import { useBackDismiss } from './use-back-dismiss.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from 'react-dom';
-import { Pin, BarChart3, Check, ChevronDown, ChevronUp, ImagePlus, MapPinned, MoreVertical, Pencil, Trash2, MapPin, MessageCircle, Repeat2, Search, Shield, Swords, X, Zap } from "lucide-react";
+import { Share, PlusSquare, Pin, BarChart3, Check, ChevronDown, ChevronUp, ImagePlus, MapPinned, MoreVertical, Pencil, Trash2, MapPin, MessageCircle, Repeat2, Search, Shield, Swords, X, Zap } from "lucide-react";
 import initialCoins from './cmc-top100.json';
 import { prioritizeCoins } from './coins.js';
 import { watchInstallPrompt } from './install-prompt.js';
@@ -138,7 +139,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
             <img src={creator?.profileImage || profileImage()} alt={t("{0} 프로필", creatorName)} />
           </Avatar>
           <span className="pin-creator-name">@{creatorName}</span>
-          {!passive && !pin._detailPending && <ShareButton kind="pin" item={pin}/>}<Coin symbol={pin.coin} size="sm" />
+          {!passive && !pin._detailPending && <ShareButton kind="pin" item={pin}/>} {!passive && !pin._detailPending && <ReportButton kind="pins" item={pin}/>}
           {topAction && <div className="pin-detail-actions">{topAction}</div>}
 
         </div>
@@ -444,5 +445,17 @@ export function InstallPrompt(){
     finally { setInstalling(false); }
   };
   if(!installEvent)return null;
+  if(installEvent.kind==='ios')return <Modal title={t('홈 화면에 앱 추가')} onClose={dismiss} className="ios-install-guide" floating>
+    <div className="ios-install-brand"><img src={asset('koin-korae-transparent-192.png')} alt={t('ㅋㅇㄱㄹ 앱 아이콘')}/><h2>{t('ㅋㅇㄱㄹ를 홈 화면에서 만나세요')}</h2><p>{t('아이콘을 눌러 바로 열고, 원하는 소식을 알림으로 받아보세요.')}</p></div>
+    {!installEvent.safari&&<div className="ios-install-browser"><b>{t('먼저 Safari에서 열어 주세요')}</b><p>{t('현재 브라우저의 메뉴에서 Safari로 열기를 선택하거나, 아래 주소를 복사해 Safari에서 열어 주세요.')}</p><span>koinkorae.com</span></div>}
+    <ol className="ios-install-steps">
+      <li><span className="ios-step-number">1</span><div><b><Share size={17} aria-hidden="true"/>{t('Safari에서 공유 버튼 누르기')}</b><p>{t('네모 위로 화살표가 올라가는 아이콘이에요. 메뉴 안에 있을 수도 있어요.')}</p></div></li>
+      <li><span className="ios-step-number">2</span><div><b><PlusSquare size={17} aria-hidden="true"/>{t('홈 화면에 추가 선택')}</b><p>{t('공유 메뉴를 아래로 내려 찾아보세요.')}</p></div></li>
+      <li><span className="ios-step-number">3</span><div><b>{t('추가한 뒤 홈 화면에서 실행')}</b><p>{t('웹 앱으로 열기가 보이면 켜고 추가해 주세요. 홈 화면의 ㅋㅇㄱㄹ 아이콘으로 실행하면 됩니다.')}</p></div></li>
+    </ol>
+    <p className="ios-install-note">{t('알림은 설치 후 설정 → 알림 설정에서 켤 수 있어요.')}</p>
+    <button type="button" className="primary ios-install-confirm" onClick={dismiss}>{t('확인했어요')}</button>
+    <button type="button" className="ios-install-later" onClick={dismiss}>{t('지금은 웹으로 이용할게요')}</button>
+  </Modal>;
   return <div className="install-overlay" onClick={event=>{if(event.target===event.currentTarget)dismiss();}} role="dialog" aria-modal="true" aria-labelledby="install-heading"><section className="install-card"><button className="install-dismiss" onClick={dismiss} aria-label={t("설치 안내 닫기")}><X/></button><img src={asset("koin-korae-transparent-192.png")} alt={t("ㅋㅇㄱㄹ 앱 아이콘")}/><small>ㅋㅇㄱㄹ APP</small><h2 id="install-heading">{t("앱으로 설치할까요?")}</h2><p>{t("홈 화면에서 더 빠르고 편하게 이용할 수 있어요.")}</p><button className="install-action" onClick={install} disabled={installing}>{installing?t("설치 확인 중…"):t("앱 설치하기")}</button><button className="install-later" onClick={dismiss}>{t("나중에")}</button></section></div>
 }

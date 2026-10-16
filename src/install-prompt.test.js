@@ -87,3 +87,48 @@ test("blocked storage does not break the app or dismissal", () => {
   prompt();
   assert.equal(current, null);
 });
+
+const iphoneSafari = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
+test('first iPhone Safari visit shows manual guide without a browser install event',()=>{
+ const {win}=environment();win.navigator.userAgent=iphoneSafari;
+ let current;const controller=watchInstallPrompt(win,value=>current=value);
+ assert.deepEqual(current,{kind:'ios',safari:true});controller.dispose();
+});
+test('in-app browsers and iOS Chrome are directed to Safari',()=>{
+ for(const userAgent of [iphoneSafari+' KAKAOTALK',iphoneSafari.replace('Version/18.0','CriOS/130.0'),iphoneSafari.replace('Version/18.0','FxiOS/130.0')]){
+  const {win}=environment();win.navigator.userAgent=userAgent;
+  let current;const controller=watchInstallPrompt(win,value=>current=value);
+  assert.deepEqual(current,{kind:'ios',safari:false});controller.dispose();
+ }
+});
+test('installed iPhone apps never show the manual guide',()=>{
+ for(const mode of ['standalone','ios']){
+  const {win}=environment(mode);win.navigator.userAgent=iphoneSafari;if(mode==='ios')win.navigator.standalone=true;
+  let current;const controller=watchInstallPrompt(win,value=>current=value);
+  assert.equal(current,null);controller.dispose();
+ }
+});
+test('dismissing the iPhone guide persists across visits and remounts',()=>{
+ const storage=new Map();
+ for(let visit=0;visit<2;visit++){
+  const {win}=environment('browser',storage);win.navigator.userAgent=iphoneSafari;
+  let current;const controller=watchInstallPrompt(win,value=>current=value);
+  if(!visit){assert.equal(current.kind,'ios');controller.dismiss();}
+  else assert.equal(current,undefined);
+  controller.dispose();
+ }
+});
+test('blocked storage retains dismissal for the same page when the component remounts',()=>{
+ const {win}=environment();win.navigator.userAgent=iphoneSafari;
+ win.localStorage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};
+ const first=watchInstallPrompt(win,()=>{});first.dismiss();first.dispose();
+ let shown=false;const next=watchInstallPrompt(win,value=>{if(value)shown=true;});
+ assert.equal(shown,false);next.dispose();
+});
+test('desktop Safari is not mistaken for iPhone; desktop-mode iPad is supported',()=>{
+ for(const [touch,expected] of [[0,false],[5,true]]){
+  const {win}=environment();win.navigator={userAgent:'Mozilla/5.0 (Macintosh) Version/18.0 Safari/605.1.15',platform:'MacIntel',maxTouchPoints:touch};
+  let current;const controller=watchInstallPrompt(win,value=>current=value);
+  assert.equal(current?.kind==='ios',expected);controller.dispose();
+ }
+});

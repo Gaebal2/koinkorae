@@ -644,3 +644,52 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 @media(prefers-reduced-motion:reduce) { .notification-switch::before,.notification-switch > span { transition:none; } }
 
 .profile-settings-menu .notification-device:last-child { color:var(--primary); }
+
+.ios-install-guide { max-width:420px; }
+.ios-install-brand { text-align:center; padding:4px 4px 18px; }
+.ios-install-brand > img { width:68px; height:68px; object-fit:contain; }
+.ios-install-brand h2 { font-size:19px; line-height:1.5; margin:12px 0 6px; color:var(--ink); }
+.ios-install-brand p { font-size:12px; line-height:1.7; color:var(--muted); margin:0; }
+.ios-install-steps { display:grid; gap:18px; padding:18px 14px; margin:0; list-style:none; background:var(--surface-tint); border-radius:16px; }
+.ios-install-steps li { display:flex; gap:11px; align-items:flex-start; }
+.ios-step-number { display:grid; place-items:center; flex:0 0 26px; width:26px; height:26px; border-radius:9px; background:white; color:var(--primary); font-weight:800; font-size:12px; }
+.ios-install-steps b { display:flex; align-items:center; gap:6px; min-height:26px; font-size:13px; color:var(--ink); }
+.ios-install-steps b svg { flex-shrink:0; color:var(--primary); }
+.ios-install-steps p,.ios-install-browser p { margin:5px 0 0; font-size:12px; line-height:1.7; color:var(--muted); overflow-wrap:anywhere; }
+.ios-install-note { font-size:11px; line-height:1.7; color:var(--muted); margin:14px 4px; }
+.ios-install-confirm { width:100%; min-height:46px; }
+.ios-install-later { display:block; width:100%; min-height:42px; margin-top:6px; background:transparent; border:0; color:var(--muted); font-size:12px; }
+.ios-install-browser { border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:16px; }
+.ios-install-browser b { font-size:13px; color:var(--primary-dark); }
+.ios-install-browser > span { display:block; margin-top:10px; font-size:13px; font-weight:700; user-select:all; color:var(--ink); }
+
+.comment-author .comment-profile-button { display:inline-flex; align-items:center; justify-content:center; padding:0; border:0; background:transparent; border-radius:50%; min-width:32px; min-height:32px; }
+.comment-author .comment-profile-button img { width:30px; height:30px; border-radius:50%; object-fit:cover; }
+.report-button { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; width:34px; height:34px; padding:6px; border:0; border-radius:10px; background:transparent; color:var(--muted); }
+.report-button svg { width:18px; height:18px; }
+.report-button:hover { background:var(--surface-tint); color:var(--primary); }
+.post-head > .external-share-button { margin-left:auto; flex-shrink:0; width:34px; height:34px; padding:6px; }
+.post-head > .feed-coin-button { margin-left:0; }
+.pin-creator > .report-button { margin-left:0; }
+.admin-reports { display:grid; gap:14px; }
+.admin-report-heading { display:flex; align-items:center; gap:10px; padding:14px; background:var(--surface-tint); border-radius:16px; }
+.admin-report-heading > svg { flex-shrink:0; color:var(--primary); }
+.admin-report-heading > div { flex:1; min-width:0; }
+.admin-report-heading h3 { margin:0; font-size:15px; color:var(--ink); }
+.admin-report-heading p { margin:5px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
+.admin-report-heading > button { background:white; border:0; border-radius:10px; width:36px; height:36px; color:var(--primary); flex-shrink:0; }
+.admin-report-card { padding:16px; border:1px solid var(--line); border-radius:20px; background:white; box-shadow:var(--card-shadow); overflow:hidden; }
+.admin-report-meta { display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:11px; color:var(--muted); }
+.admin-report-meta span { display:inline-flex; align-items:center; gap:4px; padding:4px 7px; border-radius:7px; background:var(--surface-tint); }
+.admin-report-meta span:last-child { margin-left:auto; }
+.admin-report-meta .is-hidden { color:#b13c55; background:#fff0f3; }
+.admin-report-card h4 { margin:14px 0 4px; font-size:15px; overflow-wrap:anywhere; }
+.admin-report-card > small { color:var(--muted); }
+.admin-report-card > p { font-size:13px; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }
+.admin-report-card > img { display:block; max-width:100%; max-height:260px; border-radius:12px; object-fit:contain; }
+.admin-report-card footer { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+.admin-report-card time { font-size:11px; color:var(--muted); }
+.admin-report-card footer button { display:flex; align-items:center; gap:6px; padding:10px 12px; border:0; border-radius:10px; background:var(--surface-tint); color:var(--primary-dark); font-weight:700; font-size:12px; }
+
+.post-head > .external-share-button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:10px; background:transparent; color:var(--muted); }
+.post-head > .external-share-button svg { width:20px; height:20px; }

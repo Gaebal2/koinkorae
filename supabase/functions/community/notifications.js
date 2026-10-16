@@ -1,4 +1,4 @@
-export const notificationTypes = ['comment','repost','like','share','chat','checkin'];
+export const notificationTypes = ['comment','reply','repost','like','share','chat','checkin'];
 export const defaultPreferences = Object.fromEntries(['enabled',...notificationTypes].map(key=>[key,false]));
 export function preferences(value) {
  if (!value || typeof value!=='object' || Array.isArray(value) || Object.keys(value).some(key=>!Object.hasOwn(defaultPreferences,key)) || Object.values(value).some(item=>typeof item!=='boolean')) throw Error('알림 설정을 확인해 주세요.');
@@ -13,6 +13,6 @@ export function subscription(value) {
  return {endpoint:url.href,keys:{p256dh:value.keys.p256dh,auth:value.keys.auth}};
 }
 export function notificationPayload(job) {
- const labels={comment:'내 피드에 새 댓글이 달렸어요.',repost:'누군가 내 피드를 리포스트했어요.',like:'내 피드에 좋아요가 도착했어요.',share:'누군가 내 피드의 공유 버튼을 눌렀어요.',chat:'맞팔 친구에게 새 메시지가 도착했어요.',checkin:'새로운 하루의 체크인이 열렸어요. KK를 받아보세요!'};
+ const labels={reply:'내 댓글에 새 답글이 달렸어요.',comment:'내 피드에 새 댓글이 달렸어요.',repost:'누군가 내 피드를 리포스트했어요.',like:'내 피드에 좋아요가 도착했어요.',share:'누군가 내 피드의 공유 버튼을 눌렀어요.',chat:'맞팔 친구에게 새 메시지가 도착했어요.',checkin:'새로운 하루의 체크인이 열렸어요. KK를 받아보세요!'};
  return {title:job.kind==='checkin'?'오늘의 체크인':'ㅋㅇㄱㄹ',body:labels[job.kind]||'새 알림이 도착했어요.',tag:job.event_key,url:job.kind==='chat'?'?screen=chat':job.kind==='checkin'?'?screen=check':'?post='+encodeURIComponent(job.target)};
 }

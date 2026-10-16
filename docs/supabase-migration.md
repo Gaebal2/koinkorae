@@ -95,3 +95,15 @@ CLI 인증이 없으면 `npx supabase login`을 먼저 실행한다. 브라우�
 - `npm test`, `npm run build`, `node scripts/bundle-edge.mjs` 후 실제 허용 기기에서 수신·클릭·전체 끄기·로그아웃 동작을 확인한다.
 
 참고: [WebKit Web Push 지원](https://webkit.org/blog/13878/), [web-push 전송 API](https://github.com/web-push-libs/web-push), [Supabase 스케줄 함수](https://supabase.com/docs/guides/functions/schedule-functions).
+
+## 2026-10-16 Reports and reply notifications
+
+Deploy `202610160002_reports_and_replies.sql` before the updated `community` and `push-dispatch` Edge Functions, then deploy the frontend. The worker must be redeployed to render the new reply notification type. Existing VAPID keys and cron configuration remain valid.
+
+The verified Firebase identity for `gaebal2017@gmail.com` is required on the server for report listing and moderation. Reports are unique per account and content item. Hiding preserves original content and points; the filtered read view excludes hidden posts, reposts and Pins before pagination and aggregation. Restoration is available in the report list.
+
+Reply notifications resolve the parent comment from the database, respect the separate `reply` preference, exclude self-notifications and avoid duplicate post-owner alerts. Existing users can enable the new reply preference in notification settings.
+
+Validation: 163 tests passed, production frontend build and both Edge Function bundles passed. Local browser preview verified comment author navigation, share/report placement and moderation confirmation/state. Production deployment and device push delivery have not been run for this change.
+
+Release: production migration 202610160002 and both Edge Functions were deployed on 2026-10-16. Live post/Pin/coin pages return 200; anonymous report, admin-list and moderation requests return 401. Frontend publishes from the main branch through the Pages workflow. Device-level push reception remains a manual check.
