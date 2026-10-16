@@ -1,3 +1,4 @@
+import {trackScreen} from './analytics.js';
 import {resolveSharedPost} from './shared-link.js';
 import {PointsPolicy} from './points-policy.jsx';
 import {POINTS_POLICY,levelFor} from '../supabase/functions/_shared/points-policy.js';
@@ -171,6 +172,7 @@ export default function App() {
   useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.has('screen')){url.searchParams.delete('screen');history.replaceState(history.state,'',url);}},[]);
   const [practiceDraft,setPracticeDraft]=useState(null);
   const [authReady, setAuthReady] = useState(false);
+  useEffect(()=>{if(authReady)trackScreen(page);},[authReady,page]);
   const [compose, setCompose] = useState(false), [following, setFollowing] = useState([]), [balance, setBalance] = useState({ current: 0, lifetime: 0, day: -1 });
   useEffect(()=>{if(me&&practiceDraft)setCompose(true);},[me,practiceDraft]);
   const sharePractice=draft=>{setPracticeDraft(draft);setAttachedPin(null);if(me)setCompose(true);else setAuth(true);};
