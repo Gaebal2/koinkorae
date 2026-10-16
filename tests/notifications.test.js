@@ -13,7 +13,7 @@ test('notification validation rejects arbitrary endpoints, malformed keys and no
  for(const endpoint of ['http://fcm.googleapis.com/','https://127.0.0.1/','https://fcm.googleapis.com.evil.com/','https://fcm.googleapis.com:8443/','https://user@web.push.apple.com/'])assert.throws(()=>subscription({...device(),endpoint}));
  assert.throws(()=>subscription({...device(),keys:{p256dh:'short',auth:'short'}}));
  assert.deepEqual(subscription(device()),device());
- assert.equal(notificationPayload({kind:'chat',target:'private',event_key:'1'}).url,'?screen=chat');
+ assert.equal(notificationPayload({kind:'chat',target:'private',event_key:'1'}).url,'?screen=notifications');
  assert.ok(!JSON.stringify(notificationPayload({kind:'chat',content:'secret'})).includes('secret'));
 });
 test('notification actions require verified identity and cannot select another account',async()=>{
@@ -91,5 +91,5 @@ test('push displays a private summary and notification click stays in app origin
  handlers.push({data:{json:()=>({title:'Update',body:'A new message',url:'https://evil.example',tag:'event'})},waitUntil:value=>pending=value});
  await pending;assert.equal(shown[0].data.url,'https://example.com/app/');
  let closed=false;handlers.notificationclick({notification:{data:{url:'?screen=chat'},close:()=>closed=true},waitUntil:value=>pending=value});
- await pending;assert.equal(closed,true);assert.equal(opened[0],'https://example.com/app/?screen=chat');
+ await pending;assert.equal(closed,true);assert.equal(opened[0],'https://example.com/app/?screen=notifications');
 });

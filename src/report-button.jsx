@@ -1,5 +1,5 @@
 import React,{useRef,useState} from 'react';
-import {Flag} from 'lucide-react';
+import {OctagonAlert} from 'lucide-react';
 import {data} from './data.js';
 import {useFeedback} from './feedback.jsx';
 import {t} from './language.js';
@@ -14,5 +14,5 @@ export function ReportButton({kind,item}) {
    void notify(t(result.created?'신고가 접수되었습니다. 관리자가 확인할게요.':'이미 신고한 항목입니다.'),{kind:'success',title:t('신고 안내')});
   }catch(error){void notify(t(error.message||'신고를 접수하지 못했습니다.'),{kind:'error'});}
   finally{lock.current=false;setBusy(false);}
- }}><Flag aria-hidden="true"/></button>;
+ }}><OctagonAlert aria-hidden="true"/></button>;
 }

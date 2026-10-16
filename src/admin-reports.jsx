@@ -1,5 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {ShieldCheck,Flag,Eye,EyeOff,RefreshCw} from 'lucide-react';
+import {ShieldCheck,Flag,Eye,Trash2,RefreshCw} from 'lucide-react';
 import {data} from './data.js';
 import {useFeedback} from './feedback.jsx';
 import {t,getLocale} from './language.js';
@@ -17,13 +17,13 @@ export function AdminReports() {
   try{const page=await data.adminReports(cursor);if(alive.current&&request===generation.current){setRows(current=>[...new Map([...current,...page.items].map(row=>[row.reportId,row])).values()]);setCursor(page.nextCursor);}}
   catch(e){if(alive.current)setError(e.message);}finally{if(alive.current&&request===generation.current)setLoading(false);}
  }
- async function moderate(row){
+ async function moderate(row,hidden){
   if(lock.current)return;lock.current=true;
   try{
-   if(!await confirm(t(row.hidden?'이 항목을 다시 공개할까요?':'이 항목을 모든 사용자 화면에서 가릴까요?'),{title:t(row.hidden?'다시 공개':'콘텐츠 가리기'),confirmLabel:t(row.hidden?'다시 공개':'가리기')}))return;
-   setBusy(row.reportId);await data.moderateContent(row.kind,row.targetId,!row.hidden);
-   if(alive.current)setRows(current=>current.map(item=>item.reportId===row.reportId?{...item,hidden:!row.hidden}:item));
-   void notify(t(row.hidden?'다시 공개했습니다.':'사용자 화면에서 가렸습니다.'),{kind:'success'});
+   if(!await confirm(t(!hidden?'이 항목을 다시 공개할까요?':'이 항목을 삭제 처리할까요? 다시 공개할 수 있으며 작성자에게 삭제 내역이 남습니다.'),{title:t(!hidden?'다시 공개':row.kind==='posts'?'피드 삭제':'Pin 삭제'),confirmLabel:t(!hidden?'다시 공개':row.kind==='posts'?'피드 삭제':'Pin 삭제')}))return;
+   setBusy(row.reportId);await data.moderateContent(row.kind,row.targetId,hidden);
+   if(alive.current)setRows(current=>current.map(item=>item.reportId===row.reportId?{...item,hidden}:item));
+   void notify(t(!hidden?'다시 공개했습니다.':'삭제 처리했습니다.'),{kind:'success'});
   }catch(e){void notify(t(e.message),{kind:'error'});}
   finally{lock.current=false;if(alive.current)setBusy(null);}
  }
@@ -32,9 +32,9 @@ export function AdminReports() {
   {error&&<p role="alert" className="error">{t(error)}<button type="button" onClick={()=>refresh(value=>value+1)}>{t('다시 시도')}</button></p>}
   {!loading&&!error&&!rows.length&&<div className="empty-state"><ShieldCheck/><h3>{t('접수된 신고가 없습니다.')}</h3></div>}
   {rows.map(row=><article key={row.reportId} className="admin-report-card">
-   <div className="admin-report-meta"><span>{row.kind==='pins'?'Pin':t('피드')}</span><span><Flag size={13}/>{t('신고 {0}건',row.count)}</span><span className={row.hidden?'is-hidden':''}>{t(!row.item?'삭제됨':row.hidden?'가려짐':'공개 중')}</span></div>
+   <div className="admin-report-meta"><span>{row.kind==='pins'?'Pin':t('피드')}</span><span><Flag size={13}/>{t('신고 {0}건',row.count)}</span><span className={row.hidden?'is-hidden':''}>{t(!row.item?'삭제됨':row.hidden?'관리자 삭제':'공개 중')}</span></div>
    {row.item?<><h4>{row.item.title||row.item.author||t('피드')}</h4>{row.kind==='pins'&&<small>@{row.item.creator||t('사용자')}</small>}<p>{row.item.description||row.item.content}</p>{row.item.repostComment&&<p>{row.item.repostComment}</p>}{row.item.image&&<img src={row.item.image} loading="lazy" alt={t('신고된 콘텐츠 사진')}/>}</>:<p>{t('작성자가 삭제한 항목입니다.')}</p>}
-   <footer><time dateTime={row.createdAt}>{new Date(row.createdAt).toLocaleDateString(getLocale())}</time><button type="button" disabled={!row.item||busy!==null} onClick={()=>moderate(row)}>{row.hidden?<Eye size={16}/>:<EyeOff size={16}/>} {busy===row.reportId?t('처리 중…'):t(row.hidden?'다시 공개':'가리기')}</button></footer>
+   <footer><time dateTime={row.createdAt}>{new Date(row.createdAt).toLocaleDateString(getLocale())}</time><div className="admin-report-actions"><button type="button" disabled={!row.item||busy!==null||row.hidden||row.kind!=='posts'} onClick={()=>moderate(row,true)}><Trash2 size={15}/>{t('피드 삭제')}</button><button type="button" disabled={!row.item||busy!==null||row.hidden||row.kind!=='pins'} onClick={()=>moderate(row,true)}><Trash2 size={15}/>{t('Pin 삭제')}</button><button type="button" disabled={!row.item||busy!==null||!row.hidden} onClick={()=>moderate(row,false)}><Eye size={15}/>{t('다시 공개')}</button></div></footer>
   </article>)}
   {loading&&<p role="status">{t('불러오는 중…')}</p>}
   {cursor!==null&&<button type="button" className="secondary" disabled={loading||busy!==null} onClick={more}>{t('더 보기')}</button>}

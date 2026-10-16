@@ -163,6 +163,8 @@ export default function App() {
   const [restored] = useState(() => readViewState());
   const [sharedPost,setSharedPost] = useState(()=>new URLSearchParams(window.location.search).get('post'));
   const [focusPostId,setFocusPostId] = useState(null), [shareError,setShareError] = useState(''), [shareRevision,retryShare] = useState(0);
+  const sharedProfile=useRef(new URLSearchParams(window.location.search).get('profile'));
+  const notificationLaunch=useRef(new URLSearchParams(window.location.search).get('screen')==='notifications');
   const sharedPin = useRef(new URLSearchParams(window.location.search).get('pin'));
 
   const [me, setMe] = useState(null), [page, setPage] = useState(()=>{const screen=new URLSearchParams(window.location.search).get('screen');return ['chat','check'].includes(screen)?screen:restored.page;}), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
@@ -213,6 +215,12 @@ export default function App() {
     const url=new URL(window.location.href);url.searchParams.delete('pin');history.replaceState(history.state,'',url);
   },[authReady]);
   const openCoin = coin => { setOptions(current=>({...current,feed:'코인 피드',category:'지지',period:'전체',focusCoin:coin,coinSelection:Date.now()})); setPage('home'); };
+  useEffect(()=>{
+    if(!authReady||!notificationLaunch.current)return;
+    if(!me){setAuth(true);return;}
+    notificationLaunch.current=false;setProfileId(me.id);setProfileFeed('알림');setPage('profile');setProfileEntry(value=>value+1);
+  },[authReady,me?.id]);
+  useEffect(()=>{if(!authReady||!sharedProfile.current)return;setProfileId(sharedProfile.current);setProfileFeed('작성 피드');setPage('profile');sharedProfile.current=null;const url=new URL(window.location.href);url.searchParams.delete('profile');history.replaceState(history.state,'',url);},[authReady]);
   const openProfile = (id, feed = '작성 피드') => { setFocusPostId(null); setEditing(false); setProfileFeed(feed); setProfileId(id); setPage('profile'); };
   useEffect(()=>{
     if(!authReady || !sharedPost)return;

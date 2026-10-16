@@ -629,7 +629,7 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .notification-error { color:#b13c55; font-size:12px; line-height:1.6; }
 .profile-settings-menu .notification-device { margin-top:12px; width:100%; text-align:center; padding:10px; font-size:12px; color:var(--primary); background:var(--surface-tint); }
 .profile-comments { gap:14px; }
-.profile-comments > .own-comment-card { padding:18px; border:1px solid var(--line); border-radius:20px; background:white; box-shadow:var(--card-shadow); }
+.profile-comments > .own-comment-card, .notification-inbox > .notification-card { padding:18px; border:1px solid var(--line); border-radius:20px; background:white; box-shadow:var(--card-shadow); }
 .own-comment-heading { display:flex; align-items:center; gap:8px; }
 .own-comment-heading .own-comment-icon { width:30px; height:30px; border-radius:10px; }
 .own-comment-heading b { color:var(--primary-dark); font-size:12px; }
@@ -693,3 +693,18 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 
 .post-head > .external-share-button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:10px; background:transparent; color:var(--muted); }
 .post-head > .external-share-button svg { width:20px; height:20px; }
+
+.pin-creator > .external-share-button { margin-right:-6px; }
+.notification-inbox { display:grid; gap:12px; }
+.notification-inbox-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; color:var(--muted); font-size:12px; }
+.notification-inbox-heading button { display:grid; place-items:center; width:36px; height:36px; border:0; border-radius:12px; background:var(--surface-tint); color:var(--primary); }
+.notification-open { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-radius:12px; background:var(--surface-tint); color:var(--primary); font-size:12px; font-weight:600; text-decoration:none; }
+.notification-card .own-comment-body { margin-bottom:14px; }
+
+.admin-report-card footer { flex-wrap:wrap; gap:12px; }
+.admin-report-actions { display:flex; flex-wrap:wrap; gap:6px; }
+.admin-report-actions button:disabled { opacity:.38; cursor:not-allowed; }
+.relationship-tabs { display:flex; margin-bottom:16px; }
+.relationship-tabs button { flex:1; min-height:44px; }
+.relationship-tabs small { margin-left:4px; opacity:.7; }
+.notification-context { display:grid; gap:6px; padding:12px; border-radius:12px; background:var(--surface-tint); font-size:12px; overflow-wrap:anywhere; }

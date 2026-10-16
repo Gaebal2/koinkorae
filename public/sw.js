@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v26-notifications';
+const CACHE = 'korae-community-v27-notification-inbox';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -59,7 +59,7 @@ self.addEventListener('notificationclick',event=>{
  event.notification.close();
  event.waitUntil((async()=>{
   const url=new URL(event.notification.data?.url||ROOT,ROOT);
-  const target=url.origin===self.location.origin?url.href:ROOT;
+  const target=new URL('?screen=notifications',ROOT).href;
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
   const existing=windows.find(client=>client.url.startsWith(ROOT));
   if(existing){const navigated=await existing.navigate(target);if(navigated)return navigated.focus();}

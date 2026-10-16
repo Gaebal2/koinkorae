@@ -93,3 +93,43 @@ test('reply notifications resolve parent author, respect settings and avoid dupl
   await assert.rejects(dispatch(db,carol,'comment',{postId:post,replyToId:'missing',content:'Invalid parent',side:'support'}),/원댓글/);
  }finally{await pg.close();}
 });
+
+test('report, moderation and follow notices obey settings; deletion records survive restoration',async()=>{
+ const {pg,db,rpc}=await setup();
+ try{
+ for(const name of ['202610160003_notification_inbox.sql','202610160004_moderation_follow_notifications.sql'])await pg.exec(await readFile(new URL('../supabase/migrations/'+name,import.meta.url),'utf8'));
+ const inbox=()=>rpc("select korae_notification_inbox_page('alice') value");
+ await db.notifications('alice','save',{enabled:true,report:true,moderation:true,follow:true});
+ await db.notifications('alice','subscribe',{endpoint:'https://fcm.googleapis.com/fcm/send/test',keys:{p256dh:'A'.repeat(87),auth:'B'.repeat(22)}});
+ await dispatch(db,alice,'publish',{value:{content:'Snapshot of the reported post',coin:'BTC'}});
+ const post=(await db.list('posts'))[0].id;
+ await dispatch(db,bob,'reportContent',{kind:'posts',id:post});
+ await dispatch(db,bob,'reportContent',{kind:'posts',id:post});
+ let page=await inbox();assert.equal(page.items.length,1);assert.equal(page.items[0].kind,'report');assert.equal(JSON.stringify(page).includes('bob'),false);
+ await dispatch(db,admin,'moderateContent',{kind:'posts',id:post,hidden:true});
+ await dispatch(db,admin,'moderateContent',{kind:'posts',id:post,hidden:true});
+ page=await inbox();assert.equal(page.items.filter(i=>i.kind==='moderation').length,1);assert.ok(page.items.every(i=>i.unavailable));assert.equal(page.items[0].details.summary,'Snapshot of the reported post');
+ const jobs=await rpc('select korae_claim_push(50) value');assert.equal(jobs.filter(j=>j.kind==='moderation').length,1,'deletion push is not filtered out with hidden posts');
+ await dispatch(db,admin,'moderateContent',{kind:'posts',id:post,hidden:false});
+ page=await inbox();assert.ok(page.items.find(i=>i.kind==='moderation').unavailable);assert.equal(page.items.find(i=>i.kind==='report').unavailable,false);
+ await db.notifications('alice','save',{enabled:false,report:false,moderation:false,follow:false});
+ await dispatch(db,admin,'moderateContent',{kind:'posts',id:post,hidden:true});
+ assert.equal((await inbox()).items.filter(i=>i.kind==='moderation').length,2,'mandatory inbox even with all pushes off');
+ assert.equal((await pg.query("select count(*)::int n from korae_notification_events where kind='moderation'")).rows[0].n,1);
+ const pin=await dispatch(db,alice,'savePin',{value:{title:'Private Pin summary',description:'Example',coin:'BTC',tradeCoins:[],category:'P2P 판매',lat:37,lng:127,image:'',link:''}});
+ await dispatch(db,bob,'reportContent',{kind:'pins',id:pin.id});
+ await dispatch(db,admin,'moderateContent',{kind:'pins',id:pin.id,hidden:true});
+ page=await inbox();assert.equal(page.items[0].details.contentKind,'pins');assert.equal(page.items[0].details.summary,'Private Pin summary');
+ await dispatch(db,bob,'follow',{id:'alice',enabled:true});
+ assert.equal((await inbox()).items.filter(i=>i.kind==='follow').length,0);
+ await db.notifications('alice','save',{enabled:true,follow:true});
+ await dispatch(db,bob,'follow',{id:'alice',enabled:false});
+ await dispatch(db,bob,'follow',{id:'alice',enabled:true});
+ await dispatch(db,bob,'follow',{id:'alice',enabled:false});
+ await dispatch(db,bob,'follow',{id:'alice',enabled:true});
+ page=await inbox();assert.equal(page.items.filter(i=>i.kind==='follow').length,1,'same-day follow toggles do not spam');
+ assert.equal(page.items.find(i=>i.kind==='follow').target,'bob');
+ await pg.exec('delete from korae_notification_events');
+ assert.equal((await inbox()).items.filter(i=>i.kind==='moderation').length,3);
+ }finally{await pg.close();}
+});

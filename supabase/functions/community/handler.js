@@ -55,6 +55,11 @@ export async function dispatch(db, identity, action, args = {}) {
       if(typeof args.hidden!=='boolean')throw Error('처리 상태를 확인해 주세요.');
       return db.moderateContent(identity,target.kind,target.id,args.hidden);
     }
+    case 'notificationInbox': {
+      const before=args.before??null;
+      if(before!==null && (typeof before!=='string'||!/^[1-9][0-9]{0,17}$/.test(before)))throw Error('Invalid cursor');
+      return db.notificationInbox(uid,before);
+    }
     case 'notificationSettings': return {preferences:{...defaultPreferences,...await db.notifications(uid,'get')},publicKey:db.pushPublicKey||''};
     case 'saveNotificationSettings': return db.notifications(uid,'save',preferences(args.value));
     case 'subscribePush': return db.notifications(uid,'subscribe',subscription(args.value));

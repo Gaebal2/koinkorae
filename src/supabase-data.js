@@ -31,6 +31,7 @@ async function admitUser(user, newlyCreated=false) {
 }
 export const data={
   reportContent:(kind,id)=>call('reportContent',{kind,id}),
+  notificationInbox:(before=null)=>call('notificationInbox',{before}),
   adminReports:(before=null)=>call('adminReports',{before}),
   moderateContent:(kind,id,hidden)=>call('moderateContent',{kind,id,hidden}),
   notificationSettings:()=>call('notificationSettings'),

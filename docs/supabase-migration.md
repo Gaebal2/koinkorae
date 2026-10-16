@@ -107,3 +107,21 @@ Reply notifications resolve the parent comment from the database, respect the se
 Validation: 163 tests passed, production frontend build and both Edge Function bundles passed. Local browser preview verified comment author navigation, share/report placement and moderation confirmation/state. Production deployment and device push delivery have not been run for this change.
 
 Release: production migration 202610160002 and both Edge Functions were deployed on 2026-10-16. Live post/Pin/coin pages return 200; anonymous report, admin-list and moderation requests return 401. Frontend publishes from the main branch through the Pages workflow. Device-level push reception remains a manual check.
+
+## 2026-10-16 Notification inbox (pending deployment)
+
+Apply `202610160003_notification_inbox.sql`, deploy `community` and `push-dispatch`, then publish the frontend and updated service worker. The inbox stores one row per user/event after the push provider accepts delivery. This is provider acceptance, not a device read receipt. Failed/expired deliveries are excluded; multiple devices do not duplicate the list. Inbox history is independent of event/queue cleanup, authenticated and cursor-paginated.
+
+Only notifications successfully sent after this migration are recorded. Older deliveries cannot reliably be reconstructed because the previous done flag also represented discarded/failed deliveries. Push taps open `?screen=notifications`; authentication restoration then opens the signed-in user's profile notification tab. Normal launches retain their existing route. Inbox links lead to posts, chats or check-in. The report icon is now OctagonAlert and Pin share/report spacing is reduced.
+
+Validation: 165 automated tests passed, including successful/failed delivery handling, account isolation, queue cleanup survival, deduplication and pagination. Local browser preview verified notification cards, tab order and Pin action spacing. Physical-device push receipt remains a post-deployment check.
+
+## 2026-10-16 Reports, removal and follow notices (pending deployment)
+
+Apply 202610160003 then 202610160004 before deploying community, push-dispatch and the frontend. New preference keys: report, moderation, follow; old accounts default to off for these keys. Removal uses the existing reversible moderation state, preserves source data/points and sends a permanent inbox record even when push is disabled. Three admin buttons are always displayed; only applicable actions are enabled. Restoring content does not erase prior removal records or send an unsolicited restoration push.
+
+Report notices omit reporter identity. Duplicate reports do not emit new notices. Follow/unfollow toggles are limited to one notification per actor/recipient/UTC day. Enabled report/follow notices are recorded immediately, with push queued only for subscribed devices. Removal snapshots store content kind and a bounded title/content summary; removal records never link to the original, and other notifications for hidden content have no original link. Existing hidden records are not backfilled.
+
+The profile connections pane now separates following, followers and mutual friends, using the existing relationship graph and profile/follow controls. Validation: 166 tests passed, production build and both Edge bundles passed; browser preview verified buttons, removal confirmation, disabled states and follower list switching. Not deployed yet.
+
+Release 2026-10-16: migrations 202610160003 and 202610160004 applied in one transaction. The release publishes the inbox, report/removal/follow notices, reversible admin removal controls and connection filters. Automated validation: 166 passing tests, frontend build and Edge bundles. Device push receipt remains a manual check.
