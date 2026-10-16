@@ -7,20 +7,20 @@ import { t, getLanguage, subscribeLanguage } from './language.js';
 import { LanguageSettings } from './language-settings.jsx';
 import { coinMarker } from './coin-artwork.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
-import React, { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import React, { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Home, CalendarCheck, Map as MapIcon, MessageCircle, MapPinPlus, LocateFixed, Settings, Swords, X } from 'lucide-react';
 import L from 'leaflet';
 import { data, configured, googleEnabled } from './data.js';
 import { Modal, Field, AppSelect, cmcCoins, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage } from './ui.jsx';
 import { PagedHome } from './paged-feed.jsx';
-import { PracticePage } from './practice-page.jsx';
+const PracticePage = lazy(() => import('./practice-page.jsx').then(module => ({default: module.PracticePage})));
 import { PagedMap } from './paged-map.jsx';
 import { debounce } from './query-timing.js';
 import { reconcileMarkers } from './map-updates.js';
 import { HomePage, CheckinPage } from './social.jsx';
-import { ProfileEditor } from './profile-editor.jsx';
-import { CommunityProfile } from './community-profile.jsx';
-import { FriendChat } from './friend-chat.jsx';
+const ProfileEditor = lazy(() => import('./profile-editor.jsx').then(module => ({default: module.ProfileEditor})));
+const CommunityProfile = lazy(() => import('./community-profile.jsx').then(module => ({default: module.CommunityProfile})));
+const FriendChat = lazy(() => import('./friend-chat.jsx').then(module => ({default: module.FriendChat})));
 import { useLiveProfile } from './live-profile.js';
 import { useBackDismiss, usePageBack } from './use-back-dismiss.js';
 import { coinImage, coinColor } from './ui.jsx';
@@ -225,6 +225,7 @@ export default function App() {
   // A pending session is not a signed-out session. Avoid guest UI during restoration.
   if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main aria-label={t("불러오는 중…")}/></div>;
   return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><img src={myProfile?.profileImage || profileImage()} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={profileImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}<div className="header-actions"><button type="button" className="bp-pill" disabled={pickingPin} onClick={openPolicy} aria-label={t('보유 {0} KK · 포인트 정책 보기',balance.current.toLocaleString())}>{balance.current.toLocaleString()} KK</button>{me ? page==='profile'&&<button className="profile-settings-button" aria-label={t('설정')} onClick={()=>setSettings(true)}><Settings/></button> : <button className="text-action" disabled={pickingPin} onClick={()=>setAuth(true)}>{t('로그인')}</button>}</div></header>
+    <Suspense fallback={<main role="status"><p className="loading-state">{t("???? ??")}</p></main>}>
     <ContentRefresh page={page}/>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
     {page === 'home' && <FeedHome onCoin={openCoin} onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setPracticeDraft(null); setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
@@ -234,10 +235,11 @@ export default function App() {
     {page === 'check' && <CheckinPage me={me} balance={balance} login={() => setAuth(true)}/>}
     {page === 'map' && <MapScreen pinLimit={levelFor(balance).current.pins} picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
     {page === 'profile' && <CommunityProfile focusPostId={focusPostId} onCoin={openCoin} key={profileEntry} initialFeed={profileFeed} onPin={openPin} profileId={profileId} profile={viewedProfile || (profile?.id===profileId ? profile : null)} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
+    </Suspense>
     <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessageCircle], ['battle', '연습', Swords]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><span>{t(label)}</span></button>)}</nav>
     {compose && <Composer initialDraft={practiceDraft} hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setPracticeDraft(null); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setPracticeDraft(null); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
     {form && <PinForm {...form} pinCost={POINTS_POLICY.costs.pins} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin); setPage('map'); }}/>}
-    {editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}
+    <Suspense fallback={<p role="status">{t("???? ??")}</p>}>{editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}</Suspense>
 
     {sharedPost && <Modal title={t('공유 피드')} onClose={()=>setSharedPost(null)}>{shareError?<><p role="alert">{t(shareError)}</p><button onClick={()=>retryShare(value=>value+1)}>{t('다시 시도')}</button></>:<p role="status">{t('불러오는 중…')}</p>}</Modal>}
     {settings && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><LanguageSettings/><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}>{t("프로필 수정")}</button><button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}

@@ -1383,3 +1383,6 @@ button:disabled { opacity: .55; }
 .pin-detail-photo-button:disabled, .pin-creator-profile:disabled { opacity: 1; cursor: default; }
 .pin-selection-empty > p { font-size: 12px; }
 .post-pin-link { margin: 8px 0; }
+
+.startup-skeleton { display:grid; gap:16px; padding:16px; }
+.startup-skeleton > div { height:150px; border-radius:16px; background:linear-gradient(110deg,#e8ecf3 30%,#f1f3f8 50%,#e8ecf3 70%); }

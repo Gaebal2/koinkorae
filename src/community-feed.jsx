@@ -2,13 +2,13 @@ import {ShareButton} from './share-button.jsx';
 import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
 import {formatCompactNumber} from './number-format.js';
 import { t } from './language.js';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Heart, MessageCircle, Repeat2, Swords, MoreVertical, Pin, Trash2 } from 'lucide-react';
 import { data } from './data.js';
 import { age } from './api.js';
 import { Coin, Modal, PinDetailCard, profileImage } from './ui.jsx';
 import { useAppMessage, useFeedback } from './feedback.jsx';
-import { BattleGames } from './battle-games.jsx';
+const BattleGames = lazy(() => import('./battle-games.jsx').then(module => ({default: module.BattleGames})));
 import {BattleRankings} from './battle-rankings.jsx';
 import { Comments } from './social.jsx';
 import { useLiveProfile } from './live-profile.js';
@@ -60,7 +60,7 @@ export function useFeedActions(me, login, onReposted, enriched = false) {
       catch { setError('게시물을 삭제하지 못했습니다.'); }
     },
   };
-  const overlays = <>{repostDraft && <Modal title={t('리포스트')} onClose={() => { if (!repostLock.current) setRepostDraft(null); }} className="repost-composer"><form onSubmit={event => { event.preventDefault(); void saveRepost(); }}><label className="field"><span>{t('리포스트 코멘트')}</span><textarea autoFocus rows={3} maxLength={100} value={repostComment} disabled={busy} placeholder={t('이 피드에 대한 생각을 남겨보세요')} onChange={event => setRepostComment(event.target.value)}/></label><div className="repost-compose-footer"><small aria-live="polite">{repostComment.length}/100</small><button className="primary" type="submit" disabled={busy}>{busy?t('저장 중…'):t('리포스트 · 최초 {0} KK',POINTS_POLICY.costs.reposts)}</button></div></form></Modal>}{battle && <BattleGames post={battle} onClose={() => setBattle(null)}/ >}{comments && <Comments post={comments} me={me} close={() => setComments(null)}/ >}{photo && <Modal title={t("피드 사진")} onClose={() => setPhoto(null)}><img className="expanded-photo" src={photo} alt={t("피드 첨부 사진 확대")}/></Modal>}</>;
+  const overlays = <>{repostDraft && <Modal title={t('리포스트')} onClose={() => { if (!repostLock.current) setRepostDraft(null); }} className="repost-composer"><form onSubmit={event => { event.preventDefault(); void saveRepost(); }}><label className="field"><span>{t('리포스트 코멘트')}</span><textarea autoFocus rows={3} maxLength={100} value={repostComment} disabled={busy} placeholder={t('이 피드에 대한 생각을 남겨보세요')} onChange={event => setRepostComment(event.target.value)}/></label><div className="repost-compose-footer"><small aria-live="polite">{repostComment.length}/100</small><button className="primary" type="submit" disabled={busy}>{busy?t('저장 중…'):t('리포스트 · 최초 {0} KK',POINTS_POLICY.costs.reposts)}</button></div></form></Modal>}{battle && <Suspense fallback={<p role="status">{t("???? ??")}</p>}><BattleGames post={battle} onClose={() => setBattle(null)}/></Suspense>}{comments && <Comments post={comments} me={me} close={() => setComments(null)}/ >}{photo && <Modal title={t("피드 사진")} onClose={() => setPhoto(null)}><img className="expanded-photo" src={photo} alt={t("피드 첨부 사진 확대")}/></Modal>}</>;
   return { actions, overlays };
 }
 
