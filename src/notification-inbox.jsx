@@ -1,10 +1,10 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {ShieldCheck,UserPlus,OctagonAlert,Trash2,Bell,MessageCircle,Repeat2,Heart,Share2,MessagesSquare,CalendarCheck,ArrowUpRight,RefreshCw} from 'lucide-react';
+import {ShieldCheck,UserPlus,Siren,Trash2,Bell,MessageCircle,Repeat2,Heart,Share2,MessagesSquare,CalendarCheck,ArrowUpRight,RefreshCw} from 'lucide-react';
 import {data} from './data.js';
 import {t} from './language.js';
 import {age} from './api.js';
 import {notificationText,notificationTarget} from '../supabase/functions/community/notifications.js';
-const icons={review:ShieldCheck,report:OctagonAlert,moderation:Trash2,follow:UserPlus,comment:MessageCircle,reply:MessageCircle,repost:Repeat2,like:Heart,share:Share2,chat:MessagesSquare,checkin:CalendarCheck};
+const icons={review:ShieldCheck,report:Siren,moderation:Trash2,follow:UserPlus,comment:MessageCircle,reply:MessageCircle,repost:Repeat2,like:Heart,share:Share2,chat:MessagesSquare,checkin:CalendarCheck};
 const labels={review:'신고 검토 결과',report:'내 콘텐츠 신고',moderation:'관리자에 의한 삭제',follow:'새 팔로워',comment:'댓글',reply:'내 댓글의 답글',repost:'리포스트',like:'좋아요',share:'공유',chat:'채팅',checkin:'체크인'};
 export function NotificationInbox({me}){
  const [items,setItems]=useState([]),[cursor,setCursor]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[revision,refresh]=useState(0);

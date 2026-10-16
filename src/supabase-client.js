@@ -3,7 +3,7 @@ const reads=new Set(['battleRankings','page','profiles','commentCounts','listPin
 const silentWrites=new Set(['notificationInbox','reportContent','adminReports','notificationSettings','saveNotificationSettings','subscribePush','unsubscribePush','recordShare','checkpointBattle','continueBattle']);
 const affected={
   dismissReports:['page','getPin','listPins','posts','authorPosts','postsById','comments','ownComments','battleRankings','reposts','commentCount','commentCounts'],
-  moderateContent:['page','getPin','listPins','posts','authorPosts','postsById','comments','ownComments','battleRankings','reposts','commentCount','commentCounts'],
+  moderateContent:['profile','profiles','page','getPin','listPins','posts','authorPosts','postsById','comments','ownComments','battleRankings','reposts','commentCount','commentCounts'],
   pinProfilePost:['profile','profiles'],
   ensureProfile:['profile'], saveProfile:['battleRankings','profile','posts','authorPosts','postsById','listPins','getPin','comments','friends','ownComments'],
   savePin:['balance','listPins','getPin'], deletePin:['listPins','getPin'], checkin:['balance'],

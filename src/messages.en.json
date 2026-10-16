@@ -604,7 +604,7 @@
   "신고 검토 결과": "Report review results",
   "내 신고 또는 내 콘텐츠의 신고 검토가 끝났을 때": "When a report you submitted or a report on your content is reviewed",
   "검토 결과 신고된 피드/Pin에 문제가 없었습니다.": "After review, no issue was found with the reported post/Pin.",
-  "신고를 철회할까요? 콘텐츠는 다시 공개되며 신고자와 작성자에게 문제가 없다는 검토 결과를 알립니다.": "Dismiss these reports? The content will be public again. Reporters and the author will be notified that no issue was found.",
-  "이 항목을 삭제 처리할까요? 신고 철회 시 다시 공개할 수 있으며 작성자에게 삭제 내역이 남습니다.": "Remove this content? Dismissing its reports can restore it. The author will receive a removal record.",
-  "신고를 철회하고 검토 결과를 알렸습니다.": "Reports dismissed and review results recorded."
+  "신고를 철회하고 검토 결과를 알렸습니다.": "Reports dismissed and review results recorded.",
+  "신고를 철회할까요? 신고자와 작성자에게 문제가 없다는 검토 결과를 알립니다.": "Dismiss these reports? Reporters and the author will be notified that no issue was found.",
+  "이 항목을 삭제할까요? 삭제 후에는 복원하거나 신고를 철회할 수 없으며 작성자에게 삭제 내역이 남습니다.": "Delete this item? It cannot be restored or have its reports dismissed after deletion. The author will retain a deletion notice."
 }

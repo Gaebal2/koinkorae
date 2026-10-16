@@ -171,3 +171,46 @@ test('dismissing reports restores content and privately notifies every reporter 
  await pg.exec('reset role');
  }finally{await pg.close();}
 });
+
+
+test('administrator deletion removes content and reports permanently; only open reports can be dismissed',async()=>{
+ const {pg,db,rpc}=await setup();
+ try {
+  for(const name of ['202610160003_notification_inbox.sql','202610160004_moderation_follow_notifications.sql','202610160005_report_resolution.sql','202610160006_permanent_moderation_deletion.sql'])await pg.exec(await readFile(new URL('../supabase/migrations/'+name,import.meta.url),'utf8'));
+  db.dismissReports=(identity,kind,id,reportId)=>rpc('select korae_dismiss_reports($1,$2,$3,$4,$5,$6) value',[identity.uid,identity.email,identity.emailVerified,kind,id,reportId]);
+  await dispatch(db,alice,'publish',{value:{content:'Permanently moderated original',coin:'BTC'}});
+  const post=(await db.list('posts'))[0].id;
+  await dispatch(db,bob,'repost',{postId:post,enabled:true});
+  const repost=(await db.list('posts')).find(row=>row.body.originalPostId).id;
+  await dispatch(db,bob,'comment',{postId:post,content:'Comment to remove',side:'support'});
+  await dispatch(db,bob,'like',{postId:post,enabled:true});
+  for(const id of [post,repost])await dispatch(db,carol,'reportContent',{kind:'posts',id});
+  const report=(await dispatch(db,admin,'adminReports')).items.find(row=>row.targetId===post);
+  await assert.rejects(dispatch(db,bob,'moderateContent',{kind:'posts',id:post,hidden:true}),/관리자/);
+  assert.ok(await db.one('posts',post));
+  assert.equal((await dispatch(db,admin,'moderateContent',{kind:'posts',id:post,hidden:true})).deleted,true);
+  assert.equal(await db.one('posts',post),null);assert.equal(await db.one('posts',repost),null);
+  for(const kind of ['comments','likes','reposts'])assert.equal(await db.count(kind,post),0);
+  assert.equal((await dispatch(db,admin,'adminReports')).items.length,0);
+  assert.equal(await rpc('select count(*)::int value from korae_reports'),0);
+  await assert.rejects(dispatch(db,admin,'dismissReports',{kind:'posts',id:post,reportId:report.reportId}),/철회할 수 없습니다|복원할 수 없습니다/);
+  await assert.rejects(dispatch(db,admin,'moderateContent',{kind:'posts',id:post,hidden:false}),/철회할 수 없습니다|복원할 수 없습니다/);
+  await dispatch(db,admin,'moderateContent',{kind:'posts',id:post,hidden:true});
+  assert.equal(await rpc("select count(*)::int value from korae_notification_inbox where kind='moderation'"),1,'retry keeps a single author notice');
+  const notice=(await pg.query("select details from korae_notification_inbox where kind='moderation'")).rows[0];
+  assert.equal(notice.details.summary,'Permanently moderated original');
+  const pin=await dispatch(db,alice,'savePin',{value:{title:'Pin for final deletion',description:'Example',coin:'BTC',tradeCoins:[],category:'P2P 판매',lat:37,lng:127,image:'',link:''}});
+  await dispatch(db,bob,'reportContent',{kind:'pins',id:pin.id});
+  let pinCase=(await dispatch(db,admin,'adminReports')).items[0];
+  await dispatch(db,admin,'dismissReports',{kind:'pins',id:pin.id,reportId:pinCase.reportId});
+  assert.ok(await db.one('pins',pin.id),'dismissal preserves existing content');
+  assert.equal((await dispatch(db,admin,'adminReports')).items.length,0);
+  await dispatch(db,bob,'reportContent',{kind:'pins',id:pin.id});
+  pinCase=(await dispatch(db,admin,'adminReports')).items[0];
+  await dispatch(db,admin,'moderateContent',{kind:'pins',id:pin.id,hidden:true});
+  assert.equal(await db.one('pins',pin.id),null);
+  assert.equal((await dispatch(db,admin,'adminReports')).items.length,0);
+  await assert.rejects(dispatch(db,admin,'dismissReports',{kind:'pins',id:pin.id,reportId:pinCase.reportId}),/철회할 수 없습니다|복원할 수 없습니다/);
+  assert.equal(await rpc("select count(*)::int value from korae_notification_inbox where kind='moderation'"),2);
+ } finally {await pg.close();}
+});
