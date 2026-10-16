@@ -1,4 +1,4 @@
-export const notificationTypes = ['comment','reply','repost','like','share','chat','checkin','report','moderation','follow'];
+export const notificationTypes = ['comment','reply','repost','like','share','chat','checkin','report','moderation','follow','review'];
 export const defaultPreferences = Object.fromEntries(['enabled',...notificationTypes].map(key=>[key,false]));
 export function preferences(value) {
  if (!value || typeof value!=='object' || Array.isArray(value) || Object.keys(value).some(key=>!Object.hasOwn(defaultPreferences,key)) || Object.values(value).some(item=>typeof item!=='boolean')) throw Error('알림 설정을 확인해 주세요.');
@@ -13,10 +13,10 @@ export function subscription(value) {
  return {endpoint:url.href,keys:{p256dh:value.keys.p256dh,auth:value.keys.auth}};
 }
 export function notificationText(kind) {
- const labels={report:'내 콘텐츠에 신고가 접수됐어요.',moderation:'관리자가 내 콘텐츠를 삭제했어요.',follow:'새로운 팔로워가 생겼어요.',reply:'내 댓글에 새 답글이 달렸어요.',comment:'내 피드에 새 댓글이 달렸어요.',repost:'누군가 내 피드를 리포스트했어요.',like:'내 피드에 좋아요가 도착했어요.',share:'누군가 내 피드의 공유 버튼을 눌렀어요.',chat:'맞팔 친구에게 새 메시지가 도착했어요.',checkin:'새로운 하루의 체크인이 열렸어요. KK를 받아보세요!'};
+ const labels={review:'검토 결과 신고된 피드/Pin에 문제가 없었습니다.',report:'내 콘텐츠에 신고가 접수됐어요.',moderation:'관리자가 내 콘텐츠를 삭제했어요.',follow:'새로운 팔로워가 생겼어요.',reply:'내 댓글에 새 답글이 달렸어요.',comment:'내 피드에 새 댓글이 달렸어요.',repost:'누군가 내 피드를 리포스트했어요.',like:'내 피드에 좋아요가 도착했어요.',share:'누군가 내 피드의 공유 버튼을 눌렀어요.',chat:'맞팔 친구에게 새 메시지가 도착했어요.',checkin:'새로운 하루의 체크인이 열렸어요. KK를 받아보세요!'};
  return labels[kind]||'새 알림이 도착했어요.';
 }
-export function notificationTarget(job){return job.kind==='moderation'||job.unavailable?null:job.kind==='follow'?'?profile='+encodeURIComponent(job.target):job.kind==='report'&&job.details?.contentKind==='pins'?'?pin='+encodeURIComponent(job.target):job.kind==='chat'?'?screen=chat':job.kind==='checkin'?'?screen=check':'?post='+encodeURIComponent(job.target);}
+export function notificationTarget(job){return job.kind==='moderation'||job.unavailable?null:job.kind==='follow'?'?profile='+encodeURIComponent(job.target):['report','review'].includes(job.kind)&&job.details?.contentKind==='pins'?'?pin='+encodeURIComponent(job.target):job.kind==='chat'?'?screen=chat':job.kind==='checkin'?'?screen=check':'?post='+encodeURIComponent(job.target);}
 export function notificationPayload(job) {
  return {title:job.kind==='checkin'?'오늘의 체크인':'ㅋㅇㄱㄹ',body:notificationText(job.kind),tag:job.event_key,url:'?screen=notifications'};
 }

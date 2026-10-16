@@ -50,6 +50,11 @@ export async function dispatch(db, identity, action, args = {}) {
       const before=args.before??null;if(before!==null&&(!Number.isSafeInteger(before)||before<1))throw Error('잘못된 목록 위치입니다.');
       return db.adminReports(identity,before);
     }
+    case 'dismissReports': {
+      requireAdministrator(identity);const target=reportTarget(args);
+      if(!Number.isSafeInteger(args.reportId)||args.reportId<1)throw Error('Invalid report');
+      return db.dismissReports(identity,target.kind,target.id,args.reportId);
+    }
     case 'moderateContent': {
       requireAdministrator(identity);const target=reportTarget(args);
       if(typeof args.hidden!=='boolean')throw Error('처리 상태를 확인해 주세요.');

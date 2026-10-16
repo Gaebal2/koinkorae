@@ -133,3 +133,41 @@ test('report, moderation and follow notices obey settings; deletion records surv
  assert.equal((await inbox()).items.filter(i=>i.kind==='moderation').length,3);
  }finally{await pg.close();}
 });
+
+test('dismissing reports restores content and privately notifies every reporter and author once',async()=>{
+ const {pg,db,rpc}=await setup();
+ try{
+ for(const name of ['202610160003_notification_inbox.sql','202610160004_moderation_follow_notifications.sql','202610160005_report_resolution.sql'])await pg.exec(await readFile(new URL('../supabase/migrations/'+name,import.meta.url),'utf8'));
+ db.dismissReports=(identity,kind,id,reportId)=>rpc('select korae_dismiss_reports($1,$2,$3,$4,$5,$6) value',[identity.uid,identity.email,identity.emailVerified,kind,id,reportId]);
+ await assert.rejects(dispatch(db,bob,'dismissReports',{kind:'posts',id:'p',reportId:1}));
+ await assert.rejects(dispatch(db,admin,'dismissReports',{kind:'posts',id:'p',reportId:0}));
+ await db.notifications('bob','save',{enabled:true,review:true});
+ await dispatch(db,alice,'publish',{value:{content:'Content cleared after review',coin:'BTC'}});
+ const post=(await db.list('posts'))[0].id;
+ for(const person of [alice,bob,carol])await dispatch(db,person,'reportContent',{kind:'posts',id:post});
+ const report=(await dispatch(db,admin,'adminReports')).items[0];
+ await dispatch(db,admin,'moderateContent',{kind:'posts',id:post,hidden:true});
+ assert.equal((await dispatch(db,admin,'dismissReports',{kind:'posts',id:post,reportId:report.reportId})).dismissed,true);
+ assert.equal((await dispatch(db,admin,'adminReports')).items.length,0);
+ assert.equal(await rpc("select korae_content_visible('posts',$1) value",[post]),true);
+ const notices=(await pg.query("select uid,details,event_key from korae_notification_inbox where kind='review' order by uid")).rows;
+ assert.deepEqual(notices.map(n=>n.uid),['alice','bob','carol']);
+ assert.ok(notices.every(n=>n.details.summary==='Content cleared after review'));
+ assert.deepEqual((await pg.query("select uid from korae_notification_events where kind='review'")).rows.map(n=>n.uid),['bob'],'push preferences respected; all three get inbox records');
+ await dispatch(db,admin,'dismissReports',{kind:'posts',id:post,reportId:report.reportId});
+ assert.equal((await pg.query("select count(*)::int n from korae_notification_inbox where kind='review'")).rows[0].n,3);
+ await dispatch(db,bob,'reportContent',{kind:'posts',id:post});
+ const newer=(await dispatch(db,admin,'adminReports')).items[0];assert.notEqual(newer.reportId,report.reportId);
+ await dispatch(db,admin,'dismissReports',{kind:'posts',id:post,reportId:report.reportId});
+ assert.equal((await dispatch(db,admin,'adminReports')).items.length,1,'stale retry cannot dismiss a new case');
+ await dispatch(db,admin,'dismissReports',{kind:'posts',id:post,reportId:newer.reportId});
+ const pin=await dispatch(db,alice,'savePin',{value:{title:'Reviewed Pin',description:'Example',coin:'BTC',tradeCoins:[],category:'P2P 판매',lat:37,lng:127,image:'',link:''}});
+ await dispatch(db,bob,'reportContent',{kind:'pins',id:pin.id});
+ const pinCase=(await dispatch(db,admin,'adminReports')).items[0];
+ await dispatch(db,admin,'dismissReports',{kind:'pins',id:pin.id,reportId:pinCase.reportId});
+ assert.equal((await pg.query("select count(*)::int n from korae_notification_inbox where kind='review' and details->>'contentKind'='pins'")).rows[0].n,2);
+ await pg.exec('set role anon');
+ await assert.rejects(pg.query("select korae_dismiss_reports('admin','gaebal2017@gmail.com',true,'posts','p',1)"),/permission denied/);
+ await pg.exec('reset role');
+ }finally{await pg.close();}
+});

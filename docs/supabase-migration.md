@@ -125,3 +125,11 @@ Report notices omit reporter identity. Duplicate reports do not emit new notices
 The profile connections pane now separates following, followers and mutual friends, using the existing relationship graph and profile/follow controls. Validation: 166 tests passed, production build and both Edge bundles passed; browser preview verified buttons, removal confirmation, disabled states and follower list switching. Not deployed yet.
 
 Release 2026-10-16: migrations 202610160003 and 202610160004 applied in one transaction. The release publishes the inbox, report/removal/follow notices, reversible admin removal controls and connection filters. Automated validation: 166 passing tests, frontend build and Edge bundles. Device push receipt remains a manual check.
+
+## 2026-10-16 Report resolution (pending deployment)
+
+Apply 202610160005_report_resolution.sql, deploy community/push-dispatch, then the frontend. Dismiss reports replaces restore in the admin UI and works on visible or moderated content. It restores visibility, snapshots the result to each distinct reporter and author inbox, and removes the active case/reports atomically. The review preference controls push only; inbox results are mandatory. No reporter identity is included in notifications. A subsequent report creates a new case ID; stale retries cannot dismiss that new case. Per-content transaction locks serialize report/moderation/resolution. Author-deleted content cannot be restored or cleared as reviewed.
+
+Validation: 11 focused moderation/inbox/push tests passed, frontend build and both Edge bundles passed. Browser preview verified confirmation, completion and case removal. Not deployed yet.
+
+Release 2026-10-16: migration 202610160005 applied to production and community/push-dispatch deployed. Frontend publishes via main branch Pages workflow. Device-level receipt remains a manual check.
