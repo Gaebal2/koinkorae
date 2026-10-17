@@ -599,8 +599,8 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .policy-planned table { min-width:740px; }
 @media(max-width:380px) { .policy-summary { grid-template-columns:1fr; } .policy-summary .balance-card,.policy-summary .tier-card { min-height:130px; } }
 
-.pin-creator > .external-share-button { margin-left:auto; flex:0 0 40px; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; padding:8px; border:0; border-radius:10px; background:transparent; color:var(--muted); }
-.pin-creator > .external-share-button svg { width:22px; height:22px; }
+.pin-creator > .external-share-button { margin-left:auto; flex:0 0 30px; width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; padding:5px; border:0; border-radius:10px; background:transparent; color:var(--muted); }
+.pin-creator > .external-share-button svg { width:20px; height:20px; }
 .pin-creator > .external-share-button + .coin { margin-left:0; }
 
 .post-card[data-shared-target] { scroll-margin-top:80px; outline:2px solid var(--primary); outline-offset:2px; }
@@ -670,7 +670,8 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .report-button:hover { background:var(--surface-tint); color:var(--primary); }
 .post-head > .external-share-button { margin-left:auto; flex-shrink:0; width:34px; height:34px; padding:6px; }
 .post-head > .feed-coin-button { margin-left:0; }
-.pin-creator > .report-button { margin-left:0; }
+.pin-creator > .report-button { margin-left:0; flex:0 0 30px; width:30px; height:30px; padding:5px; }
+.pin-creator > .report-button svg { width:20px; height:20px; }
 .admin-reports { display:grid; gap:14px; }
 .admin-report-heading { display:flex; align-items:center; gap:10px; padding:14px; background:var(--surface-tint); border-radius:16px; }
 .admin-report-heading > svg { flex-shrink:0; color:var(--primary); }
