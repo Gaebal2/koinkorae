@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { detectInAppBrowser, externalBrowserUrl, copyBrowserAddress } from './in-app-browser.js';
 
 test('messengers and embedded browsers are detected, ordinary browsers are excluded', () => {
-  for (const marker of ['KAKAOTALK', 'Line/14.0', 'FBAN/Messenger', 'Instagram', 'NAVER', 'MicroMessenger', 'Telegram']) {
+  for (const marker of ['KAKAOTALK', 'Line/14.0', 'FBAN/Messenger', 'Instagram', 'NAVER', 'MicroMessenger', 'Telegram', 'DaumApps']) {
     assert.ok(detectInAppBrowser({ userAgent: `Mozilla/5.0 iPhone AppleWebKit/605 Safari/604 ${marker}` }), marker);
   }
   assert.ok(detectInAppBrowser({ userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel; wv) AppleWebKit/537 Chrome/120 Safari/537' }));
@@ -16,10 +16,12 @@ test('messengers and embedded browsers are detected, ordinary browsers are exclu
 
 test('external links preserve shared path, query and hash with safe Intent options', () => {
   const href = 'https://koinkorae.com/posts/a?post=abc&name=%ED%95%9C#comment;end';
-  assert.equal(decodeURIComponent(externalBrowserUrl(href, { kakao: true }).split('?url=')[1]), href);
+  assert.equal(externalBrowserUrl(href, { kakao: true, ios: true }), null);
   const intent = externalBrowserUrl(href, { android: true });
   assert.ok(intent.startsWith('intent://koinkorae.com/posts/a?post=abc&name=%ED%95%9C#comment%3Bend#Intent;'));
-  assert.ok(intent.includes(`S.browser_fallback_url=${encodeURIComponent(href)};end`));
+  assert.ok(intent.endsWith('action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end'));
+  assert.ok(!intent.includes('package='));
+  assert.equal(externalBrowserUrl(href, { kakao: true, android: true }), intent);
   assert.equal(externalBrowserUrl(href, { ios: true }), null);
   assert.equal(externalBrowserUrl('javascript:alert(1)', { kakao: true }), null);
 });

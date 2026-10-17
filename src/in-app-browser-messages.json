@@ -1,0 +1,16 @@
+﻿{
+    "외부 브라우저에서 열어야 앱의 모든 기능을 사용할 수 있습니다.":  "Open in an external browser to use all of the app\u0027s features.",
+    "전환되지 않으면 메신저 메뉴의 “외부 브라우저로 열기”를 선택하거나 주소를 복사해 기본 브라우저에 붙여 넣어 주세요.":  "If the browser does not open, choose Open in external browser from the messenger menu, or copy the address and paste it into your default browser.",
+    "주소를 복사했습니다. 기본 브라우저를 열고 주소창에 붙여 넣어 주세요.":  "Address copied. Open your default browser and paste it into the address bar.",
+    "아래 주소를 길게 눌러 복사한 뒤 기본 브라우저에서 열어 주세요.":  "Press and hold the address below to copy it, then open it in your default browser.",
+    "외부 브라우저에서 열어 주세요":  "Please open in an external browser",
+    "PSL Wallet은 기기의 기본 브라우저에서 이용해 주세요. 메신저 안에서는 지갑을 사용하지 않고 외부 브라우저로 이동해 주세요.":  "Please use PSL Wallet in your device\u0027s default browser. Leave the messenger browser before using your wallet.",
+    "외부 브라우저로 열기":  "Open in external browser",
+    "주소 복사":  "Copy address",
+    "버튼으로 열리지 않나요?":  "Did the button not open your browser?",
+    "카카오톡·텔레그램 화면의 메뉴(⋮ · …) 또는 공유 버튼을 누르세요.":  "Tap the menu or share button in KakaoTalk or Telegram.",
+    "“외부 브라우저로 열기”, “브라우저에서 열기” 또는 “Safari로 열기”를 선택하세요. 메뉴 이름은 기기마다 다를 수 있습니다.":  "Choose Open in external browser, Open in browser, or Open in Safari. Menu labels vary by device.",
+    "해당 메뉴가 없으면 주소를 복사해 기본 브라우저 주소창에 붙여 넣으세요.":  "If unavailable, copy the address and paste it into your default browser.",
+    "아이폰에서는 메신저 메뉴를 통해 외부 브라우저를 열어 주세요.":  "On iPhone, use the messenger menu to open an external browser.",
+    "지갑 사이트 주소":  "Wallet website address"
+}

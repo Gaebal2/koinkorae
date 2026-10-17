@@ -1,19 +1,19 @@
-﻿.external-browser-page { min-height: 100dvh; padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); display: grid; place-items: center; background: #f4f2ff; }
-.external-browser-card { width: 100%; max-width: 430px; padding: 28px 24px; border: 1px solid #e5e0fa; border-radius: 24px; background: #fff; box-shadow: 0 16px 48px #34226c0d; }
-.external-browser-brand { display: block; color: #7157ff; font-size: 13px; font-weight: 800; letter-spacing: .1em; margin-bottom: 20px; }
-.external-browser-badge { display: inline-block; padding: 6px 10px; border-radius: 8px; background: #f0edff; color: #5137c8; font-size: 12px; font-weight: 600; }
-.external-browser-card h1 { font-size: 28px; line-height: 1.4; letter-spacing: -.04em; margin: 16px 0 12px; }
-.external-browser-card p { font-size: 14px; line-height: 1.7; color: #596174; }
-.external-browser-card button { min-height: 48px; width: 100%; border-radius: 12px; font-weight: 700; }
-.external-browser-primary { background: #7157ff; color: white; border: 0; margin-top: 12px; }
-.external-browser-card .external-browser-note { font-size: 12px; margin: 10px 0; }
-.external-browser-instructions { margin: 22px 0; padding: 16px; border-radius: 12px; background: #f7f8fb; }
-.external-browser-instructions h2 { font-size: 15px; margin: 0 0 12px; }
-.external-browser-instructions ol { padding-left: 20px; margin: 0; font-size: 13px; line-height: 1.8; color: #454d60; }
-.external-browser-instructions li + li { margin-top: 8px; }
-.external-browser-label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
-.external-browser-card input { width: 100%; min-width: 0; padding: 12px; border: 1px solid #dce0ea; border-radius: 10px; font-size: 16px; background: #fff; }
-.external-browser-copy { border: 1px solid #dcd5ff; color: #5137c8; background: #f0edff; margin-top: 10px; }
-.external-browser-card .external-browser-status { min-height: 24px; font-size: 13px; color: #5137c8; }
-.external-browser-continue { border: 0; background: transparent; color: #697180; font-size: 13px; text-decoration: underline; }
-.external-browser-card :focus-visible, .external-browser-instructions:focus { outline: 3px solid #9b8aff; outline-offset: 3px; }
+﻿.external-browser-dialog { width: min(calc(100% - 28px), 480px); max-height: 90vh; max-height: 90dvh; overflow: auto; margin: auto; border: 0; border-radius: 27px; padding: 28px; color: #10131a; background: #fff; box-shadow: 0 30px 90px #13152252; font-family: Inter, Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.external-browser-dialog::backdrop { background: #18172299; backdrop-filter: blur(5px); }
+.external-browser-header { display: flex; justify-content: flex-end; }
+.external-browser-dialog h2 { margin: 12px 0; font-size: 18px; line-height: 1.6; letter-spacing: -.035em; }
+.external-browser-dialog p, .external-browser-dialog li { font-size: 14px; line-height: 1.7; }
+.external-browser-dialog p { margin: 1em 0; }
+.external-browser-dialog ol { padding-left: 22px; margin: 1em 0; }
+.external-browser-dialog .external-browser-button { width: 100%; min-height: 52px; margin-top: 10px; border-radius: 16px; padding: 14px 18px; border: 0; font: inherit; font-weight: 800; cursor: pointer; transition: transform .15s, box-shadow .15s; overflow-wrap: anywhere; }
+.external-browser-dialog .external-browser-button:active { transform: scale(.985); }
+.external-browser-dialog .external-browser-primary { color: #fff; background: linear-gradient(135deg, #7157ff, #5137e8); box-shadow: 0 12px 28px #7157ff35; }
+.external-browser-dialog .external-browser-copy { color: #10131a; background: #fff; border: 1px solid #e5e8ef; }
+.external-browser-dialog label { display: block; font-size: 12px; font-weight: 750; margin: 16px 0 7px; }
+.external-browser-dialog input { width: 100%; min-width: 0; min-height: 50px; border: 1px solid #e5e8ef; border-radius: 14px; padding: 13px 14px; background: #fff; color: #10131a; font: inherit; font-size: 12px; }
+.external-browser-dialog input:focus { border-color: #7157ff; box-shadow: 0 0 0 4px #7157ff17; }
+.external-browser-dialog [role="status"] { color: #5137e8; }
+.external-browser-dialog .external-browser-language { flex: none; width: 42px; height: 38px; padding: 0; border: 0; border-radius: 12px; background: #ffffffb8; color: #10131a; box-shadow: 0 4px 14px #31395412; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.external-browser-dialog[lang="en"] .external-browser-language { font-size: 10px; }
+.external-browser-dialog :focus-visible { outline: 2px solid #7157ff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .external-browser-dialog .external-browser-button { transition: none; } }
