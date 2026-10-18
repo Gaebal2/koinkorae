@@ -1,6 +1,7 @@
 ﻿.external-browser-dialog { width: min(calc(100% - 28px), 480px); max-height: 90vh; max-height: 90dvh; overflow: auto; margin: auto; border: 0; border-radius: 27px; padding: 28px; color: #10131a; background: #fff; box-shadow: 0 30px 90px #13152252; font-family: Inter, Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 .external-browser-dialog::backdrop { background: #18172299; backdrop-filter: blur(5px); }
-.external-browser-header { display: flex; justify-content: flex-end; }
+.external-browser-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.external-browser-brand { color: #7157ff; font-size: 18px; font-weight: 800; }
 .external-browser-dialog h2 { margin: 12px 0; font-size: 18px; line-height: 1.6; letter-spacing: -.035em; }
 .external-browser-dialog p, .external-browser-dialog li { font-size: 14px; line-height: 1.7; }
 .external-browser-dialog p { margin: 1em 0; }

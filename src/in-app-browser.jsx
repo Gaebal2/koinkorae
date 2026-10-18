@@ -35,6 +35,7 @@ export function InAppBrowserGuide({ children }) {
   }
   return <dialog ref={dialog} className="external-browser-dialog" aria-labelledby="external-browser-title" lang={language} onCancel={event => event.preventDefault()}>
     <div className="external-browser-header">
+      <span className="external-browser-brand" translate="no">KoinKorae</span>
       <button className="external-browser-language" type="button" translate="no" aria-label={language === 'ko' ? '언어: 한국어. 영어로 전환' : 'Language: English. Switch to Korean'} onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}>{language === 'ko' ? 'ENG' : '한국어'}</button>
     </div>
     <h2 id="external-browser-title">{translate('외부 브라우저에서 열어야 앱의 모든 기능을 사용할 수 있습니다.')}</h2>

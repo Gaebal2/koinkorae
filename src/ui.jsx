@@ -25,7 +25,8 @@ export const asset = name => import.meta.env.BASE_URL + name;
 const fmt = n => new Intl.NumberFormat(getLocale(),{notation: Math.abs(n)>999?'compact':'standard'}).format(n);
 const exposure = p => p.support-p.oppose;
 export const coinColor = symbol => ({BTC:'#f59e0b',ETH:'#627eea',SOL:'#14b8a6',XRP:'#334155',SL:'#7157ff'})[symbol]||'#7157ff';
-export const profileImage = () => asset('koin-korae-transparent-192.png');
+export const brandImage = () => asset('koin-korae-transparent-192.png');
+export const profileImage = () => asset('default-whale-avatar.png');
 
 export function Coin({ symbol, size = "md" }) {
   return (

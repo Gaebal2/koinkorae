@@ -5,7 +5,7 @@ import { PagedPosts, PagedOwnComments, useCursorPage } from './paged-feed.jsx';
 import { Bell, Siren, FileText, Repeat2, Users, MapPin, MessageCircle, Pin, UserPlus, UserCheck } from 'lucide-react';
 import { data } from './data.js';
 import { age } from './api.js';
-import { Empty, Modal, PinDetailCard, profileImage } from './ui.jsx';
+import { Empty, Modal, PinDetailCard, profileImage, brandImage } from './ui.jsx';
 import { useAppMessage } from './feedback.jsx';
 import { CommunityPost, useFeedActions } from './community-feed.jsx';
 import { relationshipsFor } from './community-model.js';
@@ -59,7 +59,7 @@ function ProfileContent({ focusPostId, onCoin, initialFeed = '작성 피드', on
     return () => { active = false; };
   }, [feed, me?.id, profileId, posts]);
   useEffect(() => { if (!data.page && loaded && profile && feed === initialFeed) showLatestRepost(); }, [loaded, profile, feed, initialFeed, showLatestRepost]);
-  if (!profileId) return <main><section className="profile-head"><img className="profile-avatar" src={profileImage()} alt={t("앱 아이콘")}/><h1>{t("나의 프로필")}</h1><p>{t("로그인하고 피드와 거래 정보를 관리하세요.")}</p><button className="primary" onClick={login}>{t("Google 로그인")}</button></section></main>;
+  if (!profileId) return <main><section className="profile-head"><img className="profile-avatar" src={brandImage()} alt={t("앱 아이콘")}/><h1>{t("나의 프로필")}</h1><p>{t("로그인하고 피드와 거래 정보를 관리하세요.")}</p><button className="primary" onClick={login}>{t("Google 로그인")}</button></section></main>;
   if (!profile) return <main><p className="loading-state" role="status">{t("프로필을 불러오는 중…")}</p></main>;
   const own = profileId === me?.id, graph = relationshipsFor(edges, profileId), mine = pins.filter(p => p.ownerId === profileId);
   const shown = feed === '작성 피드' ? authored : sharedPosts;
@@ -75,6 +75,6 @@ function ProfileContent({ focusPostId, onCoin, initialFeed = '작성 피드', on
 }
 
 export function CommunityProfile(props) {
-  if (!props.profileId) return <main><section className="profile-head"><img className="profile-avatar" src={profileImage()} alt={t("앱 아이콘")}/><h1>{t("나의 프로필")}</h1><p>{t("로그인하고 프로필을 확인하세요.")}</p><button className="primary" onClick={props.login}>{t("로그인")}</button></section></main>;
+  if (!props.profileId) return <main><section className="profile-head"><img className="profile-avatar" src={brandImage()} alt={t("앱 아이콘")}/><h1>{t("나의 프로필")}</h1><p>{t("로그인하고 프로필을 확인하세요.")}</p><button className="primary" onClick={props.login}>{t("로그인")}</button></section></main>;
   return <ProfileContent {...props}/>;
 }
