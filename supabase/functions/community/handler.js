@@ -120,7 +120,8 @@ export async function dispatch(db, identity, action, args = {}) {
     case 'messages': {
       const {parent}=await friendship(args.friendId);
       if (args.before !== undefined && (!Number.isSafeInteger(args.before) || args.before<0)) throw Error('잘못된 메시지 위치입니다.');
-      return (await list('messages',{parent,recent:true,limit:100,before:args.before})).sort((a,b)=>a.createdAt-b.createdAt || a.id.localeCompare(b.id));
+      if (args.after !== undefined && (!Number.isSafeInteger(args.after) || args.after<0 || args.before!==undefined)) throw Error('잘못된 메시지 위치입니다.');
+      return (await list('messages',{parent,recent:args.after===undefined,oldest:args.after!==undefined,limit:100,before:args.before,after:args.after})).sort((a,b)=>a.createdAt-b.createdAt || a.id.localeCompare(b.id));
     }
     case 'sendMessage': {
       const {target,parent}=await friendship(args.friendId);

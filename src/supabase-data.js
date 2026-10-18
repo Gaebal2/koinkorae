@@ -1,6 +1,8 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, deleteUser, getAdditionalUserInfo } from 'firebase/auth';
 import publicConfig from './firebase-config.json';
+import { markDeviceNotificationsRead } from './app-badge.js';
+import { createMessageStore } from './message-store.js';
 import { createCommunityClient } from './supabase-client.js';
 import { createQueryStorage } from './query-storage.js';
 import { connectChanges, changedActions } from './change-stream.js';
@@ -18,12 +20,14 @@ const toUser=u=>u?{isAdmin:u.emailVerified===true&&u.email?.toLowerCase()==='gae
 const ready=()=>{if(!auth) throw Error('로그인 설정을 확인해 주세요.');};
 const connection={url:import.meta.env.VITE_SUPABASE_URL || 'https://cxvznpfcmorysnwwmbna.supabase.co',key:import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
   token:async force=>{ await auth?.authStateReady(); return await auth?.currentUser?.getIdToken(force) || null; }};
+const storage=createQueryStorage();
 const client=createCommunityClient({
-  ...connection,storage:createQueryStorage(),batch:true,
+  ...connection,storage,batch:true,
   subscribe:notify=>connectChanges({...connection,onChange:event=>{if(changedActions[event.kind])notify(changedActions[event.kind]);},onReady:()=>notify(null)}),
 });
 export const dayNumber=(time=Date.now())=>Math.floor((time+9*3600000)/86400000);
 const call=client.call, watch=client.watch;
+const messages=createMessageStore({call,observe:client.observe,storage,getScope:client.getScope,getScopeVersion:client.getScopeVersion});
 const admissionMessage = error => error.message?.includes('Trial capacity reached') ? '시험 운영 참여 인원 50명이 마감되었습니다.' : error.message?.includes('Service maintenance') ? '서비스 점검 중입니다. 잠시 후 다시 시도해 주세요.' : error.message;
 async function admitUser(user, newlyCreated=false) {
  try { await call('ensureProfile'); return toUser(user); }
@@ -41,7 +45,7 @@ export const data={
   unsubscribePush:endpoint=>call('unsubscribePush',{endpoint}),
   recordShare:postId=>call('recordShare',{postId}),
   battleRankings:(postId,cursor=null)=>call('battleRankings',{postId,cursor}),
-  watchAuth(callback) { if(!auth){callback(null);return()=>{};} let active=true, version=0;const stop=onAuthStateChanged(auth,async u=>{const current=++version;client.setScope(u?.uid||'guest');if(!u){callback(null);return;}try{await call('ensureProfile');if(active&&current===version)callback(toUser(u));}catch{if(active&&current===version){callback(null);await signOut(auth);}}});return()=>{active=false;stop();}; },
+  watchAuth(callback) { if(!auth){callback(null);return()=>{};} let active=true, version=0;const stop=onAuthStateChanged(auth,async u=>{const current=++version;if(client.getScope()!=='guest'&&client.getScope()!==(u?.uid||'guest'))void markDeviceNotificationsRead(Date.now(),true);if(client.getScope()!==(u?.uid||'guest'))messages.clear();client.setScope(u?.uid||'guest');if(!u){callback(null);return;}try{await call('ensureProfile');if(active&&current===version)callback(toUser(u));}catch{if(active&&current===version){callback(null);await signOut(auth);}}});return()=>{active=false;stop();}; },
   page:(options,cursor=null,force=false)=>call('page',{options,cursor,limit:20},force),
   savedPage:options=>client.saved('page',{options,cursor:null,limit:20}),
   watchPinPage:(owner,callback,error)=>watch('page',{options:{mode:'pins',owner,detail:true},cursor:null,limit:20},page=>callback(page.items),error),
@@ -52,7 +56,7 @@ export const data={
   async register(email,password,username) { ready();const {user}=await createUserWithEmailAndPassword(auth,email,password);await updateProfile(user,{displayName:username.trim()});await user.getIdToken(true);const admitted=await admitUser(user,true);await call('saveProfile',{value:{username:username.trim(),bio:'',profileImage:''}});return admitted; },
   async loginGoogle() { ready();const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});const credential=await signInWithPopup(auth,provider);return admitUser(credential.user,!!getAdditionalUserInfo(credential)?.isNewUser); },
   async resetPassword(email) { ready();await sendPasswordResetEmail(auth,email); },
-  async logout() { ready();const {detachDevicePush}=await import('./push-notifications.js');try{await detachDevicePush(data);}catch{console.warn('Push subscription cleanup deferred.');}await signOut(auth); },
+  async logout() { ready();const {detachDevicePush}=await import('./push-notifications.js');try{await detachDevicePush(data);}catch{console.warn('Push subscription cleanup deferred.');}await markDeviceNotificationsRead(Date.now(),true);await signOut(auth); },
   listPins:()=>call('listPins'),
   getPin:id=>call('getPin',{id}),
   watchPin:(id,callback,error)=>watch('getPin',{id},callback,error),
@@ -84,9 +88,9 @@ export const data={
   deleteComment:(postId,id)=>call('deleteComment',{postId,id}),
   refreshFriends:()=>call('friends',{},true),
   watchFriends:(callback,error)=>watch('friends',{},callback,error,5000),
-  watchMessages:(friendId,callback,error)=>watch('messages',{friendId},callback,error,2000),
-  olderMessages:(friendId,before)=>call('messages',{friendId,before}),
-  sendMessage:(friendId,content,requestId)=>call('sendMessage',{friendId,content,requestId}),
+  watchMessages:messages.watch,
+  olderMessages:messages.older,
+  sendMessage:messages.send,
   startBattle:(postId,side,requestId)=>call('startBattle',{postId,side,requestId,protocol:2,gameVersion:4}),
   checkpointBattle:(sessionId,revision,inputs,ticks)=>call('checkpointBattle',{sessionId,revision,inputs,ticks}),
   continueBattle:(sessionId,revision)=>call('continueBattle',{sessionId,revision}),

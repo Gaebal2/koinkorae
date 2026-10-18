@@ -709,3 +709,5 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .relationship-tabs button { flex:1; min-height:44px; }
 .relationship-tabs small { margin-left:4px; opacity:.7; }
 .notification-context { display:grid; gap:6px; padding:12px; border-radius:12px; background:var(--surface-tint); font-size:12px; overflow-wrap:anywhere; }
+
+.chat-retry { align-self: flex-end; border: 0; background: transparent; color: #b42318; font-size: 12px; padding: 6px 0; cursor: pointer; }

@@ -37,6 +37,7 @@ const db = {
       if(filter.parent) query=query.eq('parent',filter.parent);
       if(filter.related) query=query.or(`parent.eq.${filter.related},id.eq.${filter.related}`);
       if(filter.before !== undefined) query=query.lt('body->createdAt',filter.before);
+      if(filter.after !== undefined) query=query.gt('body->createdAt',filter.after);
       if(filter.recent || filter.oldest) query=query.order('body->createdAt',{ascending:!!filter.oldest});
       query=query.order('parent').order('id');
       const size=filter.limit ? Math.min(500,filter.limit-offset) : 500;

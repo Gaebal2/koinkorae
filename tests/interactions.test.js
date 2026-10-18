@@ -23,6 +23,8 @@ test('private friend chat requires mutual follows, persists, paginates and dedup
   await assert.rejects(dispatch(db,c,'messages',{friendId:'alice'}),/친구/);
   await assert.rejects(dispatch(db,a,'sendMessage',{...message,content:'changed'}),/ID/);
   for(let i=0;i<101;i++)await dispatch(db,b,'sendMessage',{friendId:'alice',content:'message '+i,requestId:'m'+i});
+  const delta=await dispatch(db,a,'messages',{friendId:'bob',after:sent.createdAt});assert.equal(delta.length,100);assert.equal(delta[0].id,'m0');
+  const tail=await dispatch(db,a,'messages',{friendId:'bob',after:delta.at(-1).createdAt});assert.equal(tail.length,1);assert.equal(tail[0].id,'m100');
   const recent=await dispatch(db,a,'messages',{friendId:'bob'});assert.equal(recent.length,100);
   const previous=await dispatch(db,a,'messages',{friendId:'bob',before:recent[0].createdAt});assert.equal(previous.length,2);assert.equal(previous[0].id,'one');
   await dispatch(db,b,'follow',{id:'alice',enabled:false});

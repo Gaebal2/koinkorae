@@ -15,9 +15,9 @@ const affected={
 const canonical=value=>Array.isArray(value)?value.map(canonical):value && typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
 export function createCommunityClient({url,key='',token,fetcher=fetch,interval=300000,visibility=globalThis.document,storage,subscribe,batch=false}) {
   const cache=new Map(), pending=new Map(), watchers=new Map();
-  const observers=new Set();let scope='guest',disconnect,changeTimer;
+  const observers=new Set();let scope='guest',scopeVersion=0,disconnect,changeTimer;
   const queuedChanges=new Set();
-  const persistent=(action,args={})=>['profile','profiles','getPin'].includes(action) || (action==='page' && args.options?.mode!=='ownComments');
+  const persistent=(action,args={})=>['profile','profiles','getPin','friends','following','relationships','listPins','reposts','comments'].includes(action) || (action==='page' && args.options?.mode!=='ownComments');
   let generation=0;
   const revisions=new Map();
   const versionOf=action=>generation+':'+(revisions.get(action)||0);
@@ -45,19 +45,21 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
   }
   function observe(callback){observers.add(callback);visibility?.addEventListener('visibilitychange',onVisibility);syncTransport();return()=>{observers.delete(callback);syncTransport();if(!observers.size&&!watchers.size)visibility?.removeEventListener('visibilitychange',onVisibility);};}
   async function request(action,args,retried=false) {
+    const session=scopeVersion;
     const accessToken=await token(retried);
+    if(session!==scopeVersion)throw Error('로그인이 만료되었습니다. 다시 로그인해 주세요.');
     const response=await fetcher((url.endsWith('/')?url.slice(0,-1):url)+'/functions/v1/community',{
       method:'POST',headers:{'Content-Type':'application/json',...(key?{apikey:key}:{}),...(accessToken?{Authorization:'Bearer '+accessToken}:{})},body:JSON.stringify({action,args}),
     });
     if(response.status===401 && accessToken && !retried) return request(action,args,true);
     let result;
     try {result=await response.json();} catch {throw Error('서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.');}
-    if(!response.ok || result.error) throw Error(result.error || '요청을 처리하지 못했습니다.');
+    if(!response.ok || result.error) throw Object.assign(Error(result.error || '요청을 처리하지 못했습니다.'),{status:response.status});
     return result.data;
   }
   const read=batch?createReadBatcher(request):request;
   function call(action,args={},force=false) {
-    if(!reads.has(action)) return request(action,args).then(value=>{if(!silentWrites.has(action))invalidate(affected[action]);return value;});
+    if(!reads.has(action)){const session=scopeVersion;return request(action,args).then(value=>{if(session===scopeVersion && !silentWrites.has(action))invalidate(affected[action]);return value;});}
     const id=action+':'+JSON.stringify(canonical(args));
     const ttl=['messages','balance'].includes(action)?0:interval;
     const saved=cache.get(id);
@@ -105,7 +107,7 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
       if(storage && persistent(action,args) && !cache.has(id)){
         const version=versionOf(action);
         void storage.get(scope+':'+id).then(saved=>{
-          if(version===versionOf(action) && entry.listeners.size && saved){entry.value=saved.value;entry.last=JSON.stringify(saved.value);for(const item of entry.listeners)item.callback(saved.value);}
+          if(version===versionOf(action) && entry.listeners.size && saved){entry.value=saved.value;entry.last=JSON.stringify(saved.value);if(Date.now()-saved.time<interval)cache.set(id,{action,value:saved.value,time:saved.time});for(const item of entry.listeners)item.callback(saved.value);}
           void entry.refresh();
         });
       }else void entry.refresh();
@@ -122,9 +124,9 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
   function onVisibility(){syncTransport();if(visible()&&!subscribe)invalidate();}
   function setScope(next){
     if(scope===next)return;
-    const previous=scope;scope=next;disconnect?.();disconnect=null;
+    const previous=scope;scope=next;scopeVersion++;disconnect?.();disconnect=null;
     void storage?.remove(entry=>entry.scope===previous);invalidate(undefined,false);syncTransport();
   }
   const saved=(action,args={})=>storage?.get(scope+':'+action+':'+JSON.stringify(canonical(args)));
-  return {call,watch,invalidate,observe,setScope,saved};
+  return {call,watch,invalidate,observe,setScope,saved,getScope:()=>scope,getScopeVersion:()=>scopeVersion};
 }

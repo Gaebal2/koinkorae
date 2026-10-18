@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v27-notification-inbox';
+const CACHE = 'korae-community-v28-chat-cache-badges';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -46,14 +46,48 @@ self.addEventListener('fetch', event => {
   })());
 });
 
+// Store only delivery tags/timestamps locally; no extra database requests for badges.
+let badgeQueue=Promise.resolve(),badgeFallback=[];
+async function badgeStorage(update) {
+ try {
+  const db=await new Promise((resolve,reject)=>{
+   const request=self.indexedDB.open('korae-device-badge',1);
+   request.onupgradeneeded=()=>request.result.createObjectStore('state');
+   request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);request.onblocked=()=>reject(Error('blocked'));
+  });
+  try{return await new Promise((resolve,reject)=>{
+   const tx=db.transaction('state','readwrite'),store=tx.objectStore('state');let next;
+   const request=store.get('unread');request.onsuccess=()=>{next=update(request.result||[]);store.put(next,'unread');};
+   tx.oncomplete=()=>resolve(next);tx.onerror=tx.onabort=()=>reject(tx.error);
+  });}finally{db.close();}
+ }catch{return update(badgeFallback);}
+}
+function updateBadge(update) {
+ badgeQueue=badgeQueue.catch(()=>{}).then(async()=>{
+  badgeFallback=await badgeStorage(update);
+  try {if(badgeFallback.length)await self.navigator?.setAppBadge?.(badgeFallback.length);else await self.navigator?.clearAppBadge?.();}catch{}
+ });
+ return badgeQueue;
+}
+self.addEventListener('message',event=>{
+ if(event.data?.type==='READ_NOTIFICATIONS' && Number.isFinite(event.data.before)){
+  const before=event.data.before;
+  event.waitUntil(updateBadge(rows=>rows.filter(row=>row.receivedAt>before)));
+ }else if(event.data?.type==='RESET_BADGE')event.waitUntil(updateBadge(()=>[]));
+});
+self.addEventListener('activate',event=>event.waitUntil(updateBadge(rows=>rows)));
 self.addEventListener('push', event => {
  let payload;try{payload=event.data?.json();}catch{}
  if(!payload)return;
  let url;try{url=new URL(payload.url||'./',ROOT);}catch{url=new URL(ROOT);}
- event.waitUntil(self.registration.showNotification(payload.title||'ㅋㅇㄱㄹ',{
-  body:payload.body||'',icon:new URL('koin-korae-splash-v4-192.png',ROOT).href,
-  tag:payload.tag,data:{url:url.origin===self.location.origin?url.href:ROOT},
- }));
+ const receivedAt=Date.now(),tag=payload.tag||String(receivedAt)+Math.random();
+ event.waitUntil(Promise.all([
+  self.registration.showNotification(payload.title||'ㅋㅇㄱㄹ',{
+   body:payload.body||'',icon:new URL('koin-korae-splash-v4-192.png',ROOT).href,
+   tag:payload.tag,data:{url:url.origin===self.location.origin?url.href:ROOT},
+  }),
+  updateBadge(rows=>rows.some(row=>row.tag===tag)?rows:[...rows,{tag,receivedAt}]),
+ ]));
 });
 self.addEventListener('notificationclick',event=>{
  event.notification.close();

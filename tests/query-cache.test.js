@@ -53,3 +53,13 @@ test('read handlers do not fetch the signed-in user profile unnecessarily',async
   assert.equal((await dispatch(db,{uid:'alice'},'balance',{uid:'alice'})).current,10);
   assert.deepEqual(calls,[['balances','alice']]);
 });
+
+test('fresh persistent friends hydrate without a repeat read; invalidation still fetches updates',async()=>{
+ const values=[];const storage={get:async()=>({time:Date.now(),value:['cached']}),set:async()=>{},remove:async()=>{}};
+ const {client,calls}=setup({storage});const stop=client.watch('friends',{},value=>values.push(value));await tick();
+ assert.equal(calls.length,0);assert.deepEqual(values,[['cached']]);client.invalidate(['friends']);await tick();assert.equal(calls.length,1);stop();
+});
+test('changing account while acquiring a token cancels the request before transmission',async()=>{
+ let release;const {client,calls}=setup({token:()=>new Promise(resolve=>release=resolve)});
+ const read=client.call('friends');client.setScope('new-user');release('token');await assert.rejects(read);assert.equal(calls.length,0);
+});

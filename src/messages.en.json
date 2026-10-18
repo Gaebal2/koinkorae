@@ -606,5 +606,8 @@
   "검토 결과 신고된 피드/Pin에 문제가 없었습니다.": "After review, no issue was found with the reported post/Pin.",
   "신고를 철회하고 검토 결과를 알렸습니다.": "Reports dismissed and review results recorded.",
   "신고를 철회할까요? 신고자와 작성자에게 문제가 없다는 검토 결과를 알립니다.": "Dismiss these reports? Reporters and the author will be notified that no issue was found.",
-  "이 항목을 삭제할까요? 삭제 후에는 복원하거나 신고를 철회할 수 없으며 작성자에게 삭제 내역이 남습니다.": "Delete this item? It cannot be restored or have its reports dismissed after deletion. The author will retain a deletion notice."
+  "이 항목을 삭제할까요? 삭제 후에는 복원하거나 신고를 철회할 수 없으며 작성자에게 삭제 내역이 남습니다.": "Delete this item? It cannot be restored or have its reports dismissed after deletion. The author will retain a deletion notice.",
+  "전송 중…": "Sending…",
+  "전송 실패 · 다시 보내기": "Failed to send · Retry",
+  "채팅 동기화에 실패했습니다. 앱을 새로고침해 주세요.": "Chat sync failed. Please reload the app."
 }

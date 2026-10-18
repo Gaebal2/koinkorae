@@ -2,6 +2,7 @@
 export function createQueryStorage(indexedDB=globalThis.indexedDB) {
   // Retire pre-trial public activity snapshots after the service reset.
   try { indexedDB?.deleteDatabase('korae-public-cache-v1'); } catch {}
+  const lifetime=row=>row.action==='chatHistory'?30*86400000:86400000;
   let opening;
   const db=()=>opening??=new Promise(resolve=>{
     if(!indexedDB){resolve(null);return;}
@@ -18,11 +19,11 @@ export function createQueryStorage(indexedDB=globalThis.indexedDB) {
     });}catch{return undefined;}
   }
   return {
-    get:key=>transaction('readonly',(store,done)=>{const r=store.get(key);r.onsuccess=()=>done(r.result && Date.now()-r.result.time<86400000?r.result:undefined);}),
+    get:key=>transaction('readonly',(store,done)=>{const r=store.get(key);r.onsuccess=()=>done(r.result && Date.now()-r.result.time<lifetime(r.result)?r.result:undefined);}),
     set:entry=>transaction('readwrite',store=>{
       store.put(entry);const r=store.getAll();r.onsuccess=()=>{
         const rows=r.result.sort((a,b)=>b.time-a.time);
-        rows.forEach((row,i)=>{if(i>=100||Date.now()-row.time>86400000)store.delete(row.key);});
+        rows.forEach((row,i)=>{if(i>=100||Date.now()-row.time>lifetime(row))store.delete(row.key);});
       };
     }),
     remove:predicate=>transaction('readwrite',store=>{const r=store.openCursor();r.onsuccess=()=>{const c=r.result;if(c){if(predicate(c.value))c.delete();c.continue();}};}),

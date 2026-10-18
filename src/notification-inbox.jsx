@@ -1,3 +1,4 @@
+import {markDeviceNotificationsRead} from './app-badge.js';
 import React,{useEffect,useRef,useState} from 'react';
 import {ShieldCheck,UserPlus,Siren,Trash2,Bell,MessageCircle,Repeat2,Heart,Share2,MessagesSquare,CalendarCheck,ArrowUpRight,RefreshCw} from 'lucide-react';
 import {data} from './data.js';
@@ -9,8 +10,8 @@ const labels={review:'신고 검토 결과',report:'내 콘텐츠 신고',modera
 export function NotificationInbox({me}){
  const [items,setItems]=useState([]),[cursor,setCursor]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[revision,refresh]=useState(0);
  const generation=useRef(0),lock=useRef(false);
- useEffect(()=>{const request=++generation.current;lock.current=true;setItems([]);setCursor(null);setLoading(true);setError('');
- data.notificationInbox().then(page=>{if(request===generation.current){setItems(page.items);setCursor(page.nextCursor);}}).catch(()=>{if(request===generation.current)setError('알림을 불러오지 못했습니다. 다시 시도해 주세요.');}).finally(()=>{if(request===generation.current){lock.current=false;setLoading(false);}});
+ useEffect(()=>{const seenAt=Date.now();const request=++generation.current;lock.current=true;setItems([]);setCursor(null);setLoading(true);setError('');
+ data.notificationInbox().then(page=>{if(request===generation.current){setItems(page.items);setCursor(page.nextCursor);void markDeviceNotificationsRead(seenAt);}}).catch(()=>{if(request===generation.current)setError('알림을 불러오지 못했습니다. 다시 시도해 주세요.');}).finally(()=>{if(request===generation.current){lock.current=false;setLoading(false);}});
  return()=>{++generation.current;};},[me.id,revision]);
  async function more(){if(lock.current||cursor===null)return;lock.current=true;setLoading(true);setError('');const request=generation.current;
  try{const page=await data.notificationInbox(cursor);if(request===generation.current){setItems(current=>[...new Map([...current,...page.items].map(item=>[item.id,item])).values()]);setCursor(page.nextCursor);}}
