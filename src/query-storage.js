@@ -23,7 +23,13 @@ export function createQueryStorage(indexedDB=globalThis.indexedDB) {
     set:entry=>transaction('readwrite',store=>{
       store.put(entry);const r=store.getAll();r.onsuccess=()=>{
         const rows=r.result.sort((a,b)=>b.time-a.time);
-        rows.forEach((row,i)=>{if(i>=100||Date.now()-row.time>lifetime(row))store.delete(row.key);});
+        let bytes=0,count=0;
+        // Bound device usage even when old snapshots contain inline photos.
+        rows.forEach(row=>{
+          const size=JSON.stringify(row).length*2;
+          if(count>=500||bytes+size>20*1024*1024||Date.now()-row.time>lifetime(row))store.delete(row.key);
+          else {bytes+=size;count++;}
+        });
       };
     }),
     remove:predicate=>transaction('readwrite',store=>{const r=store.openCursor();r.onsuccess=()=>{const c=r.result;if(c){if(predicate(c.value))c.delete();c.continue();}};}),

@@ -609,5 +609,8 @@
   "이 항목을 삭제할까요? 삭제 후에는 복원하거나 신고를 철회할 수 없으며 작성자에게 삭제 내역이 남습니다.": "Delete this item? It cannot be restored or have its reports dismissed after deletion. The author will retain a deletion notice.",
   "전송 중…": "Sending…",
   "전송 실패 · 다시 보내기": "Failed to send · Retry",
-  "채팅 동기화에 실패했습니다. 앱을 새로고침해 주세요.": "Chat sync failed. Please reload the app."
+  "채팅 동기화에 실패했습니다. 앱을 새로고침해 주세요.": "Chat sync failed. Please reload the app.",
+  "등급 배지": "Rank badges",
+  "획득": "Earned",
+  "도전": "To unlock"
 }

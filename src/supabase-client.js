@@ -67,14 +67,25 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
     if(pending.has(id)) return pending.get(id);
     const version=versionOf(action);
     const requestScope=scope;
-    const promise=read(action,args).then(value=>{
+    const promise=(async()=>{
+      if(!force && ttl && storage && persistent(action,args)){
+        let row;
+        try { row=await storage.get(requestScope+':'+id); } catch {}
+        if(requestScope!==scope || version!==versionOf(action))throw Error('데이터가 변경되었습니다. 다시 시도해 주세요.');
+        if(row && Number.isFinite(row.time) && Date.now()-row.time>=0 && Date.now()-row.time<ttl){
+          cache.set(id,{action,value:row.value,time:row.time});
+          if(cache.size>500)cache.delete(cache.keys().next().value);
+          return row.value;
+        }
+      }
+      const value=await read(action,args);
       if(version===versionOf(action) && ttl){
         cache.delete(id); cache.set(id,{action,value,time:Date.now()});
         if(cache.size>500)cache.delete(cache.keys().next().value);
         if(persistent(action,args))void storage?.set({key:requestScope+':'+id,scope:requestScope,action,value,time:Date.now()});
       }
       return value;
-    }).finally(()=>{if(pending.get(id)===promise)pending.delete(id);});
+    })().finally(()=>{if(pending.get(id)===promise)pending.delete(id);});
     pending.set(id,promise);return promise;
   }
   function watch(action,args,callback,onError=()=>{},pollInterval=interval) {

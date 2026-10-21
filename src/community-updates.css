@@ -711,3 +711,27 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .notification-context { display:grid; gap:6px; padding:12px; border-radius:12px; background:var(--surface-tint); font-size:12px; overflow-wrap:anywhere; }
 
 .chat-retry { align-self: flex-end; border: 0; background: transparent; color: #b42318; font-size: 12px; padding: 6px 0; cursor: pointer; }
+/* Earned sea ranks: artwork stays crisp from avatar overlay to collection size. */
+.rank-badge { display:block; width:28px; height:28px; flex:none; filter:drop-shadow(0 2px 2px #24203e30); }
+.ranked-avatar { position:relative; display:inline-block; width:40px; height:40px; flex:none; border-radius:50%; vertical-align:middle; isolation:isolate; }
+.ranked-avatar > img { display:block; width:100%; height:100%; object-fit:cover; border-radius:inherit; }
+.ranked-avatar > .rank-badge { position:absolute; z-index:1; right:-5px; bottom:-4px; width:48%; height:48%; min-width:17px; min-height:17px; pointer-events:none; }
+.post-head .avatar { overflow:visible; }
+.post-head .avatar > .ranked-avatar { width:100%; height:100%; }
+.post-head span.ranked-avatar { display:inline-block; margin:0; }
+.pin-creator > .pin-creator-profile { overflow:visible; }
+.pin-creator-profile > .ranked-avatar { width:100%; height:100%; }
+.repost-profile > .ranked-avatar { width:28px; height:28px; }
+.signed-in-brand > .ranked-avatar { width:40px; height:40px; overflow:visible; }
+.person-profile > .ranked-avatar { width:42px; height:42px; }
+.profile-page-x .profile-head .ranked-avatar > .rank-badge { right:-6px; bottom:-4px; width:30px; height:30px; }
+.rank-collection { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin:28px 0; padding:20px 12px; border:1px solid #e9e1f3; border-radius:20px; background:linear-gradient(135deg,#faf7ff,#f4f7ff); }
+.rank-collection > div { display:flex; align-items:center; flex-direction:column; gap:7px; min-width:0; }
+.rank-collection .rank-badge { width:clamp(35px,8vw,64px); height:clamp(35px,8vw,64px); }
+.rank-collection b { font-size:12px; color:var(--text); }
+.rank-collection small { font-size:10px; color:var(--muted); }
+.rank-collection [data-earned="true"] small { color:var(--primary); font-weight:800; }
+@media(max-width:360px) { .rank-collection { gap:4px; padding:16px 6px; } }
+.comment-author .ranked-avatar { width:30px; height:30px; }
+.chat-friends .ranked-avatar { width:44px; height:44px; flex:none; }
+.friend-chat-head .ranked-avatar { width:34px; height:34px; }

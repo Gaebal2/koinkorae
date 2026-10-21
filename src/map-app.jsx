@@ -1,3 +1,4 @@
+import {RankedAvatar} from './rank-badge.jsx';
 import {trackScreen} from './analytics.js';
 import {resolveSharedPost} from './shared-link.js';
 import {PointsPolicy} from './points-policy.jsx';
@@ -223,7 +224,7 @@ export default function App() {
     notificationLaunch.current=false;setProfileId(me.id);setProfileFeed('알림');setPage('profile');setProfileEntry(value=>value+1);
   },[authReady,me?.id]);
   useEffect(()=>{if(!authReady||!sharedProfile.current)return;setProfileId(sharedProfile.current);setProfileFeed('작성 피드');setPage('profile');sharedProfile.current=null;const url=new URL(window.location.href);url.searchParams.delete('profile');history.replaceState(history.state,'',url);},[authReady]);
-  const openProfile = (id, feed = '작성 피드') => { setFocusPostId(null); setEditing(false); setProfileFeed(feed); setProfileId(id); setPage('profile'); };
+  const openProfile = (id, feed) => { if(page==='profile' && profileId===id && feed===undefined)return; setFocusPostId(null); setEditing(false); setProfileFeed(feed || '작성 피드'); setProfileId(id); setPage('profile'); };
   useEffect(()=>{
     if(!authReady || !sharedPost)return;
     let active=true;setShareError('');
@@ -237,7 +238,7 @@ export default function App() {
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
   // A pending session is not a signed-out session. Avoid guest UI during restoration.
   if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main aria-label={t("불러오는 중…")}/></div>;
-  return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><img src={myProfile?.profileImage || profileImage()} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={brandImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}<div className="header-actions"><button type="button" className="bp-pill" disabled={pickingPin} onClick={openPolicy} aria-label={t('보유 {0} KK · 포인트 정책 보기',balance.current.toLocaleString())}>{balance.current.toLocaleString()} KK</button>{me ? page==='profile'&&<button className="profile-settings-button" aria-label={t('설정')} onClick={()=>setSettings(true)}><Settings/></button> : <button className="text-action" disabled={pickingPin} onClick={()=>setAuth(true)}>{t('로그인')}</button>}</div></header>
+  return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><RankedAvatar src={myProfile?.profileImage || profileImage()} profile={myProfile} level={levelFor(balance).index} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={brandImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}<div className="header-actions"><button type="button" className="bp-pill" disabled={pickingPin} onClick={openPolicy} aria-label={t('보유 {0} KK · 포인트 정책 보기',balance.current.toLocaleString())}>{balance.current.toLocaleString()} KK</button>{me ? page==='profile'&&<button className="profile-settings-button" aria-label={t('설정')} onClick={()=>setSettings(true)}><Settings/></button> : <button className="text-action" disabled={pickingPin} onClick={()=>setAuth(true)}>{t('로그인')}</button>}</div></header>
     <Suspense fallback={<main role="status"><p className="loading-state">{t("불러오는 중…")}</p></main>}>
     <ContentRefresh page={page}/>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}

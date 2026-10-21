@@ -1,3 +1,4 @@
+import {RankedAvatar} from './rank-badge.jsx';
 import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
 import {CheckinCalendar, useCheckinToday} from './checkin-calendar.jsx';
 import { FeedControls } from './feed-controls.jsx';
@@ -15,7 +16,7 @@ import {useCursorPage} from './paged-feed.jsx';
 
 function CommentAuthor({ id, name, initial, onProfile }) {
   const live = useLiveProfile(initial ? null : id), profile=initial || live;
-  return <span className="comment-author">{onProfile&&id?<button type="button" className="comment-profile-button" aria-label={t('{0} 프로필 보기',profile?.username||name)} onClick={()=>onProfile(id)}><img src={profile?.profileImage||profileImage()} alt=""/></button>:profile?.profileImage&&<img src={profile.profileImage} alt=""/>}<b>{profile?.username || name}</b></span>;
+  return <span className="comment-author">{onProfile&&id?<button type="button" className="comment-profile-button" aria-label={t('{0} 프로필 보기',profile?.username||name)} onClick={()=>onProfile(id)}><RankedAvatar src={profile?.profileImage||profileImage()} profile={profile}/></button>:profile?.profileImage&&<RankedAvatar src={profile.profileImage} profile={profile}/>}<b>{profile?.username || name}</b></span>;
 }
 
 export function HomePage({ onCoin, onPin, onReposted, me, options, setOptions, following, onProfile, compose, login }) {

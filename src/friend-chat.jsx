@@ -1,3 +1,4 @@
+import {RankedAvatar} from './rank-badge.jsx';
 import {useContentRefresh} from './content-refresh.jsx';
 import { t, getLocale } from './language.js';
 import React,{useEffect,useRef,useState} from 'react';
@@ -31,7 +32,7 @@ function Conversation({friend,me,onClose}) {
     if(busy||!rows.length)return;setBusy(true);const beforeHeight=scroll.current.scrollHeight, beforeTop=scroll.current.scrollTop;
     try{const previous=await data.olderMessages(friend.id,rows[0].createdAt);setMore(previous.length===100);requestAnimationFrame(()=>{if(scroll.current)scroll.current.scrollTop=beforeTop+scroll.current.scrollHeight-beforeHeight;});}catch(e){setError(e.message);}finally{setBusy(false);}
   };
-  return <main className="friend-conversation"><header className="friend-chat-head"><button onClick={onClose} aria-label={t("친구 목록으로")}><ArrowLeft/></button><img src={(profile ? profile.profileImage : friend.profileImage) || profileImage()} alt=""/><b>{profile?.username || friend.username}</b></header>
+  return <main className="friend-conversation"><header className="friend-chat-head"><button onClick={onClose} aria-label={t("친구 목록으로")}><ArrowLeft/></button><RankedAvatar src={(profile ? profile.profileImage : friend.profileImage) || profileImage()} profile={profile || friend}/><b>{profile?.username || friend.username}</b></header>
     <div className="chat-messages direct-messages" ref={scroll} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<80;}} aria-label={t("친구와의 대화")}>
       {more&&<button className="text-action" disabled={busy} onClick={loadOlder}>{t("이전 메시지 보기")}</button>}
       {loading ? <p role="status">{t("대화를 불러오는 중…")}</p> : !rows.length && <Empty text={t("친구에게 첫 메시지를 보내보세요.")}/>}
@@ -47,7 +48,7 @@ function SignedInChat({me}) {
   useEffect(()=>{if(selected&&friends&&!friends.some(friend=>friend.id===selected.id))setSelected(null);},[friends,selected]);
   useBackDismiss(!!selected,()=>setSelected(null),40);
   if(selected)return <Conversation key={selected.id} friend={selected} me={me} onClose={()=>setSelected(null)}/>;
-  return <main><PageTitle icon={MessagesSquare} title={t("맞팔 친구와 채팅")} sub={t("친구와 이야기를 나누세요")}/>{error&&<p className="error" role="alert">{t(error)}</p>}{friends===null?<p role="status">{t("친구를 불러오는 중…")}</p>:!friends.length?<Empty text={t("등록 된 친구가 없습니다.")}/>:<div className="chat-friends">{friends.map(friend=><button key={friend.id} onClick={()=>setSelected(friend)}><img src={friend.profileImage||profileImage()} alt=""/><span><b>{friend.username}</b><small>{friend.bio}</small></span><MessagesSquare/></button>)}</div>}</main>;
+  return <main><PageTitle icon={MessagesSquare} title={t("맞팔 친구와 채팅")} sub={t("친구와 이야기를 나누세요")}/>{error&&<p className="error" role="alert">{t(error)}</p>}{friends===null?<p role="status">{t("친구를 불러오는 중…")}</p>:!friends.length?<Empty text={t("등록 된 친구가 없습니다.")}/>:<div className="chat-friends">{friends.map(friend=><button key={friend.id} onClick={()=>setSelected(friend)}><RankedAvatar src={friend.profileImage||profileImage()} profile={friend}/><span><b>{friend.username}</b><small>{friend.bio}</small></span><MessagesSquare/></button>)}</div>}</main>;
 }
 export function FriendChat({me,login}) {
   if(!me)return <main><PageTitle icon={MessagesSquare} title={t("맞팔 친구와 채팅")}/><p>{t("로그인하고 친구와 채팅하세요.")}</p><button className="primary" onClick={login}>{t("로그인")}</button></main>;

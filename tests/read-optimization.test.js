@@ -118,3 +118,10 @@ test('comment cursors handle tied timestamps and own-comment history cannot be r
     assert.equal((await dispatch(db,user,'page',{options:{mode:'ownComments'}})).items[0].post.author,'Alice');
   }finally{await pg.close();}
 });
+
+test('initial page restoration allows device cache while explicit refresh bypasses it',async()=>{
+ const forces=[];
+ const store=createPagedStore({saved:async()=>({value:{items:[],nextCursor:null}}),load:async(_,cursor,force)=>{forces.push(force);return {items:[{id:'one'}],nextCursor:null};},observe:()=>()=>{}});
+ const page=store.get({mode:'posts'});const stop=page.subscribe(()=>{});await tick();
+ assert.deepEqual(forces,[false]);await page.refresh();assert.deepEqual(forces,[false,true]);stop();
+});

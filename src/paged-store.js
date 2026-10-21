@@ -7,14 +7,14 @@ export function createPagedStore({load,saved,observe},maxEntries=30){
     let snapshot={items:[],nextCursor:null,loading:true,error:null},running=false,stale=true,queued=false,hydrated=false,loadedPages=1;
     const listeners=new Set();
     const emit=value=>{snapshot={...snapshot,...value};listeners.forEach(fn=>fn());};
-    async function refresh(){
+    async function refresh(force=true){
       if(!listeners.size || globalThis.document?.hidden){stale=true;return;}
       if(running){queued=true;return;}
       running=true;stale=false;emit({loading:true,error:null});
       try{
         let cursor=null,items=[],page;
         for(let i=0;i<loadedPages;i++){
-          page=await load(options,cursor,true);items.push(...page.items);cursor=page.nextCursor;
+          page=await load(options,cursor,force);items.push(...page.items);cursor=page.nextCursor;
           if(!cursor)break;
         }
         emit({items:[...new Map(items.map(item=>[item.id,item])).values()],nextCursor:cursor,totalCount:page.totalCount});
@@ -30,7 +30,7 @@ export function createPagedStore({load,saved,observe},maxEntries=30){
           if(!sharedStop)sharedStop=observe(actions=>{if(!actions||actions.includes('page'))for(const item of entries.values())item.invalidate();});
           if(!hydrated){hydrated=true;void Promise.resolve(saved?.(options)).then(row=>{
             if(row && !snapshot.items.length)emit({items:row.value.items,nextCursor:row.value.nextCursor,totalCount:row.value.totalCount});
-            if(stale)void refresh();
+            if(stale)void refresh(false);
           });}else if(stale)void refresh();
         }
         return()=>{listeners.delete(callback);if(!listeners.size){active--;if(!active){sharedStop?.();sharedStop=null;}}};

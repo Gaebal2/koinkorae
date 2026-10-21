@@ -63,3 +63,24 @@ test('changing account while acquiring a token cancels the request before transm
  let release;const {client,calls}=setup({token:()=>new Promise(resolve=>release=resolve)});
  const read=client.call('friends');client.setScope('new-user');release('token');await assert.rejects(read);assert.equal(calls.length,0);
 });
+
+test('direct reads reuse fresh device cache but forced and expired reads reach server',async()=>{
+ let row={time:Date.now(),value:{id:'cached'}};
+ const storage={get:async()=>row,set:async()=>{},remove:async()=>{row=null;}};
+ const {client,calls}=setup({storage});
+ assert.deepEqual(await client.call('profile',{id:'a'}),{id:'cached'});assert.equal(calls.length,0);
+ await client.call('profile',{id:'a'},true);assert.equal(calls.length,1);
+ row={time:Date.now()-600000,value:{id:'old'}};
+ await client.call('profile',{id:'b'});assert.equal(calls.length,2);
+});
+test('pending device hydration cannot cross an account switch',async()=>{
+ let release;const storage={get:()=>new Promise(resolve=>release=resolve),remove:async()=>{}};
+ const {client,calls}=setup({storage});
+ const pending=client.call('profile',{id:'a'});client.setScope('bob');
+ release({time:Date.now(),value:{id:'alice'}});
+ await assert.rejects(pending);assert.equal(calls.length,0);
+});
+test('unavailable device storage falls back to the server',async()=>{
+ const {client,calls}=setup({storage:{get:async()=>{throw Error('blocked');},set:async()=>{}}});
+ await client.call('profile',{id:'a'});assert.equal(calls.length,1);
+});

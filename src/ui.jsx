@@ -1,3 +1,4 @@
+import {RankedAvatar} from './rank-badge.jsx';
 import {ReportButton} from './report-button.jsx';
 import {ShareButton} from './share-button.jsx';
 import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
@@ -137,7 +138,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
 
           {!passive && !pin._detailPending && (onEdit || onDelete) && <button type="button" className="pin-menu-button" aria-label={t("Pin 관리")} aria-haspopup="dialog" onClick={()=>setMenu(true)}><MoreVertical/></button>}
           <Avatar className="pin-creator-profile" onClick={!passive ? () => onProfile?.(pin.creator || "battle_newbie") : undefined} aria-label={!passive ? t("핀 생성자 프로필 보기") : undefined}>
-            <img src={creator?.profileImage || profileImage()} alt={t("{0} 프로필", creatorName)} />
+            <RankedAvatar src={creator?.profileImage || profileImage()} profile={creator} alt={t("{0} 프로필", creatorName)}/>
           </Avatar>
           <span className="pin-creator-name">@{creatorName}</span>
           {!passive && !pin._detailPending && <ShareButton kind="pin" item={pin}/>} {!passive && !pin._detailPending && <ReportButton kind="pins" item={pin}/>}
