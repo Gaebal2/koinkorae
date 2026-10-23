@@ -12,6 +12,8 @@ export function RankBadge({level=0,className=''}) {
     <path d="M32 7 49 15 55 33 44 49 32 56 20 49 9 33 15 15Z" fill={`url(#${id}-sea)`} stroke={art.light} strokeOpacity=".7"/>
     <path d="M15 22 19 16 32 10 45 16" fill="none" stroke="white" opacity=".25" strokeWidth="2"/>
     <g fill={`url(#${id}-animal)`} stroke={art.light} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d={art.body}/><path d={art.path} fill="none"/></g>
+    {art.details&&<path d={art.details} fill="none" stroke={art.dark} strokeOpacity=".45" strokeWidth="1.25" strokeLinecap="round"/>}
+    {art.fin&&<path d={art.fin} fill={art.light} stroke={art.dark} strokeOpacity=".35" strokeWidth="1.25" strokeLinejoin="round"/>}
     {art.eyes.map(([cx,cy],i)=><circle key={i} cx={cx} cy={cy} r="1.6" fill={art.dark}/>)}
     <path d="m32 51 2 3-2 3-2-3Z" fill={art.light}/>
     {index>=4&&<path d="m49 11 1.5 4.5L55 17l-4.5 1.5L49 23l-1.5-4.5L43 17l4.5-1.5Z" fill="#fff"/>}
