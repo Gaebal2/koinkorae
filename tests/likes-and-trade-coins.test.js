@@ -72,7 +72,7 @@ test('like filters retain canonical values and fallback ranking uses count rathe
   const posts=[{id:'a',coin:'BTC',createdAt:1000,support:100,oppose:0,likeCount:1},{id:'b',coin:'ETH',createdAt:2000,support:0,oppose:0,likeCount:5}];
   const result=filterFeed(posts,{category:'좋아요',period:'전체'},[],3000);
   assert.deepEqual(result.posts.map(p=>p.id),['b','a']);assert.equal(result.groups[0].coin,'ETH');
-  const state=readViewState({getItem:()=>JSON.stringify({options:{category:'좋아요'}})});
+  const state=readViewState({getItem:()=>null},{getItem:()=>JSON.stringify({category:'좋아요'})});
   assert.equal(state.options.category,'좋아요');
 });
 
