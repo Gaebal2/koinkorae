@@ -85,7 +85,8 @@ service cloud.firestore {
     match /pins/{id} {
       function valid() {
         let p = request.resource.data;
-        return p.keys().hasOnly(['ownerId', 'slot', 'creator', 'title', 'description', 'coin', 'tradeCoins', 'link', 'image', 'category', 'lat', 'lng'])
+        return p.keys().hasOnly(['ownerId', 'slot', 'creator', 'title', 'description', 'coin', 'tradeCoins', 'link', 'image', 'category', 'lat', 'lng', 'mapHidden'])
+          && (!('mapHidden' in p) || p.mapHidden is bool)
           && p.ownerId == request.auth.uid && p.slot in ['0', '1', '2']
           && id == request.auth.uid + '_' + p.slot
           && text(p.creator, 24) && text(p.title, 50) && p.title.size() > 0

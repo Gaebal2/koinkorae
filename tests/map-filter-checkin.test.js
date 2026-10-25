@@ -53,3 +53,27 @@ test('pin category filtering includes legacy names and combines with coin and cu
     await assert.rejects(dispatch(db,null,'page',{options:{mode:'pins',pinCategory:'invalid'}}));
   } finally {await pg.close();}
 });
+
+test('pin visibility is owner-only, filters map pagination and survives content/location edits',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const {pg,db}=await communityHarness();
+ try {
+  await pg.exec(await readFile(new URL('../supabase/migrations/202610250001_pin_map_visibility.sql',import.meta.url),'utf8'));
+  const alice={uid:'alice',name:'Alice'};
+  for(const id of ['a','b','c'])await db.put({kind:'pins',id,parent:'',owner:'alice',body:{ownerId:'alice',slot:'0',title:id,lat:37,lng:127,coin:'BTC',tradeCoins:[]}});
+  await assert.rejects(dispatch(db,null,'setPinMapHidden',{id:'a',hidden:true}));
+  await assert.rejects(dispatch(db,{uid:'bob'},'setPinMapHidden',{id:'a',hidden:true}));
+  await assert.rejects(dispatch(db,alice,'setPinMapHidden',{id:'a',hidden:'true'}));
+  await dispatch(db,alice,'setPinMapHidden',{id:'a',hidden:true});
+  const options={mode:'pins',bounds:[36,126,38,128]};
+  const page=await dispatch(db,null,'page',{options,limit:1});
+  assert.equal(page.totalCount,2);assert.deepEqual(page.items.map(p=>p.id),['b']);
+  assert.deepEqual((await dispatch(db,alice,'page',{options:{...options,owner:'alice',detail:true}})).items.map(p=>p.id),['b','c']);
+  assert.equal((await dispatch(db,alice,'page',{options:{mode:'pins',owner:'alice',detail:true}})).items.length,3);
+  assert.equal((await dispatch(db,{uid:'bob'},'page',{options:{mode:'pins',owner:'alice',detail:true}})).items.length,2);
+  await db.mutate('savePin','alice','a',{title:'moved',lat:38,lng:128,tradeCoins:[],mapHidden:false});
+  const edited=(await db.one('pins','a')).body;assert.equal(edited.mapHidden,true);assert.equal(edited.lat,38);
+  await dispatch(db,alice,'setPinMapHidden',{id:'a',hidden:false});
+  assert.equal((await dispatch(db,null,'page',{options})).totalCount,3);
+ }finally{await pg.close();}
+});

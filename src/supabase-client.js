@@ -6,6 +6,7 @@ const affected={
   moderateContent:['profile','profiles','page','getPin','listPins','posts','authorPosts','postsById','comments','ownComments','battleRankings','reposts','commentCount','commentCounts'],
   pinProfilePost:['profile','profiles'],
   ensureProfile:['profile'], saveProfile:['battleRankings','profile','posts','authorPosts','postsById','listPins','getPin','comments','friends','ownComments'],
+  setPinMapHidden:['listPins','getPin'],
   savePin:['balance','listPins','getPin'], deletePin:['listPins','getPin'], checkin:['balance'],
   publish:['balance','posts','authorPosts','postsById'], deletePost:['profile','profiles','battleRankings','posts','authorPosts','postsById','comments','commentCount','ownComments','reposts'],
   follow:['following','relationships','friends','messages'], repost:['balance','battleRankings','reposts','posts','authorPosts','postsById'], like:['posts','authorPosts','postsById'],

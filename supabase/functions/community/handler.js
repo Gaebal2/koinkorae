@@ -156,6 +156,7 @@ export async function dispatch(db, identity, action, args = {}) {
       if(args.id && (await db.one('pins',id(args.id),''))?.body?.ownerId!==uid) throw Object.assign(Error('수정할 수 없는 거래입니다.'),{status:403});
       return mutate('savePin',args.id ? id(args.id) : '',{...value,image:await storePhoto(args.value?.image),creator:name});
     }
+    case 'setPinMapHidden': return mutate('setPinMapHidden',id(args.id),{hidden:enabled(args.hidden)});
     case 'deletePin': await db.remove('pins',id(args.id),'',uid); return null;
     case 'checkin': return mutate('checkin');
     case 'publish': {

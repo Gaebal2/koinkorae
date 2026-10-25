@@ -60,6 +60,7 @@ export const data={
   listPins:()=>call('listPins'),
   getPin:id=>call('getPin',{id}),
   watchPin:(id,callback,error)=>watch('getPin',{id},callback,error),
+  setPinMapHidden:(id,hidden)=>call('setPinMapHidden',{id,hidden}),
   savePin:(value,id)=>call('savePin',{value,id}),
   deletePin:id=>call('deletePin',{id}),
   profile:id=>id?call('profile',{id}):Promise.resolve(null),

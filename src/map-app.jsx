@@ -155,7 +155,7 @@ function MapScreen(props) {
   const [pinCategory,setPinCategory] = useState('');
   const onPinCategory = value => {setPinCategory(value);props.select(null);};
   const onCoinFilter = value => {setCoinFilter(value);props.select(null);};
-  const filtered = props.pins.filter(pin => (!pinCategory || normalizePinCategory(pin.category) === pinCategory) && (!coinFilter || pin.coin === coinFilter || pin.tradeCoins?.includes(coinFilter)));
+  const filtered = props.pins.filter(pin => !pin.mapHidden && (!pinCategory || normalizePinCategory(pin.category) === pinCategory) && (!coinFilter || pin.coin === coinFilter || pin.tradeCoins?.includes(coinFilter)));
   return data.page ? <PagedMap component={MapPage} ownPins={props.pins} {...props} coinFilter={coinFilter} onCoinFilter={onCoinFilter} pinCategory={pinCategory} onPinCategory={onPinCategory}/> : <MapPage {...props} pins={filtered} pinCount={filtered.length} coinFilter={coinFilter} onCoinFilter={onCoinFilter} pinCategory={pinCategory} onPinCategory={onPinCategory}/>;
 }
 
@@ -211,7 +211,7 @@ export default function App() {
     void refresh();
   },[me?.id,profileId,page,compose]);
   useEffect(() => { setProfile(viewedProfile); }, [viewedProfile]);
-  const openPin = async id => { try { const pin = await data.getPin(id); if (!pin) { setError('삭제되었거나 더 이상 존재하지 않는 Pin입니다.'); return; } select(pin); setPage('map'); } catch { setError('Pin을 불러오지 못했습니다.'); } };
+  const openPin = async id => { try { const pin = await data.getPin(id); if (!pin || pin.mapHidden) { setError('삭제되었거나 더 이상 존재하지 않는 Pin입니다.'); return; } select(pin); setPage('map'); } catch { setError('Pin을 불러오지 못했습니다.'); } };
   useEffect(()=>{
     if(!authReady || !sharedPin.current)return;
     const id=sharedPin.current;sharedPin.current=null;void openPin(id);
@@ -252,7 +252,7 @@ export default function App() {
     </Suspense>
     <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessagesSquare], ['battle', '연습', Swords]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><span>{t(label)}</span></button>)}</nav>
     {compose && <Composer initialDraft={practiceDraft} hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setPracticeDraft(null); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setPracticeDraft(null); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
-    {form && <PinForm {...form} pinCost={POINTS_POLICY.costs.pins} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin); setPage('map'); }}/>}
+    {form && <PinForm {...form} pinCost={POINTS_POLICY.costs.pins} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin.mapHidden ? null : pin); setPage('map'); }}/>}
     <Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}>{editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}</Suspense>
 
     {sharedPost && <Modal title={t('공유 피드')} onClose={()=>setSharedPost(null)}>{shareError?<><p role="alert">{t(shareError)}</p><button onClick={()=>retryShare(value=>value+1)}>{t('다시 시도')}</button></>:<p role="status">{t('불러오는 중…')}</p>}</Modal>}

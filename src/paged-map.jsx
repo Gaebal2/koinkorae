@@ -10,15 +10,15 @@ export function PagedMap({component:Map,ownPins=[],...props}){
   const previous=useRef(null);
   const retained=retainMapResult(previous.current,page,scope);
   useEffect(()=>{previous.current=retained;},[retained]);
-  const items=retained.items;
-  const pins=useMemo(()=>props.selected&&!items.some(p=>p.id===props.selected.id)?[...items,props.selected]:items,[items,props.selected]);
+  const items=retained.items.filter(pin=>!pin.mapHidden);
+  const pins=useMemo(()=>props.selected&&!props.selected.mapHidden&&!items.some(p=>p.id===props.selected.id)?[...items,props.selected]:items,[items,props.selected]);
   const onBounds=useCallback(value=>setBounds(previous=>containsBounds(previous,value)?previous:bufferedBounds(value)),[]);
   const [error,setError]=useState('');
   const [detailRevision,retryDetail]=useState(0);
   useEffect(()=>{
     if(!props.selected?.id)return;
     let active=true;
-    const receive=detail=>{if(!active)return;props.select(detail);setError(detail?'':'삭제된 Pin입니다.');};
+    const receive=detail=>{if(!active)return;props.select(detail?.mapHidden?null:detail);setError(detail?'':'삭제된 Pin입니다.');};
     const fail=()=>{if(active)setError('Pin을 불러오지 못했습니다.');};
     const stop=data.watchPin?.(props.selected.id,receive,fail);
     if(!data.watchPin)void data.getPin(props.selected.id).then(receive,fail);

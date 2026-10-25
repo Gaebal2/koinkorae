@@ -1,3 +1,4 @@
+import {PinLocationPicker} from './pin-location-picker.jsx';
 import {FeedContent} from './feed-content.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
 import {ReportButton} from './report-button.jsx';
@@ -164,6 +165,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
 }
 
 export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
+  const [pickingLocation,setPickingLocation]=useState(false);
   const { notify } = useFeedback();
   const [error, setError] = useAppMessage();
   const [busy, setBusy] = useState(false);
@@ -195,13 +197,14 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
     Number.isFinite(+form.lat) &&
     Number.isFinite(+form.lng) && Math.abs(+form.lat)<=90 && Math.abs(+form.lng)<=180;
   const {choose:chooseImage,editor}=usePhotoEditor(image=>setForm(current=>({...current,image})),{onError:setError});
+  if(pickingLocation)return <PinLocationPicker lat={form.lat} lng={form.lng} onCancel={()=>setPickingLocation(false)} onChoose={position=>{setForm(current=>({...current,...position}));setPickingLocation(false);}}/>;
   return (<>
     <Modal title={initial ? t("핀 수정") : t("지도위에 핀 추가")} onClose={onClose} className="pin-form-modal">
       <Field label={t("핀 종류")}><AppSelect title={t("핀 종류 선택")} value={form.category} onChange={category=>setForm({...form,category})} options={pinCategories.map(value=>({value,label:value}))}/></Field>
       <div className="pin-location">
         <MapPin />
         <div>
-          <b>{t("지도 중앙의 원 위치")}</b>
+          <button type="button" className="pin-location-select" disabled={busy} onClick={()=>setPickingLocation(true)}>{t("지도에서 위치 선택하기")}</button>
           <span>{t("위도")}{form.lat}{t("· 경도")}{form.lng}
           </span>
         </div>

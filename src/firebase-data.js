@@ -67,7 +67,7 @@ export const data = {
       await runTransaction(db, async tx => {
         const ref = doc(db, 'pins', id), existing = await tx.get(ref);
         if (!existing.exists() || existing.data().ownerId !== u.uid) throw Error('수정할 수 없는 거래입니다.');
-        tx.set(ref, { ...pin, slot: existing.data().slot });
+        tx.set(ref, { ...pin, mapHidden:existing.data().mapHidden===true, slot: existing.data().slot });
       });
     } else {
       id = await runTransaction(db, async tx => {
@@ -79,6 +79,10 @@ export const data = {
       });
     }
     return { ...pin, id, owner: true };
+  },
+  async setPinMapHidden(id,hidden) {
+    const u=user();if(typeof hidden!=='boolean')throw Error('Invalid visibility');
+    await runTransaction(db,async tx=>{const ref=doc(db,'pins',id),existing=await tx.get(ref);if(!existing.exists()||existing.data().ownerId!==u.uid)throw Error('Pin owner required');tx.update(ref,{mapHidden:hidden});});
   },
   async deletePin(id) { user(); await deleteDoc(doc(db, 'pins', id)); },
   async profile(id) {
