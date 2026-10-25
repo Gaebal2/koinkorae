@@ -1,4 +1,4 @@
-import {ArrowDown, LoaderCircle, CircleAlert} from 'lucide-react';
+import {CircleAlert} from 'lucide-react';
 import React, {useEffect, useRef, useState} from 'react';
 import {contentRefresh} from './content-refresh.js';
 import {t} from './language.js';
@@ -16,7 +16,8 @@ export function ContentRefresh({page}) {
       reset(); suppressClickUntil = 0;
       if(running || event.touches.length !== 1 || window.scrollY > 0 || !contentRefresh.has(page)) return;
       const target = event.target;
-      if(target.closest('button:not(.post-image), input, textarea, select, a, .overlay, .real-map, canvas, .direct-messages')) return;
+      if(target.closest('input, textarea, select, [contenteditable="true"], .overlay, .real-map, canvas, .direct-messages')) return;
+      if(page !== 'home' && target.closest('button:not(.post-image), a')) return;
       for(let el = target; el && el !== document.body; el = el.parentElement) {
         if(el.scrollHeight > el.clientHeight && /auto|scroll/.test(getComputedStyle(el).overflowY)) return;
       }
@@ -33,23 +34,25 @@ export function ContentRefresh({page}) {
       amount = Math.min(100, dy * .5); setDistance(amount);
     };
     const end = async () => {
-      const refresh = start && amount >= 64; reset();
+      const refresh = start && amount >= 64;
+      if(start && amount > 0) suppressClickUntil = Date.now() + 700;
+      reset();
       if(!refresh || running) return;
       running = true; setBusy(true); setError(false);
       try { await contentRefresh.run(page); } catch { if(active) setError(true); }
       finally { running = false; if(active) setBusy(false); }
     };
-    const suppressClick = event => { if(Date.now() < suppressClickUntil) { event.preventDefault(); event.stopPropagation(); } };
+    const suppressClick = event => { if(Date.now() < suppressClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); } };
     document.addEventListener('click', suppressClick, true);
-    document.addEventListener('touchstart', begin, {passive:true});
-    document.addEventListener('touchmove', move, {passive:false});
-    document.addEventListener('touchend', end);
-    document.addEventListener('touchcancel', reset);
-    return () => { active = false; document.removeEventListener('click', suppressClick, true); document.removeEventListener('touchstart', begin); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); document.removeEventListener('touchcancel', reset); };
+    document.addEventListener('touchstart', begin, {passive:true, capture:true});
+    document.addEventListener('touchmove', move, {passive:false, capture:true});
+    document.addEventListener('touchend', end, true);
+    document.addEventListener('touchcancel', reset, true);
+    return () => { active = false; document.removeEventListener('click', suppressClick, true); document.removeEventListener('touchstart', begin, true); document.removeEventListener('touchmove', move, true); document.removeEventListener('touchend', end, true); document.removeEventListener('touchcancel', reset, true); };
   }, [page]);
   if(!distance && !busy && !error) return null;
   const label = error ? t('새로고침하지 못했습니다. 다시 당겨 주세요.') : busy ? t('갱신 중…') : distance >= 64 ? t('놓으면 새로고침') : t('당겨서 새로고침');
-  return <div className={'content-refresh-status'+(error ? ' has-error' : '')} role="status" aria-label={label}>
-    {error ? <><CircleAlert aria-hidden="true"/><span>{label}</span></> : busy ? <LoaderCircle className="refresh-spinner" aria-hidden="true"/> : <ArrowDown style={{transform:distance >= 64 ? 'rotate(180deg)' : undefined}} aria-hidden="true"/>}
+  return <div className={'content-refresh-status'+(error ? ' has-error' : '')} role="status" aria-label={label} style={error ? undefined : {transform:`translate(-50%, ${busy ? 12 : Math.min(distance,64)-36}px)`, opacity:busy ? 1 : Math.min(1,distance/24)}}>
+    {error ? <><CircleAlert aria-hidden="true"/><span>{label}</span></> : <svg className={busy ? "refresh-spinner" : "refresh-pull-ring"} viewBox="0 0 24 24" aria-hidden="true" style={busy ? undefined : {transform:`rotate(${distance*4}deg)`}}><circle className={busy ? "refresh-ring-arc" : undefined} cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeDasharray={busy ? "42 57" : `${Math.max(4,Math.min(distance/64,1)*48)} 57`}/></svg>}
   </div>;
 }
