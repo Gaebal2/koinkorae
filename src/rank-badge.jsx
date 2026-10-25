@@ -7,7 +7,7 @@ export function RankBadge({level=0,className=''}) {
   if(!art)return null;
   return <svg className={`rank-badge rank-badge-${index} ${className}`} viewBox="0 0 64 64" role="img" aria-label={t(art.name)}>
     <title>{t(art.name)}</title>
-    <defs><linearGradient id={`${id}-rim`} x2=".8" y2="1"><stop stopColor={art.light}/><stop offset=".45" stopColor={art.color}/><stop offset="1" stopColor={art.dark}/></linearGradient><linearGradient id={`${id}-sea`} x2=".5" y2="1"><stop stopColor={art.dark}/><stop offset="1" stopColor="#191b3d"/></linearGradient><linearGradient id={`${id}-animal`} x2=".4" y2="1"><stop stopColor="#fff"/><stop offset="1" stopColor={art.light}/></linearGradient></defs>
+    <defs><linearGradient id={`${id}-rim`} x2=".8" y2="1"><stop stopColor={art.light}/><stop offset=".45" stopColor={art.color}/><stop offset="1" stopColor={art.dark}/></linearGradient><linearGradient id={`${id}-sea`} x2=".5" y2="1"><stop stopColor={art.dark}/><stop offset="1" stopColor={art.sea || "#191b3d"}/></linearGradient><linearGradient id={`${id}-animal`} x2=".4" y2="1"><stop stopColor="#fff"/><stop offset="1" stopColor={art.light}/></linearGradient></defs>
     <path d="M32 2 53 12 61 34 48 54 32 62 16 54 3 34 11 12Z" fill={`url(#${id}-rim)`} stroke="white" strokeWidth="2"/>
     <path d="M32 7 49 15 55 33 44 49 32 56 20 49 9 33 15 15Z" fill={`url(#${id}-sea)`} stroke={art.light} strokeOpacity=".7"/>
     <path d="M15 22 19 16 32 10 45 16" fill="none" stroke="white" opacity=".25" strokeWidth="2"/>

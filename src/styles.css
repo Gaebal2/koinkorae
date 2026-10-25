@@ -1386,3 +1386,10 @@ button:disabled { opacity: .55; }
 
 .startup-skeleton { display:grid; gap:16px; padding:16px; }
 .startup-skeleton > div { height:150px; border-radius:16px; background:linear-gradient(110deg,#e8ecf3 30%,#f1f3f8 50%,#e8ecf3 70%); }
+
+.post-body a { color: var(--primary, #547eea); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.feed-video { margin: 12px 0; overflow: hidden; border-radius: 14px; background: #111b30; }
+.feed-video iframe, .feed-video-play { display: block; width: 100%; aspect-ratio: 16 / 9; min-height: 200px; border: 0; }
+.feed-video-play { display: flex; align-items: center; justify-content: center; gap: 12px; color: #fff; background: radial-gradient(ellipse at top, #294665, #111b30); cursor: pointer; font: inherit; }
+.feed-video-play span { display: grid; place-items: center; width: 52px; height: 38px; border-radius: 12px; background: #e42b35; }
+.feed-video > a { display: block; padding: 10px 14px; color: #d5e8ff; font-size: 12px; }

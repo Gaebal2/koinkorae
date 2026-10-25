@@ -44,3 +44,24 @@ test('PWA launches navigate an existing app to the shared URL without changing a
  assert.equal(manifest.id,'./?app=koin-korae-blue-v3');
  assert.equal(new URL('?post=old','https://koinkorae.com/').pathname.startsWith(new URL(manifest.scope,'https://koinkorae.com/manifest.webmanifest').pathname),true);
 });
+
+test('shared text removes external URLs but preserves labels and canonical destination',async()=>{
+ const {shareText,shareCopy}=await import('../src/share.js');
+ const text='Read [report](https://example.com/a) https://youtu.be/abcdefghijk www.example.org example.net/path';
+ assert.equal(shareText(text),'Read report');
+ const payload={text,url:shareUrl('pin','pin-1')}; let copied;
+ await shareContent(payload,{clipboard:{writeText:async value=>{copied=value;}}});
+ assert.equal(copied,'Read report\n\nhttps://koinkorae.com/?pin=pin-1');
+ assert.equal(shareCopy(payload),copied);
+});
+
+test('feed URLs retain punctuation and only recognize trusted YouTube hosts',async()=>{
+ const {contentParts,youtubeVideo}=await import('../src/content-links.js');
+ const input='See (https://example.com/a_(b)). www.example.org!';
+ const parts=contentParts(input);
+ assert.equal(parts.map(p=>p.text).join(''),input);
+ assert.deepEqual(parts.filter(p=>p.href).map(p=>p.href),['https://example.com/a_(b)','https://www.example.org/']);
+ assert.ok(contentParts('javascript:alert(1) <script>x</script>').every(p=>!p.href));
+ for(const url of ['https://youtu.be/abcdefghijk?t=1m30s','https://www.youtube.com/watch?v=abcdefghijk&start=90','https://m.youtube.com/shorts/abcdefghijk?t=90','https://youtube.com/live/abcdefghijk?t=90']) assert.deepEqual(youtubeVideo(url),{id:'abcdefghijk',start:90});
+ for(const url of ['https://youtube.com.evil.test/watch?v=abcdefghijk','https://youtu.be/short','https://example.org/watch?v=abcdefghijk']) assert.equal(youtubeVideo(url),null);
+});

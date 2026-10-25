@@ -1,3 +1,4 @@
+import {FeedContent} from './feed-content.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
 import {ReportButton} from './report-button.jsx';
 import {ShareButton} from './share-button.jsx';
@@ -87,7 +88,7 @@ export function PostCard({ post, onBattle, onComment, onRepost, onProfile, onDel
         </div>
         <Coin symbol={post.coin} />
       </div>
-      <p className="post-body">{post.content}</p>
+      <FeedContent content={post.content}/>
       {post.repostId && <small className="repost-label">@{post.repostAuthor}{t("님의 리포스트 · 원본 @")}{post.author}</small>}
       {post.image&&<button className="post-image" type="button" onClick={()=>setImageOpen(true)} aria-label={t("피드 이미지 크게 보기")}><img src={post.image} alt={t("피드 첨부 이미지")}/></button>}
       <div className="battle-meter">

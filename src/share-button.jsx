@@ -1,7 +1,7 @@
 import {data} from './data.js';
 import React, {useRef, useState} from 'react';
 import {Share2} from 'lucide-react';
-import {shareContent, shareUrl} from './share.js';
+import {shareContent, shareUrl, shareText, shareCopy} from './share.js';
 import {useFeedback} from './feedback.jsx';
 import {t} from './language.js';
 export function ShareButton({kind, item}) {
@@ -10,9 +10,10 @@ export function ShareButton({kind, item}) {
  event.stopPropagation(); if(lock.current)return; lock.current=true;setBusy(true);
  try { if(kind==='post')void data.recordShare?.(item.originalPostId||item.id).catch(()=>{});
  const url=shareUrl(kind,item.originalPostId||item.id);
- const result=await shareContent({title:item.title||'Koin Korae',text:(item.content||item.description||'').slice(0,200),url});
+ const payload={title:shareText(item.title)||'Koin Korae',text:shareText(item.content||item.description||'').slice(0,200),url};
+ const result=await shareContent(payload);
  if(result==='copied')void notify(t('공유 링크를 복사했습니다.'),{kind:'success'});
- if(result==='manual')window.prompt(t('공유 링크를 복사해 주세요.'),url);
+ if(result==='manual')window.prompt(t('공유 링크를 복사해 주세요.'),shareCopy(payload));
  }finally{lock.current=false;setBusy(false);}
  }}><Share2 aria-hidden="true"/></button>;
 }

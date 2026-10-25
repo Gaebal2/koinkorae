@@ -1,3 +1,4 @@
+import {FeedContent} from './feed-content.jsx';
 import { coinMarker } from './coin-artwork.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -60,7 +61,7 @@ function Feed({ options, setOptions, revision, refresh, actions, compose, me }) 
 function Comments({ post, onClose, me, login, refresh }) {
   const [revision, setRevision] = useState(0), [content, setContent] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
   const resource = useResource(() => api(`/posts/${post.id}/comments`), [post.id, revision]);
-  return <Modal title="피드와 댓글" onClose={onClose}><p className="post-body">{post.content}</p><Status {...resource} retry={() => setRevision(x => x + 1)}/><div className="comment-list">{resource.data?.map(comment => <article key={comment.id}><b>@{comment.author}</b><small>{age(comment.created_at)}</small><p>{comment.content}</p></article>)}{resource.data?.length === 0 && <p className="form-help">첫 댓글을 남겨보세요.</p>}</div><form onSubmit={async event => {
+  return <Modal title="피드와 댓글" onClose={onClose}><FeedContent content={post.content}/><Status {...resource} retry={() => setRevision(x => x + 1)}/><div className="comment-list">{resource.data?.map(comment => <article key={comment.id}><b>@{comment.author}</b><small>{age(comment.created_at)}</small><p>{comment.content}</p></article>)}{resource.data?.length === 0 && <p className="form-help">첫 댓글을 남겨보세요.</p>}</div><form onSubmit={async event => {
     event.preventDefault(); if (!me) { login(); return; } setBusy(true); setError('');
     try { await api(`/posts/${post.id}/comments`, 'POST', { content }); setContent(''); setRevision(x => x + 1); refresh(); } catch (error) { setError(error.message); } finally { setBusy(false); }
   }}><Field label="댓글"><textarea maxLength={1000} required value={content} onChange={e => setContent(e.target.value)}/></Field>{error && <p className="error" role="alert">{error}</p>}<button className="primary" disabled={busy || !content.trim()}>{me ? '댓글 게시' : '로그인 후 댓글 작성'}</button></form></Modal>;
