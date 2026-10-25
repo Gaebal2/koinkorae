@@ -752,8 +752,22 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .pin-hidden-label { display:block; margin-bottom:8px; color:var(--muted); font-size:12px; font-weight:700; }
 .pin-location-select { border:1px solid var(--line); background:var(--surface-tint); color:var(--primary); border-radius:10px; padding:10px 14px; font:inherit; font-weight:700; cursor:pointer; }
 .pin-location-modal { width:min(100%,680px); }
-.pin-location-stage { position:relative; height:65dvh; min-height:300px; overflow:hidden; border-radius:14px; }
+.pin-location-stage { position:relative; flex:1; min-height:0; overflow:hidden; }
 .pin-location-map { position:absolute; inset:0; }
 .pin-location-stage .map-crosshair { z-index:500; pointer-events:none; }
-.pin-location-confirm { position:absolute; z-index:600; bottom:24px; left:16px; right:16px; display:grid; gap:8px; padding:12px; border-radius:14px; background:var(--surface,#fff); box-shadow:0 4px 20px #0003; text-align:center; }
+.pin-location-confirm { position:absolute; z-index:600; bottom:max(24px, env(safe-area-inset-bottom, 0px)); left:16px; right:16px; display:grid; gap:8px; padding:12px; border-radius:14px; background:var(--surface,#fff); box-shadow:0 4px 20px #0003; text-align:center; }
 .pin-location-confirm span { font-size:12px; color:var(--muted); }
+
+.pin-form-modal .pin-location { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:center; padding:14px; border:1px solid var(--line); }
+.pin-form-modal .pin-location-select { display:flex; align-items:center; justify-content:center; gap:8px; min-height:60px; padding:12px; border:1px solid var(--primary); background:var(--primary); color:#fff; box-shadow:0 3px 8px #7157ff26; border-radius:12px; }
+.pin-form-modal .pin-location-select span { color:inherit; font-size:14px; line-height:1.5; font-weight:700; }
+.pin-location-select svg { width:20px; height:20px; flex-shrink:0; }
+.pin-form-modal .pin-location-coordinates { display:flex; flex-direction:column; justify-content:center; gap:6px; padding-left:14px; border-left:1px solid #d5cbe9; min-height:60px; min-width:0; }
+.pin-location-coordinates > div { display:flex; flex-wrap:wrap; gap:3px 8px; align-items:center; }
+.pin-form-modal .pin-location-coordinates span { font-size:12px; color:var(--muted); }
+.pin-location-coordinates strong { font-size:14px; font-weight:600; color:var(--text); font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.overlay > .pin-location-modal > .modal-body { display:flex; flex-direction:column; padding:0; overflow:hidden; }
+.pin-location-cancel { min-height:44px; padding:11px 16px; border:1px solid #d9cff4; border-radius:12px; background:var(--surface-tint); color:var(--primary); font:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+.pin-location-cancel:active { background:#e8e0fb; }
+.pin-location-cancel:focus-visible,.pin-location-select:focus-visible { outline:3px solid #b7a6f3; outline-offset:3px; }
+@media(max-width:360px) { .pin-form-modal .pin-location { gap:10px; padding:10px; } .pin-form-modal .pin-location-coordinates { padding-left:10px; } .pin-form-modal .pin-location-select { padding:10px 8px; gap:5px; } }

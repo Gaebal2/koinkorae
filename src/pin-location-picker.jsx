@@ -14,7 +14,7 @@ export function PinLocationPicker({lat,lng,onCancel,onChoose}) {
  },[]);
  return <Modal title={t('지도에서 위치 선택하기')} onClose={onCancel} className="pin-location-modal">
   <div className="pin-location-stage"><div ref={element} className="pin-location-map"/><div className="map-crosshair" aria-hidden="true"/>
-   <div className="pin-location-confirm"><span>{center.lat}, {center.lng}</span><button type="button" className="primary" onClick={()=>onChoose(center)}>{t('여기로 Pin위치 이동')}</button><button type="button" onClick={onCancel}>{t('취소')}</button></div>
+   <div className="pin-location-confirm"><span>{center.lat}, {center.lng}</span><button type="button" className="primary" onClick={()=>onChoose(center)}>{t('여기로 Pin위치 이동')}</button><button type="button" className="pin-location-cancel" onClick={onCancel}>{t('취소')}</button></div>
   </div>
  </Modal>;
 }

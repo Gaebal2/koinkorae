@@ -202,30 +202,11 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
     <Modal title={initial ? t("핀 수정") : t("지도위에 핀 추가")} onClose={onClose} className="pin-form-modal">
       <Field label={t("핀 종류")}><AppSelect title={t("핀 종류 선택")} value={form.category} onChange={category=>setForm({...form,category})} options={pinCategories.map(value=>({value,label:value}))}/></Field>
       <div className="pin-location">
-        <MapPin />
-        <div>
-          <button type="button" className="pin-location-select" disabled={busy} onClick={()=>setPickingLocation(true)}>{t("지도에서 위치 선택하기")}</button>
-          <span>{t("위도")}{form.lat}{t("· 경도")}{form.lng}
-          </span>
+        <button type="button" className="pin-location-select" disabled={busy} onClick={()=>setPickingLocation(true)}><MapPin aria-hidden="true"/><span>{t("지도에서 위치 선택하기")}</span></button>
+        <div className="pin-location-coordinates" aria-live="polite">
+          <div><span>{t("위도")}</span><strong>{Number(form.lat).toFixed(6)}</strong></div>
+          <div><span>{t("경도")}</span><strong>{Number(form.lng).toFixed(6)}</strong></div>
         </div>
-      </div>
-      <div className="coordinate-fields">
-        <Field label={t("위도")}>
-          <input
-            type="number"
-            step="any"
-            value={form.lat}
-            onChange={(e) => setForm({ ...form, lat: e.target.value })}
-          />
-        </Field>
-        <Field label={t("경도")}>
-          <input
-            type="number"
-            step="any"
-            value={form.lng}
-            onChange={(e) => setForm({ ...form, lng: e.target.value })}
-          />
-        </Field>
       </div>
       <Field label={t("대표 코인 (핀 이미지)")}>
         <AppSelect title={t("대표 코인 선택")} value={form.coin} onChange={coin=>setForm({...form,coin})} searchable options={coins.map(c=>({value:c.symbol,label:`${c.symbol} · ${t(c.name)}`,search:c.aliases || '',coin:c.symbol}))}/>
