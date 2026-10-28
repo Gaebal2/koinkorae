@@ -1,3 +1,4 @@
+import {FitText} from './fit-text.jsx';
 import {PinLocationPicker} from './pin-location-picker.jsx';
 import {FeedContent} from './feed-content.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
@@ -67,7 +68,7 @@ export function Segments({ items, value, onChange, compact = false }) {
           aria-pressed={value === item}
           onClick={() => onChange(item)}
         >
-          {t(item)}
+          <FitText>{t(item)}</FitText>
         </button>
       ))}
     </div>
@@ -393,7 +394,7 @@ export function AppSelect({ title, value, options, onChange, searchable = false,
   const selected = options.find(option => option.value === value);
   const listOptions = resetLabel ? [{value:'',label:resetLabel},...options.filter(option=>option.value!=='')] : options;
   const filtered = listOptions.filter(option => (resetLabel && option.value==='') || `${option.label} ${option.search || ''}`.toLowerCase().includes(query.toLowerCase()));
-  return <span className="app-select-wrap"><button type="button" className="app-select" aria-label={`${title}: ${t(selected?.label || value)}`} aria-haspopup="dialog" aria-expanded={open} onClick={() => { setQuery(''); setOpen(true); }}>{selected?.coin && <Coin symbol={selected.coin} size="sm"/>}<span>{t(selected?.label || value)}</span><ChevronDown/></button>
+  return <span className="app-select-wrap"><button type="button" className="app-select" aria-label={`${title}: ${t(selected?.label || value)}`} aria-haspopup="dialog" aria-expanded={open} onClick={() => { setQuery(''); setOpen(true); }}>{selected?.coin && <Coin symbol={selected.coin} size="sm"/>}<FitText>{t(selected?.label || value)}</FitText><ChevronDown/></button>
     {open && <Modal title={title} onClose={() => setOpen(false)} className="app-select-modal" floating={floating}>{options.some(option=>option.coin) ? <CoinPicker values={[value]} options={listOptions} onChange={symbol=>{onChange(symbol);setOpen(false);}}/> : <>{searchable && <label className="search"><Search/><input aria-label={title + t(" 검색")} value={query} onChange={e=>setQuery(e.target.value)} placeholder={t("코인 검색")}/></label>}<div className="app-select-options">{filtered.map(option=><button type="button" key={option.value} aria-pressed={resetLabel && option.value==='' ? undefined : option.value === value} className={resetLabel && option.value==='' ? 'select-reset' : option.value === value ? 'selected' : ''} onClick={()=>{onChange(option.value);setOpen(false);}}>{option.coin && <Coin symbol={option.coin} size="sm"/>}<span>{t(option.label)}</span>{option.value === value && !(resetLabel && option.value==='') && <Check/>}</button>)}</div>{!filtered.length && <p>{t("검색 결과가 없습니다.")}</p>}</>}</Modal>}
   </span>;
 }
