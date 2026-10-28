@@ -1,13 +1,12 @@
 ﻿import React, { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { detectInAppBrowser, externalBrowserUrl, copyBrowserAddress } from './in-app-browser.js';
-import { getLanguage, setLanguage, subscribeLanguage } from './language.js';
-import messages from './in-app-browser-messages.json';
+import { getLanguage, setLanguage, subscribeLanguage, supportedLanguages, t } from './language.js';
 import './in-app-browser.css';
 
 export function InAppBrowserGuide({ children }) {
   const [browser] = useState(() => detectInAppBrowser({ userAgent: navigator.userAgent, platform: navigator.platform, maxTouchPoints: navigator.maxTouchPoints, standalone: navigator.standalone || window.matchMedia('(display-mode: standalone)').matches }));
   const language = useSyncExternalStore(subscribeLanguage, getLanguage);
-  const translate = text => language === 'en' ? messages[text] ?? text : text;
+  const translate = t;
   const [status, setStatus] = useState('아이폰에서는 메신저 메뉴를 통해 외부 브라우저를 열어 주세요.');
   const dialog = useRef(null);
   const address = useRef(null);
@@ -36,7 +35,7 @@ export function InAppBrowserGuide({ children }) {
   return <dialog ref={dialog} className="external-browser-dialog" aria-labelledby="external-browser-title" lang={language} onCancel={event => event.preventDefault()}>
     <div className="external-browser-header">
       <span className="external-browser-brand" translate="no">KoinKorae</span>
-      <button className="external-browser-language" type="button" translate="no" aria-label={language === 'ko' ? '언어: 한국어. 영어로 전환' : 'Language: English. Switch to Korean'} onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}>{language === 'ko' ? 'ENG' : '한국어'}</button>
+      <select className="external-browser-language" translate="no" aria-label={t('언어')} value={language} onChange={event => setLanguage(event.target.value)}>{supportedLanguages.map(({code,name})=><option key={code} value={code} lang={code}>{name}</option>)}</select>
     </div>
     <h2 id="external-browser-title">{translate('외부 브라우저에서 열어야 앱의 모든 기능을 사용할 수 있습니다.')}</h2>
     <button type="button" className="external-browser-button external-browser-primary" onClick={openExternal}>{translate('외부 브라우저로 열기')}</button>

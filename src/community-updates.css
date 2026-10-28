@@ -274,13 +274,6 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .profile-editor-photo > .profile-photo-change { width: auto; min-width: 64px; max-width: none; min-height: 32px; padding: 6px 12px; font-size: 12px; line-height: 1.2; white-space: nowrap; word-break: keep-all; display: inline-flex; align-items: center; justify-content: center; }
 .profile-settings-menu > button { display: flex; align-items: center; gap: 10px; min-height: 54px; font-size: 14px; background: white; border-color: #e7e1ef; }
 .profile-settings-menu > button:last-child { margin-top: 6px; background: #fff9fa; border-color: #f0e2e6; }
-.language-settings { padding: 18px; border: 1px solid #e7e1ef; border-radius: 16px; background: white; margin-bottom: 8px; }
-.language-heading { display: flex; align-items: center; gap: 10px; color: #59477b; font-size: 14px; font-weight: 700; }
-.language-heading > svg { flex-shrink: 0; }
-.language-heading small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; font-weight: 400; }
-.language-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-top: 16px; border-radius: 12px; background: #f0edf6; }
-.profile-settings-menu .language-toggle button { border: 1px solid transparent; padding: 10px 8px; min-height: 42px; font-size: 13px; color: #736a80; text-align: center; background: transparent; border-radius: 9px; }
-.profile-settings-menu .language-toggle button[aria-pressed="true"] { background: white; border-color: #e3daf4; color: var(--primary-dark); box-shadow: 0 2px 6px #3023540a; }
 .profile-page-x .profile-head { background: linear-gradient(135deg,#f1ecff,#fff 85%); border-color: #e6def4; padding: 20px; }
 .profile-links button { border-radius: 12px; font-size: 12px; min-height: 40px; }
 .friend-chat-head { min-height: 62px; background: #faf8ff; }
@@ -771,3 +764,17 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .pin-location-cancel:active { background:#e8e0fb; }
 .pin-location-cancel:focus-visible,.pin-location-select:focus-visible { outline:3px solid #b7a6f3; outline-offset:3px; }
 @media(max-width:360px) { .pin-form-modal .pin-location { gap:10px; padding:10px; } .pin-form-modal .pin-location-coordinates { padding-left:10px; } .pin-form-modal .pin-location-select { padding:10px 8px; gap:5px; } }
+
+.language-button { display:inline-flex; align-items:center; justify-content:center; flex:0 0 44px; width:44px; height:44px; padding:0; border:1px solid #e4dff0; border-radius:12px; background:#f5f2fb; color:#65518e; }
+.language-button svg { width:22px; height:22px; }
+.language-button:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+.language-options button { min-height:48px; }
+.feed-toggle .segments button { overflow:hidden; text-overflow:ellipsis; }
+.feed-select .app-select > span { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.post-card .score-row { flex-wrap:wrap; }
+.post-card .score-row > .battle-btn { max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+.post-card .score-row > .card-actions { flex-shrink:0; }
+.bottom-nav button > span { max-width:100%; overflow-wrap:anywhere; }
+.topbar { gap:8px; }
+.topbar > .logo { min-width:0; flex-shrink:1; }
+@media (max-width:360px) { .topbar { padding-inline:10px; } .header-actions { gap:4px; } .topbar .logo small { letter-spacing:0; font-size:6px; } .topbar .logo { gap:5px; } }

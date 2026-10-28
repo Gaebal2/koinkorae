@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {Trophy} from 'lucide-react';
 import {Modal,profileImage} from './ui.jsx';
 import {data} from './data.js';
-import {t,getLanguage} from './language.js';
+import {t,getLocale} from './language.js';
 
 function Participant({row,total,onProfile,mine=false}) {
   const percentage=total?row.total/total*100:0;
@@ -10,7 +10,7 @@ function Participant({row,total,onProfile,mine=false}) {
     <div className="participant-head"><span className="participant-rank">{row.rank}</span><button className="participant-person" onClick={()=>onProfile?.(row.userId)}><img src={row.profileImage||profileImage()} alt=""/><strong>{row.username}</strong></button><b>{row.total.toLocaleString()}<small>{t('점')}</small></b></div>
     <div className="battle-meter" aria-label={t('지지 +{0}점, 반대 -{1}점',row.support,row.oppose)}><i style={{width:`${row.total?row.support/row.total*100:50}%`}}/><span>+{row.support.toLocaleString()}</span><span>−{row.oppose.toLocaleString()}</span></div>
     <div className="participant-meta"><span>{t('총 {0}게임',row.games.toLocaleString())}</span><span>{t('점유율 {0}%',percentage.toFixed(1))}</span></div>
-    <time className="participant-time" dateTime={new Date(row.lastCompletedAt).toISOString()}>{t('마지막 완료')} · {new Date(row.lastCompletedAt).toLocaleString(getLanguage()==='ko'?'ko-KR':'en-US')}</time>
+    <time className="participant-time" dateTime={new Date(row.lastCompletedAt).toISOString()}>{t('마지막 완료')} · {new Date(row.lastCompletedAt).toLocaleString(getLocale())}</time>
   </article>;
 }
 

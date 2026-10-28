@@ -6,11 +6,11 @@ import {POINTS_POLICY,levelFor} from '../supabase/functions/_shared/points-polic
 import {ContentRefresh} from './content-refresh.jsx';
 import {pinCategories, normalizePinCategory} from './pin-categories.js';
 import { t, getLanguage, subscribeLanguage } from './language.js';
-import { LanguageSettings } from './language-settings.jsx';
+import { LanguageSelector } from './language-settings.jsx';
 import { coinMarker } from './coin-artwork.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Home, CalendarCheck, Map as MapIcon, MessagesSquare, MapPinPlus, LocateFixed, Settings, Swords, X } from 'lucide-react';
+import { Home, CalendarCheck, Map as MapIcon, MessagesSquare, MapPinPlus, LocateFixed, Settings, UserRoundPen, Swords, X } from 'lucide-react';
 import L from 'leaflet';
 import { data, configured, googleEnabled } from './data.js';
 import { Modal, Field, AppSelect, cmcCoins, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage, brandImage } from './ui.jsx';
@@ -238,7 +238,7 @@ export default function App() {
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
   // A pending session is not a signed-out session. Avoid guest UI during restoration.
   if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main aria-label={t("불러오는 중…")}/></div>;
-  return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><RankedAvatar src={myProfile?.profileImage || profileImage()} profile={myProfile} level={levelFor(balance).index} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={brandImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}<div className="header-actions"><button type="button" className="bp-pill" disabled={pickingPin} onClick={openPolicy} aria-label={t('보유 {0} KK · 포인트 정책 보기',balance.current.toLocaleString())}>{balance.current.toLocaleString()} KK</button>{me ? page==='profile'&&<button className="profile-settings-button" aria-label={t('설정')} onClick={()=>setSettings(true)}><Settings/></button> : <button className="text-action" disabled={pickingPin} onClick={()=>setAuth(true)}>{t('로그인')}</button>}</div></header>
+  return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><RankedAvatar src={myProfile?.profileImage || profileImage()} profile={myProfile} level={levelFor(balance).index} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={brandImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}<div className="header-actions">{me ? page==='profile'&&<button className="profile-settings-button" aria-label={t('설정')} onClick={()=>setSettings(true)}><Settings/></button> : <button className="text-action" disabled={pickingPin} onClick={()=>setAuth(true)}>{t('로그인')}</button>}<button type="button" className="bp-pill" disabled={pickingPin} onClick={openPolicy} aria-label={t('보유 {0} KK · 포인트 정책 보기',balance.current.toLocaleString())}>{balance.current.toLocaleString()} KK</button><LanguageSelector disabled={pickingPin}/></div></header>
     <Suspense fallback={<main role="status"><p className="loading-state">{t("불러오는 중…")}</p></main>}>
     <ContentRefresh page={page}/>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
@@ -256,7 +256,7 @@ export default function App() {
     <Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}>{editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}</Suspense>
 
     {sharedPost && <Modal title={t('공유 피드')} onClose={()=>setSharedPost(null)}>{shareError?<><p role="alert">{t(shareError)}</p><button onClick={()=>retryShare(value=>value+1)}>{t('다시 시도')}</button></>:<p role="status">{t('불러오는 중…')}</p>}</Modal>}
-    {settings && me && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><LanguageSettings/><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}>{t("프로필 수정")}</button>{data.notificationSettings&&<Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}><NotificationSettings key={me.id} me={me}/></Suspense>}<button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}
+    {settings && me && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}><UserRoundPen size={20} aria-hidden="true"/>{t("프로필 수정")}</button>{data.notificationSettings&&<Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}><NotificationSettings key={me.id} me={me}/></Suspense>}<button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}
     {auth && <Auth close={() => setAuth(false)} done={u => { setMe(u); setAuth(false); if (page === 'profile') setProfileId(u.id); }}/>}
     {!auth && !form && !editing && !compose && <InstallPrompt/>}
   </div>;

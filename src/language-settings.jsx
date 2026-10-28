@@ -1,14 +1,18 @@
-import React, { useSyncExternalStore } from 'react';
-import { Languages } from 'lucide-react';
-import { getLanguage, subscribeLanguage, setLanguage, t } from './language.js';
+import React, { useState, useSyncExternalStore } from 'react';
+import { Check, Globe } from 'lucide-react';
+import { getLanguage, subscribeLanguage, setLanguage, supportedLanguages, t } from './language.js';
+import { Modal } from './ui.jsx';
 
-export function LanguageSettings() {
+export function LanguageSelector({ disabled = false }) {
   const language = useSyncExternalStore(subscribeLanguage, getLanguage);
-  return <section className="language-settings">
-    <div className="language-heading"><Languages size={20}/><span>{t('언어')}<small>{t('앱에서 사용할 언어를 선택하세요')}</small></span></div>
-    <div className="language-toggle" role="group" aria-label={t('언어')}>
-      <button type="button" lang="ko" aria-pressed={language === 'ko'} onClick={() => setLanguage('ko')}>한국어</button>
-      <button type="button" lang="en" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>English</button>
-    </div>
-  </section>;
+  const [open, setOpen] = useState(false);
+  return <>
+    <button type="button" className="language-button" disabled={disabled} aria-label={t('언어')} title={t('언어')} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}><Globe aria-hidden="true"/></button>
+    {open && <Modal title={t('언어')} onClose={() => setOpen(false)} className="language-modal" floating>
+      <p className="form-help">{t('앱에서 사용할 언어를 선택하세요')}</p>
+      <div className="app-select-options language-options" role="group" aria-label={t('언어')}>
+        {supportedLanguages.map(({code, name}) => <button key={code} type="button" lang={code} translate="no" className={language === code ? 'selected' : ''} aria-pressed={language === code} onClick={() => { setLanguage(code); setOpen(false); }}><span>{name}</span>{language === code && <Check aria-hidden="true"/>}</button>)}
+      </div>
+    </Modal>}
+  </>;
 }
