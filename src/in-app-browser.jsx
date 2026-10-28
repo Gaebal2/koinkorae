@@ -1,6 +1,7 @@
 ﻿import React, { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { detectInAppBrowser, externalBrowserUrl, copyBrowserAddress } from './in-app-browser.js';
-import { getLanguage, setLanguage, subscribeLanguage, supportedLanguages, t } from './language.js';
+import { getLanguage, subscribeLanguage, t } from './language.js';
+import { LanguageSelector } from './language-settings.jsx';
 import './in-app-browser.css';
 
 export function InAppBrowserGuide({ children }) {
@@ -35,7 +36,7 @@ export function InAppBrowserGuide({ children }) {
   return <dialog ref={dialog} className="external-browser-dialog" aria-labelledby="external-browser-title" lang={language} onCancel={event => event.preventDefault()}>
     <div className="external-browser-header">
       <span className="external-browser-brand" translate="no">KoinKorae</span>
-      <select className="external-browser-language" translate="no" aria-label={t('언어')} value={language} onChange={event => setLanguage(event.target.value)}>{supportedLanguages.map(({code,name})=><option key={code} value={code} lang={code}>{name}</option>)}</select>
+      <LanguageSelector modalContainer={dialog}/>
     </div>
     <h2 id="external-browser-title">{translate('외부 브라우저에서 열어야 앱의 모든 기능을 사용할 수 있습니다.')}</h2>
     <button type="button" className="external-browser-button external-browser-primary" onClick={openExternal}>{translate('외부 브라우저로 열기')}</button>

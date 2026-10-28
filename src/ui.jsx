@@ -306,7 +306,7 @@ export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChan
   </Modal>{editor}</>;
 }
 
-export function Modal({ title, onClose, children, className = "", floating = false }) {
+export function Modal({ title, onClose, children, className = "", floating = false, portalTarget }) {
   useBackDismiss(true,onClose);
   const element = useRef(null), close = useRef(onClose);
   close.current = onClose;
@@ -314,7 +314,7 @@ export function Modal({ title, onClose, children, className = "", floating = fal
     const previous = document.activeElement;
     const root = element.current;
     const backdrop = root.parentElement;
-    const siblings = [...document.body.children].filter(node => node !== backdrop && !['SCRIPT', 'STYLE'].includes(node.tagName)).map(node => [node, node.inert]);
+    const siblings = [...backdrop.parentElement.children].filter(node => node !== backdrop && !['SCRIPT', 'STYLE'].includes(node.tagName)).map(node => [node, node.inert]);
     siblings.forEach(([node]) => { node.inert = true; });
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -344,7 +344,7 @@ export function Modal({ title, onClose, children, className = "", floating = fal
         </header>
         <div className="modal-body">{children}</div>
       </section>
-    </div>, document.body
+    </div>, portalTarget || document.body
   );
 }
 

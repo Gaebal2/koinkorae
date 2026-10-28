@@ -14,7 +14,5 @@
 .external-browser-dialog input { width: 100%; min-width: 0; min-height: 50px; border: 1px solid #e5e8ef; border-radius: 14px; padding: 13px 14px; background: #fff; color: #10131a; font: inherit; font-size: 12px; }
 .external-browser-dialog input:focus { border-color: #7157ff; box-shadow: 0 0 0 4px #7157ff17; }
 .external-browser-dialog [role="status"] { color: #5137e8; }
-.external-browser-dialog .external-browser-language { flex: none; width: 42px; height: 38px; padding: 0; border: 0; border-radius: 12px; background: #ffffffb8; color: #10131a; box-shadow: 0 4px 14px #31395412; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
-.external-browser-dialog[lang="en"] .external-browser-language { font-size: 10px; }
 .external-browser-dialog :focus-visible { outline: 2px solid #7157ff; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .external-browser-dialog .external-browser-button { transition: none; } }
