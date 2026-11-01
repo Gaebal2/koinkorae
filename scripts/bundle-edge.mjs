@@ -1,6 +1,6 @@
 import { rolldown } from 'rolldown';
 import { mkdir } from 'node:fs/promises';
-for(const name of ['community','push-dispatch']) {
+for(const name of ['community','push-dispatch','swithpi']) {
  const directory='.runtime/supabase-migration/'+name;
  await mkdir(directory,{recursive:true});
  const bundle=await rolldown({input:'supabase/functions/'+name+'/index.ts',external:id=>id.startsWith('npm:')});

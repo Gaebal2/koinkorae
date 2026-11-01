@@ -14,7 +14,7 @@ export function readViewState(storage, preferences) {
   try {
     storage ??= window.sessionStorage;
     const value = JSON.parse(storage.getItem('korae-view') || '{}');
-    return { page: ['home', 'check', 'profile', 'map', 'chat', 'battle', 'points'].includes(value?.page) ? value.page : 'home', profileId: typeof value?.profileId === 'string' ? value.profileId : null, options };
+    return { page: ['home', 'check', 'profile', 'map', 'chat', 'battle', 'swithpi', 'points'].includes(value?.page) ? value.page : 'home', profileId: typeof value?.profileId === 'string' ? value.profileId : null, options };
   } catch { return { page: 'home', profileId: null, options }; }
 }
 export function saveViewState(storage, value, preferences) {

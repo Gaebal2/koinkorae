@@ -1,3 +1,6 @@
+import {SwithPiIcon} from './swithpi-icon.jsx';
+import './swithpi.css';
+const SwithPiPage = lazy(() => import('./swithpi-page.jsx').then(module => ({default:module.SwithPiPage})));
 import {FitText} from './fit-text.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
 import {trackScreen} from './analytics.js';
@@ -11,7 +14,7 @@ import { LanguageSelector } from './language-settings.jsx';
 import { coinMarker } from './coin-artwork.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
 import React, { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Home, CalendarCheck, Map as MapIcon, MessagesSquare, MapPinPlus, LocateFixed, Settings, UserRoundPen, Swords, X } from 'lucide-react';
+import { Home, CalendarCheck, Map as MapIcon, MessagesSquare, MapPinPlus, LocateFixed, Settings, UserRoundPen, X } from 'lucide-react';
 import L from 'leaflet';
 import { data, configured, googleEnabled } from './data.js';
 import { Modal, Field, AppSelect, cmcCoins, PinForm, PinDetailCard, InstallPrompt, Composer, profileImage, brandImage } from './ui.jsx';
@@ -177,6 +180,7 @@ export default function App() {
   useEffect(()=>{if(authReady)trackScreen(page);},[authReady,page]);
   const [compose, setCompose] = useState(false), [following, setFollowing] = useState([]), [balance, setBalance] = useState({ current: 0, lifetime: 0, day: -1 });
   useEffect(()=>{if(me&&practiceDraft)setCompose(true);},[me,practiceDraft]);
+  useEffect(()=>{const open=()=>setPage('battle');window.addEventListener('korae:practice',open);return()=>window.removeEventListener('korae:practice',open);},[]);
   const sharePractice=draft=>{setPracticeDraft(draft);setAttachedPin(null);if(me)setCompose(true);else setAuth(true);};
   const [options, setOptions] = useState(restored.options);
   const [profileFeed, setProfileFeed] = useState('작성 피드');
@@ -245,13 +249,14 @@ export default function App() {
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
     {page === 'home' && <FeedHome onCoin={openCoin} onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setPracticeDraft(null); setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
     {page === 'battle' && <PracticePage onShare={sharePractice}/>}
+    {page === 'swithpi' && <SwithPiPage key={me?.id||'guest'} me={me} login={() => setAuth(true)}/>}
     {page === 'chat' && <FriendChat me={me} login={() => setAuth(true)}/>}
     {page === 'points' && <PointsPolicy me={me} balance={balance} login={()=>setAuth(true)} onBack={goBack}/>}
     {page === 'check' && <CheckinPage me={me} balance={balance} login={() => setAuth(true)}/>}
     {page === 'map' && <MapScreen pinLimit={levelFor(balance).current.pins} picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
     {page === 'profile' && <CommunityProfile focusPostId={focusPostId} onCoin={openCoin} key={profileEntry} initialFeed={profileFeed} onPin={openPin} profileId={profileId} profile={viewedProfile || (profile?.id===profileId ? profile : null)} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
     </Suspense>
-    <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessagesSquare], ['battle', '연습', Swords]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><FitText>{t(label)}</FitText></button>)}</nav>
+    <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessagesSquare], ['swithpi', '스윗파이', SwithPiIcon]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><FitText>{t(label)}</FitText></button>)}</nav>
     {compose && <Composer initialDraft={practiceDraft} hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setPracticeDraft(null); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setPracticeDraft(null); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
     {form && <PinForm {...form} pinCost={POINTS_POLICY.costs.pins} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin.mapHidden ? null : pin); setPage('map'); }}/>}
     <Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}>{editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}</Suspense>

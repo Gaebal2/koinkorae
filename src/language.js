@@ -1,4 +1,5 @@
 import messages from './messages.en.json' with { type: 'json' };
+import swithpiEnglish from './swithpi.en.json' with { type: 'json' };
 import browserMessages from './in-app-browser-messages.json' with { type: 'json' };
 import zhCN from './locales/zh-CN.json' with { type: 'json' };
 import zhTW from './locales/zh-TW.json' with { type: 'json' };
@@ -58,6 +59,6 @@ if (globalThis.document) document.documentElement.lang = language;
 // Translate UI copy only; never pass user-authored content through this function.
 export function t(key, ...values) {
   if (typeof key !== 'string') return key;
-  const text = dictionaries[language]?.[key] ?? key;
+  const text = dictionaries[language]?.[key] ?? (language === 'ko' ? key : swithpiEnglish[key]) ?? key;
   return values.length ? text.replace(/\{(\d+)\}/g, (match, index) => values[index] ?? match) : text;
 }

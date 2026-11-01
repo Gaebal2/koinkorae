@@ -34,6 +34,22 @@ async function admitUser(user, newlyCreated=false) {
  catch(error) { if(newlyCreated && error.message?.includes('Trial capacity reached')) { try { await deleteUser(user); } catch {} } await signOut(auth); throw Error(admissionMessage(error)); }
 }
 export const data={
+  async swithpi(action,value={}) {
+    await auth?.authStateReady();
+    const user=auth?.currentUser;
+    for(let attempt=0;attempt<2;attempt++) {
+      const token=await user?.getIdToken(attempt>0);
+      let response;
+      try { response=await fetch(connection.url+'/functions/v1/swithpi',{method:'POST',headers:{'Content-Type':'application/json',...(connection.key?{apikey:connection.key}:{}),...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify({action,value}),signal:AbortSignal.timeout(25000)}); }
+      catch { throw Error('지갑 인증 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'); }
+      if(auth?.currentUser?.uid!==user?.uid)throw Error('로그인 계정이 변경되었습니다. 다시 열어 주세요.');
+      if(response.status===401&&token&&attempt===0)continue;
+      let result;try{result=await response.json();}catch{throw Error('지갑 인증 서비스에 연결하지 못했습니다.');}
+      if(!response.ok||result.error)throw Error(result.error||'지갑 인증 서비스가 준비되지 않았습니다.');
+      return result.data;
+    }
+    throw Error('다시 로그인해 주세요.');
+  },
   reportContent:(kind,id)=>call('reportContent',{kind,id}),
   notificationInbox:(before=null)=>call('notificationInbox',{before}),
   adminReports:(before=null)=>call('adminReports',{before}),
