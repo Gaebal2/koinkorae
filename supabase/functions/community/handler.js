@@ -117,6 +117,11 @@ export async function dispatch(db, identity, action, args = {}) {
       const friends=await Promise.all(following.map(async row => await db.one('following',uid,row.id) ? (await get('profiles',row.id) || {id:row.id,username:'회원',profileImage:''}) : null));
       return friends.filter(Boolean).sort((a,b)=>a.username.localeCompare(b.username));
     }
+    case 'chatReadState':
+    case 'markChatRead': {
+      const {target}=await friendship(args.friendId);
+      return db.chatRead(uid,target,action==='markChatRead'?id(args.messageId):null);
+    }
     case 'messages': {
       const {parent}=await friendship(args.friendId);
       if (args.before !== undefined && (!Number.isSafeInteger(args.before) || args.before<0)) throw Error('잘못된 메시지 위치입니다.');

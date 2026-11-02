@@ -61,3 +61,29 @@ test('old servers that ignore the delta cursor cannot cause an infinite request 
  let requests=0;const store=createMessageStore({getScope:()=> 'alice',observe:()=>()=>{},storage:{get:async()=>({value:{rows:[],cursor:100,more:false}})},call:async()=>{requests++;return Array.from({length:100},(_,i)=>({id:String(i),createdAt:i}));}});
  let error;const stop=store.watch('bob',()=>{},value=>error=value);await tick();assert.equal(requests,1);assert.ok(error);stop();
 });
+
+test('entry unread history fills gaps older than the latest page',async()=>{
+ const h=setup();h.server(Array.from({length:305},(_,i)=>({id:'m'+i,createdAt:i+1})));
+ let rows;const stop=h.store.watch('bob',v=>rows=v);await tick();assert.equal(rows.length,100);
+ await h.store.unread('bob',10,new AbortController().signal);
+ assert.equal(rows[0].createdAt,11);assert.equal(rows.length,295);stop();
+});
+test('chat read position is private, monotonic and selects incoming unread messages',async()=>{
+ const {communityHarness}=await import('./community-harness.js');
+ const {readFile}=await import('node:fs/promises');
+ const {pg,db}=await communityHarness();
+ try{
+ await pg.exec(await readFile(new URL('../supabase/migrations/202611020003_chat_read_position.sql',import.meta.url),'utf8'));
+ for(const [a,b] of [['alice','bob'],['bob','alice']])await db.put({kind:'following',id:b,parent:a,owner:a,body:{}});
+ for(const [id,sender,recipient,createdAt] of [['first','bob','alice',1],['own','alice','bob',2],['second','bob','alice',3]])
+ await db.put({kind:'messages',id,parent:JSON.stringify(['alice','bob']),owner:sender,body:{senderId:sender,recipientId:recipient,createdAt}});
+ const read=async(uid,friend,id=null)=>(await pg.query('select korae_chat_read($1,$2,$3) result',[uid,friend,id])).rows[0].result;
+ assert.equal((await read('alice','bob')).firstUnread.id,'first');
+ assert.equal((await read('alice','bob','first')).firstUnread.id,'second');
+ await assert.rejects(read('alice','bob','own'));
+ assert.equal((await read('alice','bob','second')).firstUnread,null);
+ assert.equal((await read('alice','bob','first')).readAt,3);
+ await assert.rejects(read('carol','bob'));
+ await pg.exec('set role anon');await assert.rejects(read('alice','bob'));
+ }finally{await pg.close();}
+});

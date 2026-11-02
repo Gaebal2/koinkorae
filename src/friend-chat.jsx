@@ -12,13 +12,44 @@ function Conversation({friend,me,onClose}) {
   const profile=useLiveProfile(friend.id), [items,setItems]=useState([]), [content,setContent]=useState(''), [error,setError]=useState(''), [busy,setBusy]=useState(false), [loading,setLoading]=useState(true), [more,setMore]=useState(false);
   const end=useRef(null),scroll=useRef(null),nearBottom=useRef(true),first=useRef(true),input=useRef(null),lock=useRef(false),pending=useRef(null);
   useEffect(()=>data.watchMessages(friend.id,(rows,meta)=>{setItems(rows);setLoading(false);setError('');setMore(meta?.more??rows.length===100);},e=>{setError(e.message);setLoading(false);}),[friend.id]);
+  const [entry,setEntry]=useState(null),[anchored,setAnchored]=useState(false),[entryError,setEntryError]=useState(''),[entryAttempt,setEntryAttempt]=useState(0),unreadAnchor=useRef(null),readThrough=useRef(0);
+  useEffect(()=>{
+    const controller=new AbortController();
+    (async()=>{
+      try {
+        const state=data.chatReadState?await data.chatReadState(friend.id):{firstUnread:null};
+        if(state.firstUnread)await data.unreadMessages(friend.id,state.firstUnread.createdAt-1,controller.signal);
+        if(!controller.signal.aborted){readThrough.current=state.readAt||0;setEntry(state);setEntryError('');}
+      } catch(e){if(!controller.signal.aborted)setEntryError(e.message);}
+    })();
+    return()=>controller.abort();
+  },[friend.id,entryAttempt]);
   const rows=items;
+  useEffect(()=>{
+    if(!entry||loading||anchored)return;
+    if(entry.firstUnread&&!rows.some(row=>row.id===entry.firstUnread.id))return;
+    const target=entry.firstUnread?unreadAnchor.current:end.current;
+    target?.scrollIntoView({behavior:'instant',block:entry.firstUnread?'start':'nearest'});
+    first.current=false;nearBottom.current=!entry.firstUnread;setAnchored(true);
+  },[entry,loading,rows,anchored]);
+  useEffect(()=>{
+    if(!anchored||!data.markChatRead)return;
+    let timer;
+    const visible=new Map();
+    const observer=new IntersectionObserver(entries=>{
+      for(const item of entries){const row=rows.find(row=>row.id===item.target.dataset.messageId);if(row){if(item.isIntersecting)visible.set(row.id,row);else visible.delete(row.id);}}
+      clearTimeout(timer);
+      timer=setTimeout(()=>{if(document.hidden)return;const latest=[...visible.values()].sort((a,b)=>b.createdAt-a.createdAt)[0];if(latest&&latest.createdAt>readThrough.current)void data.markChatRead(friend.id,latest.id).then(()=>{readThrough.current=Math.max(readThrough.current,latest.createdAt);}).catch(e=>setError(e.message));},400);
+    },{root:scroll.current,threshold:0.1});
+    scroll.current?.querySelectorAll('.direct-message.theirs').forEach(el=>observer.observe(el));
+    return()=>{clearTimeout(timer);observer.disconnect();};
+  },[anchored,rows,friend.id]);
   const last=rows.at(-1)?.id;
   useEffect(()=>{
-    if (!last) return;
+    if (!last || !anchored) return;
     if(first.current || nearBottom.current || rows.some(row=>row.id===pending.current)) {end.current?.scrollIntoView({behavior:first.current?'instant':'smooth',block:'nearest'});pending.current=null;}
     first.current=false;
-  },[last]);
+  },[last,anchored]);
   const send=e=>{
     e.preventDefault();if(lock.current||!content.trim())return;
     lock.current=true;queueMicrotask(()=>{lock.current=false;});
@@ -36,8 +67,8 @@ function Conversation({friend,me,onClose}) {
     <div className="chat-messages direct-messages" ref={scroll} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<80;}} aria-label={t("친구와의 대화")}>
       {more&&<button className="text-action" disabled={busy} onClick={loadOlder}>{t("이전 메시지 보기")}</button>}
       {loading ? <p role="status">{t("대화를 불러오는 중…")}</p> : !rows.length && <Empty text={t("친구에게 첫 메시지를 보내보세요.")}/>}
-      {rows.map(row=><article key={row.id} className={'chat-message direct-message '+(row.senderId===me.id?'mine':'theirs')}><div className="chat-message-head"><b>{row.senderId===me.id?t("나"):profile?.username||friend.username}</b></div><div className="chat-bubble"><p>{row.content}</p></div><small>{new Date(row.createdAt).toLocaleString(getLocale(),{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small>{row.delivery==='sending'&&<small role="status">{t('전송 중…')}</small>}{row.delivery==='failed'&&<button type="button" className="chat-retry" onClick={()=>retry(row)}>{t('전송 실패 · 다시 보내기')}</button>}</article>)}<div ref={end}/>
-    </div>{error&&<p role="alert" className="error">{t(error)}</p>}
+      {rows.map(row=><React.Fragment key={row.id}>{entry?.firstUnread?.id===row.id&&<div ref={unreadAnchor} className="chat-unread-divider" role="separator">{t('여기부터 안 읽은 메시지')}</div>}<article data-message-id={row.id} className={'chat-message direct-message '+(row.senderId===me.id?'mine':'theirs')}><div className="chat-message-head"><b>{row.senderId===me.id?t("나"):profile?.username||friend.username}</b></div><div className="chat-bubble"><p>{row.content}</p></div><small>{new Date(row.createdAt).toLocaleString(getLocale(),{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small>{row.delivery==='sending'&&<small role="status">{t('전송 중…')}</small>}{row.delivery==='failed'&&<button type="button" className="chat-retry" onClick={()=>retry(row)}>{t('전송 실패 · 다시 보내기')}</button>}</article></React.Fragment>)}<div ref={end}/>
+    </div>{entryError&&<p role="alert" className="error">{t(entryError)} <button onClick={()=>setEntryAttempt(value=>value+1)}>{t('다시 시도')}</button></p>}{error&&<p role="alert" className="error">{t(error)}</p>}
     <form className="chat-composer direct-composer" onSubmit={send}><div className="chat-input-row"><textarea ref={input} aria-label={t("메시지")} maxLength={1000} value={content} onChange={e=>setContent(e.target.value)} placeholder={t("메시지를 입력하세요")}/><button type="submit" className="primary" onPointerDown={e=>{if(e.button===0)e.preventDefault();}} disabled={!content.trim()} aria-label={t("메시지 보내기")}><Send/></button></div></form>
   </main>;
 }

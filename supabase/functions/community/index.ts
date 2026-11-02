@@ -11,6 +11,7 @@ const table = () => client.from('korae_documents');
 const readable = () => client.from('korae_visible_documents');
 async function result(query: any) { const {data,error}=await query; if(error) throw Error(error.message); return data; }
 const db = {
+  chatRead:(uid:string,friendId:string,messageId:string|null)=>result(client.rpc('korae_chat_read',{p_uid:uid,p_friend:friendId,p_message:messageId})),
   reportContent: (uid:string,kind:string,id:string)=>result(client.rpc('korae_report_content',{p_uid:uid,p_kind:kind,p_id:id})),
   adminReports: (identity:any,before:number|null)=>result(client.rpc('korae_admin_reports',{p_uid:identity.uid,p_email:identity.email,p_verified:identity.emailVerified,p_before:before})),
   dismissReports: (identity:any,kind:string,id:string,reportId:number)=>result(client.rpc('korae_dismiss_reports',{p_uid:identity.uid,p_email:identity.email,p_verified:identity.emailVerified,p_kind:kind,p_id:id,p_report_id:reportId})),

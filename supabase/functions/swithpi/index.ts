@@ -44,7 +44,7 @@ Deno.serve(async request=>{
   if(!identity.emailVerified||identity.provider!=='google.com')throw Error('지갑 인증은 Google 계정으로 로그인한 뒤 진행해 주세요.');
   if(action==='challenge'){
    const walletAddress=String(value.walletAddress||'').trim().toUpperCase();
-   try{Keypair.fromPublicKey(walletAddress);}catch{throw Error('올바른 G로 시작하는 Pi 메인넷 주소를 입력해 주세요.');}
+   try{Keypair.fromPublicKey(walletAddress);}catch{throw Error('올바른 G로 시작하는 Pi 테스트넷 주소를 입력해 주세요.');}
    const random=crypto.getRandomValues(new Uint32Array(2)),id=((BigInt(random[0])<<32n)|BigInt(random[1])).toString();
    const muxed=new MuxedAccount(new Account(walletAddress,'0'),id);
    return reply({data:await rpc('challenge',uid,{id:crypto.randomUUID(),session:identity.session,walletAddress,muxedAddress:muxed.accountId()})});
@@ -53,14 +53,14 @@ Deno.serve(async request=>{
    if(!/^[a-f0-9-]{36}$/i.test(String(value.id||'')))throw Error('잘못된 인증 요청입니다.');
    const c=await rpc('challengeRead',uid,{id:value.id,session:identity.session});
    if(c.status==='verified')return reply({data:{verified:true,...await rpc('status',uid)}});
-   if(c.network!=='mainnet'||c.status!=='pending'||Date.parse(c.expires_at)<=Date.now())throw Error('인증 시간이 만료되었습니다. 다시 요청해 주세요.');
+   if(c.network!=='testnet'||c.status!=='pending'||Date.parse(c.expires_at)<=Date.now())throw Error('인증 시간이 만료되었습니다. 다시 요청해 주세요.');
    const muxedId=MuxedAccount.fromAddress(c.muxed_address,'0').id();
    let cursor='',payment=null;
    const signal=AbortSignal.timeout(18000);
    for(let page=0;page<5;page++){
     const response=await fetch(`${HORIZON}/accounts/${c.wallet_address}/payments?order=desc&limit=200${cursor?'&cursor='+encodeURIComponent(cursor):''}`,{signal});
     if(response.status===404)break;
-    if(!response.ok)throw Error('Pi 메인넷 거래 조회에 실패했습니다. 잠시 후 다시 확인해 주세요.');
+    if(!response.ok)throw Error('Pi 테스트넷 거래 조회에 실패했습니다. 잠시 후 다시 확인해 주세요.');
     const records=(await response.json())?._embedded?.records||[];
     payment=records.find((p:any)=>matchesPayment(p,c,muxedId));
     if(payment||records.length<200||Date.parse(records.at(-1)?.created_at)<Date.parse(c.created_at))break;

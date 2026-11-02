@@ -1,7 +1,7 @@
 export const SNAPSHOT_AT = '2026-12-24T15:00:00.000Z';
 export const EVENT_ID = 'psl-2026';
 export const CAP = 100000000n * 10000000n;
-export const HORIZON = 'https://api.mainnet.minepi.com';
+export const HORIZON = 'https://api.testnet.minepi.com';
 export function units(value) {
   const m = /^(0|[1-9]\d{0,14})(?:\.(\d{1,7}))?$/.exec(String(value));
   if (!m) throw Error('Invalid amount');

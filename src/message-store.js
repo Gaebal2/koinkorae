@@ -88,6 +88,21 @@ export function createMessageStore({call,observe,storage,getScope,getScopeVersio
     if(e.valid()){e.rows=merge(rows,e.rows);e.more=rows.length===100;e.emit();await e.save();}
     return rows;
   }
+  async function unread(friendId,after,signal) {
+    const e=entryFor(friendId);await e.ready;
+    // Fill the gap if the first unread message predates the latest 100-message page.
+    let cursor=after;
+    do {
+      if(!e.valid()||signal?.aborted)return;
+      const page=await call('messages',{friendId,after:cursor},true);
+      if(!e.valid()||signal?.aborted)return;
+      if(page.some(row=>!Number.isSafeInteger(row.createdAt)||row.createdAt<=cursor))throw Error('잘못된 메시지 위치입니다.');
+      e.rows=merge(e.rows,page);e.emit();await e.save();
+      if(page.length<100)return;
+      cursor=page.at(-1).createdAt;
+      if(e.cursor!==null&&cursor>=e.cursor)return;
+    }while(true);
+  }
   function clear(){for(const e of entries.values()){e.stop?.();e.stop=null;e.rows=[];e.listeners.clear();}entries.clear();}
-  return {watch,send,older,clear};
+  return {watch,send,older,unread,clear};
 }

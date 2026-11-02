@@ -30,6 +30,7 @@ test('snapshot includes lockups, allocates by server sequence and caps final app
 async function database() {
  const pg=new PGlite();await pg.exec('create role anon; create role authenticated; create role service_role;');
  await pg.exec(await readFile(new URL('../supabase/migrations/202611020001_swithpi.sql',import.meta.url),'utf8'));
+ await pg.exec(await readFile(new URL('../supabase/migrations/202611020002_pi_testnet.sql',import.meta.url),'utf8'));
  await pg.exec("update korae_airdrop_events set opens_at=now()-interval '1 day',closes_at=now()+interval '1 day',snapshot_at=now()+interval '2 days'");
  return pg;
 }
@@ -40,7 +41,9 @@ test('private proofs, idempotent admission, immutable application wallets and de
   const c=await rpc(pg,'challenge','alice',{id:'00000000-0000-4000-8000-000000000001',session:'1',walletAddress:pi,muxedAddress:'M-one'});
   await assert.rejects(rpc(pg,'challengeRead','bob',{id:c.id,session:'1'}),/다시/);
   await assert.rejects(rpc(pg,'complete','alice',{id:c.id,session:'2',hash,email:'a@example.test'}),/다시/);
+  assert.equal(c.network,'testnet');
   await rpc(pg,'complete','alice',{id:c.id,session:'1',hash,email:'a@example.test'});
+  assert.equal((await rpc(pg,'status','alice')).identity.network,'testnet');
   assert.equal((await rpc(pg,'status','bob')).identity,null);
   await assert.rejects(rpc(pg,'savePsl','alice',{address:'0'.repeat(44)}),/체크섬/);
   await rpc(pg,'savePsl','alice',{address:await psl()});
@@ -77,5 +80,18 @@ test('SQL finalization requires a complete snapshot and recomputes the capped al
   const rows=(await pg.query('select allocation::text from korae_airdrop_entries order by sequence')).rows;
   assert.equal(rows[1].allocation,'0.0000001');
   await assert.rejects(finalize(snapshot),/already finalized/);
+ }finally{await pg.close();}
+});
+
+test('testnet migration preserves completed mainnet proof and expires pending mainnet requests',async()=>{
+ const pg=new PGlite();try{
+ await pg.exec('create role anon; create role authenticated; create role service_role;');
+ await pg.exec(await readFile(new URL('../supabase/migrations/202611020001_swithpi.sql',import.meta.url),'utf8'));
+ const c=await rpc(pg,'challenge','alice',{id:'00000000-0000-4000-8000-000000000001',session:'1',walletAddress:pi,muxedAddress:'M-one'});
+ await rpc(pg,'complete','alice',{id:c.id,session:'1',hash,email:'a@example.test'});
+ await rpc(pg,'challenge','bob',{id:'00000000-0000-4000-8000-000000000002',session:'2',walletAddress:other,muxedAddress:'M-two'});
+ await pg.exec(await readFile(new URL('../supabase/migrations/202611020002_pi_testnet.sql',import.meta.url),'utf8'));
+ assert.equal((await rpc(pg,'status','alice')).identity.network,'mainnet');
+ assert.equal((await pg.query("select status from korae_pi_challenges where uid='bob'")).rows[0].status,'expired');
  }finally{await pg.close();}
 });
