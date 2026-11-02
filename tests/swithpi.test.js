@@ -125,3 +125,58 @@ test('PSL import preserves provenance, is idempotent, private, throttled and pre
  await pg.exec('set role anon');await assert.rejects(run('alice',proof),/permission denied/);
  }finally{await pg.close();}
 });
+
+async function transferDatabase(){const pg=await database();for(const file of ['202611020005_psl_identity_import.sql','202611020007_pi_ownership_transfer.sql'])await pg.exec(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8'));return pg;}
+const importProof=(pg,uid,value=null)=>pg.query('select korae_import_pi($1,$2::jsonb) result',[uid,value&&JSON.stringify(value)]).then(r=>r.rows[0].result);
+const sourceProof={sourceUserId:'00000000-0000-4000-8000-000000000001',walletAddress:pi,hash,verifiedAt:'2026-01-01',email:'a@example.test',network:'testnet'};
+const requestProof=(pg,uid,n,consent=false,address=pi)=>rpc(pg,'challenge',uid,{id:'00000000-0000-4000-8000-'+String(n).padStart(12,'0'),session:'1',walletAddress:address,muxedAddress:'M-transfer-'+n,transferConsent:consent});
+const finishProof=(pg,uid,c,tx='b'.repeat(64))=>rpc(pg,'complete',uid,{id:c.id,session:'1',hash:tx,email:uid+'@example.test'});
+test('ownership transfer requires consent and new proof; import cannot reclaim it and fresh proof can',async()=>{
+ const pg=await transferDatabase();try{
+ await importProof(pg,'alice',sourceProof);
+ await rpc(pg,'savePsl','alice',{address:await psl()});
+ const entry=await rpc(pg,'apply','alice',{eventId:'psl-2026',termsVersion:'2026-11-02'});
+ assert.deepEqual(await requestProof(pg,'bob',1),{transferRequired:true});
+ assert.equal((await pg.query('select count(*)::int n from korae_pi_challenges')).rows[0].n,0);
+ assert.equal((await rpc(pg,'status','alice')).identity.wallet_address,pi);
+ const c=await requestProof(pg,'bob',1,true);
+ assert.equal((await rpc(pg,'status','alice')).identity.wallet_address,pi);
+ await assert.rejects(finishProof(pg,'bob',c,'invalid'),/거래/);
+ assert.equal((await rpc(pg,'status','alice')).identity.wallet_address,pi);
+ await finishProof(pg,'bob',c);
+ assert.equal((await rpc(pg,'status','alice')).identity,null);
+ assert.equal((await rpc(pg,'status','bob')).identity.wallet_address,pi);
+ assert.equal((await rpc(pg,'status','bob')).identity.source,'koinkorae');
+ await assert.rejects(importProof(pg,'alice',sourceProof),/직접 인증/);
+ assert.equal((await importProof(pg,'bob')).uid,'bob');
+ assert.equal((await rpc(pg,'events','alice')).entries[0].sequence,entry.sequence);
+ assert.equal((await pg.query('select count(*)::int n from korae_pi_wallets where wallet_address=$1',[pi])).rows[0].n,1);
+ const back=await requestProof(pg,'alice',2,true);await finishProof(pg,'alice',back,'c'.repeat(64));
+ await assert.rejects(finishProof(pg,'bob',c),/만료/);
+ assert.equal((await rpc(pg,'status','bob')).identity,null);
+ assert.equal((await pg.query('select count(*)::int n from korae_pi_transfers')).rows[0].n,2);
+ await pg.exec('set role anon');await assert.rejects(pg.query('select * from korae_pi_transfers'),/permission denied/);
+ }finally{await pg.close();}
+});
+test('transfers expire competing requests and failed transaction reuse preserves the original owner',async()=>{
+ const pg=await transferDatabase();try{
+ await importProof(pg,'alice',sourceProof);
+ const b=await requestProof(pg,'bob',1,true),c=await requestProof(pg,'carol',2,true);
+ const otherProof=await requestProof(pg,'dave',3,false,other);await finishProof(pg,'dave',otherProof);
+ await assert.rejects(finishProof(pg,'bob',b),/unique/);
+ assert.equal((await rpc(pg,'status','alice')).identity.wallet_address,pi);
+ assert.equal((await pg.query('select count(*)::int n from korae_pi_transfers')).rows[0].n,0);
+ await finishProof(pg,'bob',b,'c'.repeat(64));
+ await assert.rejects(finishProof(pg,'carol',c,'d'.repeat(64)),/만료/);
+ assert.equal((await rpc(pg,'status','bob')).identity.wallet_address,pi);
+ }finally{await pg.close();}
+});
+test('import invalidates pre-existing unconsented challenges for the same wallet',async()=>{
+ const pg=await transferDatabase();try{
+ const c=await requestProof(pg,'bob',1);
+ await importProof(pg,'alice',sourceProof);
+ await assert.rejects(finishProof(pg,'bob',c),/만료/);
+ assert.deepEqual(await requestProof(pg,'bob',2),{transferRequired:true});
+ assert.equal((await rpc(pg,'status','alice')).identity.wallet_address,pi);
+ }finally{await pg.close();}
+});

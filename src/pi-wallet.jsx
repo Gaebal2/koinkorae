@@ -14,7 +14,7 @@ export function PiWalletButton({userId}) {
  return <><button className="pi-wallet-button" data-verified={verified} onClick={()=>setOpen(true)}>{verified?<BadgeCheck className="pi-verified" aria-label={t('인증 완료')}/>:<Wallet aria-hidden="true"/>}<span>{t('Pi 지갑 소유권 인증')}</span></button>{open&&<PiWalletModal key={userId} onClose={()=>setOpen(false)} onChange={s=>setVerified(!!s.identity)}/>}</>;
 }
 export function PiWalletModal({onClose,onChange=()=>{}}) {
- const {notify}=useFeedback(),importLock=useRef(false);
+ const {notify,confirm}=useFeedback(),importLock=useRef(false);
  const [status,setStatus]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
  const [wallet,setWallet]=useState(''),[challenge,setChallenge]=useState(null),[now,setNow]=useState(Date.now()),[psl,setPsl]=useState(''),[editing,setEditing]=useState(false);
  const refresh=async()=>{const s=await swithpi('status');setStatus(s);setPsl(s.pslAddress||'');setEditing(!s.pslAddress);onChange(s);return s;};
@@ -39,13 +39,13 @@ export function PiWalletModal({onClose,onChange=()=>{}}) {
      <p><b>{t('보낼 금액')}: 3.14 Test-Pi</b></p><p role="timer">{t('남은 유효시간')}: {Math.floor(remaining/60)}:{String(remaining%60).padStart(2,'0')}</p>
      <button className="primary" disabled={busy||remaining===0} onClick={()=>run(async()=>{const r=await swithpi('verify',{id:challenge.id});if(r.verified){setChallenge(null);await refresh();setNotice('Pi 지갑 소유권 인증이 완료되었습니다.');}else setNotice('아직 일치하는 거래가 없습니다. 전송 완료 후 다시 확인해 주세요.');})}>{busy?t('확인 중…'):t('입금 확인')}</button>
      <button className="secondary" disabled={busy} onClick={()=>setChallenge(null)}>{t('지갑 주소 변경 / 재요청')}</button>
-    </>:<form onSubmit={e=>{e.preventDefault();void run(async()=>{const c=await swithpi('challenge',{walletAddress:wallet});if(c.alreadyVerified)await refresh();else{setChallenge(c);setNow(Date.now());}});}}>
+    </>:<form onSubmit={e=>{e.preventDefault();void run(async()=>{let c=await swithpi('challenge',{walletAddress:wallet});if(c.transferRequired){if(!await confirm('이 Pi 지갑은 다른 Google 계정에 연결되어 있습니다. 지갑 소유권 인증을 완료하면 기존 계정의 인증이 해제되고 현재 Google 계정으로 연결됩니다. 계속 진행하시겠습니까?',{confirmLabel:'계속 진행'}))return;c=await swithpi('challenge',{walletAddress:wallet,transferConsent:true});}if(c.alreadyVerified)await refresh();else{setChallenge(c);setNow(Date.now());}});}}>
      <label className="field"><span>{t('Pi 테스트넷 지갑 주소')}</span><input required value={wallet} onChange={e=>setWallet(e.target.value)} placeholder="G…" maxLength={56} autoCapitalize="characters" autoCorrect="off" spellCheck={false}/></label>
      <button className="primary" disabled={busy||!wallet.trim()}>{busy?t('요청 생성 중…'):t('지갑 인증 시작')}</button>
     </form>}
     <div className="wallet-import"><button type="button" className="primary" disabled={busy} onClick={async()=>{
      if(importLock.current||busy)return;importLock.current=true;setBusy(true);setError('');setNotice('');
-     try{const result=await swithpi('importPsl');if(!result?.identity)throw Error('요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.');setChallenge(null);const next={...status,identity:result.identity};setStatus(next);onChange(next);await notify('PSL Mining 인증정보를 가져왔습니다.',{kind:'success',title:'가져오기 완료'});}
+     try{const result=await swithpi('importPsl');if(!result?.identity)throw Error('요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.');setChallenge(null);const next={...status,identity:result.identity};setStatus(next);onChange(next);await notify(result.alreadyVerified?'현재 계정에 이미 인증된 Pi 지갑입니다.':'PSL Mining 인증정보를 가져왔습니다.',{kind:'success',title:'가져오기 완료'});}
      catch(e){await notify(swithpiErrorKey(e),{kind:'error',title:'가져오기 실패'});}
      finally{importLock.current=false;setBusy(false);}
     }}>{busy?t('확인 중…'):t('PSL 채굴 인증정보 가져오기')}</button><p>{t('PSL Mining앱에서 이미 Pi 지갑 소유권 인증을 하셨으면, 해당 인증정보를 가져올 수 있습니다.')}</p><p>{t('두 앱에서 같은 Google 계정을 사용해야 합니다.')}</p></div>

@@ -1058,5 +1058,45 @@
     "fil": "Lahat",
     "ja": "すべて",
     "de": "Alle"
+  },
+  "계속 진행": {
+    "zh-CN": "继续",
+    "zh-TW": "繼續",
+    "vi": "Tiếp tục",
+    "id": "Lanjutkan",
+    "hi": "जारी रखें",
+    "fil": "Magpatuloy",
+    "ja": "続行",
+    "de": "Fortfahren"
+  },
+  "현재 계정에 이미 인증된 Pi 지갑입니다.": {
+    "zh-CN": "此 Pi 钱包已在当前账户中完成验证。",
+    "zh-TW": "此 Pi 錢包已在目前帳戶中完成驗證。",
+    "vi": "Ví Pi này đã được xác minh cho tài khoản hiện tại.",
+    "id": "Dompet Pi ini sudah diverifikasi untuk akun saat ini.",
+    "hi": "यह Pi वॉलेट आपके वर्तमान खाते के लिए पहले से सत्यापित है।",
+    "fil": "Na-verify na ang Pi wallet na ito para sa kasalukuyan mong account.",
+    "ja": "この Pi ウォレットは現在のアカウントで認証済みです。",
+    "de": "Dieses Pi-Wallet ist bereits für Ihr aktuelles Konto verifiziert."
+  },
+  "이 Pi 지갑은 현재 다른 Google 계정에 연결되어 있습니다. 현재 계정으로 연결하려면 지갑 소유권을 직접 인증해 주세요.": {
+    "zh-CN": "此 Pi 钱包目前关联到另一个 Google 账户。请直接验证钱包所有权，以关联到当前账户。",
+    "zh-TW": "此 Pi 錢包目前連結至另一個 Google 帳戶。請直接驗證錢包所有權，以連結至目前帳戶。",
+    "vi": "Ví Pi này đang liên kết với tài khoản Google khác. Hãy trực tiếp xác minh quyền sở hữu ví để liên kết với tài khoản hiện tại.",
+    "id": "Dompet Pi ini terhubung ke akun Google lain. Verifikasi kepemilikan dompet secara langsung untuk menghubungkannya ke akun saat ini.",
+    "hi": "यह Pi वॉलेट अभी किसी अन्य Google खाते से जुड़ा है। इसे वर्तमान खाते से जोड़ने के लिए सीधे वॉलेट स्वामित्व सत्यापित करें।",
+    "fil": "Nakaugnay ang Pi wallet na ito sa ibang Google account. Direktang patunayan ang pagmamay-ari ng wallet upang maiugnay ito sa kasalukuyan mong account.",
+    "ja": "この Pi ウォレットは別の Google アカウントに連携されています。現在のアカウントに連携するには、ウォレットの所有権を直接認証してください。",
+    "de": "Dieses Pi-Wallet ist mit einem anderen Google-Konto verknüpft. Verifizieren Sie den Wallet-Besitz direkt, um es mit Ihrem aktuellen Konto zu verknüpfen."
+  },
+  "이 Pi 지갑은 다른 Google 계정에 연결되어 있습니다. 지갑 소유권 인증을 완료하면 기존 계정의 인증이 해제되고 현재 Google 계정으로 연결됩니다. 계속 진행하시겠습니까?": {
+    "zh-CN": "此 Pi 钱包已关联到另一个 Google 账户。完成钱包所有权验证后，原账户的验证将被解除，钱包将关联到当前 Google 账户。是否继续？",
+    "zh-TW": "此 Pi 錢包已連結至另一個 Google 帳戶。完成錢包所有權驗證後，原帳戶的驗證將被解除，錢包將連結至目前的 Google 帳戶。是否繼續？",
+    "vi": "Ví Pi này đang liên kết với tài khoản Google khác. Khi hoàn tất xác minh quyền sở hữu ví, xác minh của tài khoản cũ sẽ bị gỡ và ví sẽ liên kết với tài khoản Google hiện tại. Tiếp tục?",
+    "id": "Dompet Pi ini terhubung ke akun Google lain. Setelah verifikasi kepemilikan selesai, verifikasi akun lama akan dicabut dan dompet dihubungkan ke akun Google saat ini. Lanjutkan?",
+    "hi": "यह Pi वॉलेट किसी अन्य Google खाते से जुड़ा है। वॉलेट स्वामित्व सत्यापन पूरा होने पर पुराने खाते का सत्यापन हट जाएगा और वॉलेट आपके वर्तमान Google खाते से जुड़ जाएगा। जारी रखें?",
+    "fil": "Nakaugnay ang Pi wallet na ito sa ibang Google account. Kapag nakumpleto ang pagpapatunay ng pagmamay-ari, aalisin ang verification ng dating account at iuugnay ang wallet sa kasalukuyan mong Google account. Magpatuloy?",
+    "ja": "この Pi ウォレットは別の Google アカウントに連携されています。所有権の認証を完了すると、以前のアカウントの認証が解除され、現在の Google アカウントに連携されます。続行しますか？",
+    "de": "Dieses Pi-Wallet ist mit einem anderen Google-Konto verknüpft. Nach erfolgreicher Besitzverifizierung wird die Verifizierung des bisherigen Kontos aufgehoben und das Wallet mit Ihrem aktuellen Google-Konto verknüpft. Möchten Sie fortfahren?"
   }
 }

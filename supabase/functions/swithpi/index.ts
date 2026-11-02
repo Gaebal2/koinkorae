@@ -50,7 +50,7 @@ Deno.serve(async request=>{
     if(error)throw Error(error.code==='23505'?'이미 다른 코인고래 계정에 연결된 인증정보입니다.':error.message);
     return data;
    };
-   const existing=await runImport();if(existing)return reply({data:{verified:true,identity:existing}});
+   const existing=await runImport();if(existing)return reply({data:{verified:true,alreadyVerified:true,identity:existing}});
    const proof=await loadPslProof({subject:identity.googleSubject,email:identity.email,key:Deno.env.get('PSL_MINING_SERVICE_ROLE_KEY')});
    Keypair.fromPublicKey(proof.walletAddress);
    proof.email=identity.email;
@@ -61,12 +61,12 @@ Deno.serve(async request=>{
    try{Keypair.fromPublicKey(walletAddress);}catch{throw Error('올바른 G로 시작하는 Pi 테스트넷 주소를 입력해 주세요.');}
    const random=crypto.getRandomValues(new Uint32Array(2)),id=((BigInt(random[0])<<32n)|BigInt(random[1])).toString();
    const muxed=new MuxedAccount(new Account(walletAddress,'0'),id);
-   return reply({data:await rpc('challenge',uid,{id:crypto.randomUUID(),session:identity.session,walletAddress,muxedAddress:muxed.accountId()})});
+   return reply({data:await rpc('challenge',uid,{id:crypto.randomUUID(),session:identity.session,walletAddress,muxedAddress:muxed.accountId(),transferConsent:value.transferConsent===true})});
   }
   if(action==='verify'){
    if(!/^[a-f0-9-]{36}$/i.test(String(value.id||'')))throw Error('잘못된 인증 요청입니다.');
    const c=await rpc('challengeRead',uid,{id:value.id,session:identity.session});
-   if(c.status==='verified')return reply({data:{verified:true,...await rpc('status',uid)}});
+   if(c.status==='verified'){const status=await rpc('status',uid);if(status.identity?.verification_tx!==c.transaction_hash)throw Error('인증 요청을 다시 시작해 주세요.');return reply({data:{verified:true,...status}});}
    if(c.network!=='testnet'||c.status!=='pending'||Date.parse(c.expires_at)<=Date.now())throw Error('인증 시간이 만료되었습니다. 다시 요청해 주세요.');
    const muxedId=MuxedAccount.fromAddress(c.muxed_address,'0').id();
    let cursor='',payment=null;

@@ -124,5 +124,9 @@
   "참여 조건을 확인하고 동의해 주세요.": "Please review and accept the participation conditions.",
   "현재 계정으로 참여할 수 없습니다. 로그인 상태와 서비스 이용 가능 여부를 확인해 주세요.": "This account cannot participate. Check your sign-in status and service eligibility.",
   "요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.": "Unable to process the request. Please try again later.",
-  "모든 종류": "All"
+  "모든 종류": "All",
+  "계속 진행": "Continue",
+  "현재 계정에 이미 인증된 Pi 지갑입니다.": "This Pi wallet is already verified for your current account.",
+  "이 Pi 지갑은 현재 다른 Google 계정에 연결되어 있습니다. 현재 계정으로 연결하려면 지갑 소유권을 직접 인증해 주세요.": "This Pi wallet is currently linked to another Google account. Verify wallet ownership directly to link it to your current account.",
+  "이 Pi 지갑은 다른 Google 계정에 연결되어 있습니다. 지갑 소유권 인증을 완료하면 기존 계정의 인증이 해제되고 현재 Google 계정으로 연결됩니다. 계속 진행하시겠습니까?": "This Pi wallet is linked to another Google account. Completing wallet ownership verification will remove the previous account’s verification and link the wallet to your current Google account. Continue?"
 }

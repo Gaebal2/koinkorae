@@ -1,5 +1,6 @@
 // Convert server/transport failures to stable, localized, user-actionable messages.
 export const swithpiErrorMessages = {
+ transfer:'이 Pi 지갑은 현재 다른 Google 계정에 연결되어 있습니다. 현재 계정으로 연결하려면 지갑 소유권을 직접 인증해 주세요.',
  account:'PSL Mining에서 같은 Google 계정을 찾지 못했습니다. 두 앱에서 같은 Google 계정을 사용해 주세요.',
  proof:'PSL Mining에서 유효한 Pi 지갑 소유권 인증을 찾지 못했습니다.',
  duplicate:'이미 다른 코인고래 계정에 연결된 인증정보입니다.',
