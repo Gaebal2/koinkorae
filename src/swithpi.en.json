@@ -128,5 +128,11 @@
   "계속 진행": "Continue",
   "현재 계정에 이미 인증된 Pi 지갑입니다.": "This Pi wallet is already verified for your current account.",
   "이 Pi 지갑은 현재 다른 Google 계정에 연결되어 있습니다. 현재 계정으로 연결하려면 지갑 소유권을 직접 인증해 주세요.": "This Pi wallet is currently linked to another Google account. Verify wallet ownership directly to link it to your current account.",
-  "이 Pi 지갑은 다른 Google 계정에 연결되어 있습니다. 지갑 소유권 인증을 완료하면 기존 계정의 인증이 해제되고 현재 Google 계정으로 연결됩니다. 계속 진행하시겠습니까?": "This Pi wallet is linked to another Google account. Completing wallet ownership verification will remove the previous account’s verification and link the wallet to your current Google account. Continue?"
+  "이 Pi 지갑은 다른 Google 계정에 연결되어 있습니다. 지갑 소유권 인증을 완료하면 기존 계정의 인증이 해제되고 현재 Google 계정으로 연결됩니다. 계속 진행하시겠습니까?": "This Pi wallet is linked to another Google account. Completing wallet ownership verification will remove the previous account’s verification and link the wallet to your current Google account. Continue?",
+  "테스트 파이만 보내세요. 메인넷 Pi가 아닙니다.": "Send Test-Pi only. This is not Mainnet Pi.",
+  "확인 완료": "Confirmed",
+  "PSL 지갑 주소 확인": "Confirm PSL wallet address",
+  "PSL을 받을 지갑 주소가 맞는지 확인해 주세요.": "Check that this is the correct wallet address to receive PSL.",
+  "이 주소로 확인": "Confirm this address",
+  "지갑 정보가 변경되었습니다. PSL 지갑 주소를 다시 확인해 주세요.": "Wallet details have changed. Please confirm the PSL wallet address again."
 }

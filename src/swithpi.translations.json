@@ -1098,5 +1098,65 @@
     "fil": "Nakaugnay ang Pi wallet na ito sa ibang Google account. Kapag nakumpleto ang pagpapatunay ng pagmamay-ari, aalisin ang verification ng dating account at iuugnay ang wallet sa kasalukuyan mong Google account. Magpatuloy?",
     "ja": "この Pi ウォレットは別の Google アカウントに連携されています。所有権の認証を完了すると、以前のアカウントの認証が解除され、現在の Google アカウントに連携されます。続行しますか？",
     "de": "Dieses Pi-Wallet ist mit einem anderen Google-Konto verknüpft. Nach erfolgreicher Besitzverifizierung wird die Verifizierung des bisherigen Kontos aufgehoben und das Wallet mit Ihrem aktuellen Google-Konto verknüpft. Möchten Sie fortfahren?"
+  },
+  "테스트 파이만 보내세요. 메인넷 Pi가 아닙니다.": {
+    "zh-CN": "请仅发送测试 Pi，不是主网 Pi。",
+    "zh-TW": "請僅發送測試 Pi，不是主網 Pi。",
+    "vi": "Chỉ gửi Test-Pi, không phải Pi Mainnet.",
+    "id": "Kirim Test-Pi saja, bukan Pi Mainnet.",
+    "hi": "केवल Test-Pi भेजें। यह Mainnet Pi नहीं है।",
+    "fil": "Test-Pi lang ang ipadala, hindi Mainnet Pi.",
+    "ja": "テスト用 Pi のみ送信してください。メインネット Pi ではありません。",
+    "de": "Senden Sie nur Test-Pi, keine Mainnet-Pi."
+  },
+  "확인 완료": {
+    "zh-CN": "已确认",
+    "zh-TW": "已確認",
+    "vi": "Đã xác nhận",
+    "id": "Dikonfirmasi",
+    "hi": "पुष्टि हो गई",
+    "fil": "Nakumpirma",
+    "ja": "確認済み",
+    "de": "Bestätigt"
+  },
+  "PSL 지갑 주소 확인": {
+    "zh-CN": "确认 PSL 钱包地址",
+    "zh-TW": "確認 PSL 錢包地址",
+    "vi": "Xác nhận địa chỉ ví PSL",
+    "id": "Konfirmasi alamat dompet PSL",
+    "hi": "PSL वॉलेट पते की पुष्टि करें",
+    "fil": "Kumpirmahin ang address ng PSL wallet",
+    "ja": "PSL ウォレットアドレスの確認",
+    "de": "PSL-Wallet-Adresse bestätigen"
+  },
+  "PSL을 받을 지갑 주소가 맞는지 확인해 주세요.": {
+    "zh-CN": "请检查接收 PSL 的钱包地址是否正确。",
+    "zh-TW": "請檢查接收 PSL 的錢包地址是否正確。",
+    "vi": "Vui lòng kiểm tra địa chỉ ví nhận PSL có chính xác không.",
+    "id": "Pastikan alamat dompet penerima PSL sudah benar.",
+    "hi": "कृपया जाँचें कि PSL प्राप्त करने का वॉलेट पता सही है।",
+    "fil": "Tiyaking tama ang address ng wallet na tatanggap ng PSL.",
+    "ja": "PSL を受け取るウォレットアドレスが正しいことを確認してください。",
+    "de": "Prüfen Sie, ob dies die richtige Wallet-Adresse zum Empfang von PSL ist."
+  },
+  "이 주소로 확인": {
+    "zh-CN": "确认此地址",
+    "zh-TW": "確認此地址",
+    "vi": "Xác nhận địa chỉ này",
+    "id": "Konfirmasi alamat ini",
+    "hi": "इस पते की पुष्टि करें",
+    "fil": "Kumpirmahin ang address na ito",
+    "ja": "このアドレスで確認",
+    "de": "Diese Adresse bestätigen"
+  },
+  "지갑 정보가 변경되었습니다. PSL 지갑 주소를 다시 확인해 주세요.": {
+    "zh-CN": "钱包信息已更改，请重新确认 PSL 钱包地址。",
+    "zh-TW": "錢包資訊已變更，請重新確認 PSL 錢包地址。",
+    "vi": "Thông tin ví đã thay đổi. Vui lòng xác nhận lại địa chỉ ví PSL.",
+    "id": "Informasi dompet berubah. Konfirmasikan kembali alamat dompet PSL.",
+    "hi": "वॉलेट की जानकारी बदल गई है। कृपया PSL वॉलेट पते की फिर पुष्टि करें।",
+    "fil": "Nagbago ang impormasyon ng wallet. Kumpirmahin muli ang address ng PSL wallet.",
+    "ja": "ウォレット情報が変更されました。PSL ウォレットアドレスを再確認してください。",
+    "de": "Die Wallet-Daten haben sich geändert. Bitte bestätigen Sie die PSL-Wallet-Adresse erneut."
   }
 }

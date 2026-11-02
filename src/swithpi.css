@@ -99,3 +99,15 @@
 .pi-wallet-button:focus-visible,.swithpi-mine:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
 .wallet-import>.primary,.wallet-card form>.primary{min-height:46px}
 @media(max-width:360px){.profile-head>.pi-wallet-button{max-width:140px}.profile-head>.pi-wallet-button,.swithpi-mine{padding:8px;gap:4px}}
+
+.wallet-test-payment{display:grid;gap:8px;margin:20px 0;padding:18px;border:2px solid #d7b550;border-radius:14px;background:#fff8df;color:#60460b}
+.wallet-test-payment>span{font-size:16px;font-weight:700}
+.wallet-test-payment>strong{font-size:30px;line-height:1.3;overflow-wrap:anywhere}
+.wallet-test-payment em{font-style:normal}
+.wallet-test-payment>b{font-size:15px;line-height:1.6}
+.wallet-card .wallet-countdown{font-size:18px;font-weight:750;color:var(--primary-dark);font-variant-numeric:tabular-nums}
+.swithpi-steps{display:grid;gap:10px;margin-top:16px}
+.swithpi-steps>.primary{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;min-height:46px;line-height:1.5}
+.step-number,.step-complete{flex:none;width:24px;height:24px;display:inline-grid;place-items:center}
+.swithpi-steps .step-complete{color:#15803d;background:#fff;border-radius:50%;padding:2px}
+.swithpi-address-actions{display:flex;gap:10px;margin-top:20px}.swithpi-address-actions>button{flex:1}
