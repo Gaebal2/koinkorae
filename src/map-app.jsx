@@ -4,7 +4,7 @@ const SwithPiPage = lazy(() => import('./swithpi-page.jsx').then(module => ({def
 import {FitText} from './fit-text.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
 import {trackScreen} from './analytics.js';
-import {resolveSharedPost} from './shared-link.js';
+import {resolveSharedPost,sharedLaunchPage} from './shared-link.js';
 import {PointsPolicy} from './points-policy.jsx';
 import {POINTS_POLICY,levelFor} from '../supabase/functions/_shared/points-policy.js';
 import {ContentRefresh} from './content-refresh.jsx';
@@ -173,7 +173,7 @@ export default function App() {
   const notificationLaunch=useRef(new URLSearchParams(window.location.search).get('screen')==='notifications');
   const sharedPin = useRef(new URLSearchParams(window.location.search).get('pin'));
 
-  const [me, setMe] = useState(null), [page, setPage] = useState(()=>{const screen=new URLSearchParams(window.location.search).get('screen');return ['chat','check'].includes(screen)?screen:restored.page;}), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
+  const [me, setMe] = useState(null), [page, setPage] = useState(()=>sharedLaunchPage(window.location.search,restored.page)), [pins, setPins] = useState([]), [selected, select] = useState(null), [auth, setAuth] = useState(false), [form, setForm] = useState(null), [profileId, setProfileId] = useState(restored.profileId), [profile, setProfile] = useState(null), [editing, setEditing] = useState(false), [error, setError] = useAppMessage(), [busy, setBusy] = useState(false);
   useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.has('screen')){url.searchParams.delete('screen');history.replaceState(history.state,'',url);}},[]);
   const [practiceDraft,setPracticeDraft]=useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -249,7 +249,7 @@ export default function App() {
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
     {page === 'home' && <FeedHome onCoin={openCoin} onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setPracticeDraft(null); setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
     {page === 'battle' && <PracticePage onShare={sharePractice}/>}
-    {page === 'swithpi' && <SwithPiPage key={me?.id||'guest'} me={me} login={() => setAuth(true)}/>}
+    {page === 'swithpi' && <SwithPiPage eventId={new URLSearchParams(window.location.search).get('event')} key={me?.id||'guest'} me={me} login={() => setAuth(true)}/>}
     {page === 'chat' && <FriendChat me={me} login={() => setAuth(true)}/>}
     {page === 'points' && <PointsPolicy me={me} balance={balance} login={()=>setAuth(true)} onBack={goBack}/>}
     {page === 'check' && <CheckinPage me={me} balance={balance} login={() => setAuth(true)}/>}

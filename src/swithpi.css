@@ -112,3 +112,8 @@
 .swithpi-steps .step-complete>svg{display:block;width:20px;height:20px;flex:none}
 .swithpi-steps .step-complete{color:#15803d;background:#fff;border-radius:50%;padding:2px}
 .swithpi-address-actions{display:flex;gap:10px;margin-top:20px}.swithpi-address-actions>button{flex:1}
+
+.swithpi-card-top>.external-share-button{margin-left:auto;flex:0 0 34px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;padding:6px;border:0;border-radius:10px;background:transparent;color:var(--muted)}
+.swithpi-card-top>.external-share-button svg{width:20px;height:20px}
+.swithpi-card-top>.external-share-button+.swithpi-status{margin-left:0;flex-shrink:0}
+.swithpi-card[tabindex]{scroll-margin-top:80px}.swithpi-card[tabindex]:focus-visible{outline:2px solid var(--primary);outline-offset:3px}

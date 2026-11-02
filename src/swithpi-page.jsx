@@ -1,6 +1,7 @@
+import {ShareButton} from './share-button.jsx';
 import {useFeedback} from './feedback.jsx';
 import {swithpiErrorKey} from './swithpi-errors.js';
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useState,useRef} from 'react';
 import {ArrowUpRight,BadgeCheck,CalendarClock,Gift,Wallet,ClipboardList} from 'lucide-react';
 import {SwithPiIcon} from './swithpi-icon.jsx';
 import {PiWalletModal,swithpi,walletDate} from './pi-wallet.jsx';
@@ -8,13 +9,15 @@ import {Modal} from './ui.jsx';
 import {t} from './language.js';
 import {SNAPSHOT_AT,EVENT_ID} from '../supabase/functions/_shared/swithpi.js';
 const preview={id:EVENT_ID,title:'PSL 에어드롭',description:'Pi와 함께 시작하는 PSL. 메인넷 Pi 잔액과 락업된 Pi를 합산해 1 Pi당 1 PSL을 배정합니다.',category:'token',organizer:'PSL Mining',snapshot_at:SNAPSHOT_AT,closes_at:SNAPSHOT_AT,cap:'100000000'};
-export function SwithPiPage({me,login}) {
- const {notify}=useFeedback();
+export function SwithPiPage({me,login,eventId}) {
+ const {notify}=useFeedback(),targetCard=useRef(null),focusedEvent=useRef(null);
+ useEffect(()=>{focusedEvent.current=null;},[eventId]);
  const [addressReview,setAddressReview]=useState(null),[confirmedAddress,setConfirmedAddress]=useState('');
  const [result,setResult]=useState(null),[status,setStatus]=useState(null),[error,setError]=useState(''),[loading,setLoading]=useState(true),[walletOpen,setWalletOpen]=useState(false),[filter,setFilter]=useState('all'),[mine,setMine]=useState(false),[apply,setApply]=useState(null),[accepted,setAccepted]=useState(false),[busy,setBusy]=useState(false),[now,setNow]=useState(Date.now());
  const refresh=async()=>{const [r,s]=await Promise.all([swithpi('events'),me?swithpi('status'):null]);setResult(r);setStatus(s);return s;};
  useEffect(()=>{let live=true;setResult(null);setStatus(null);setConfirmedAddress('');setAddressReview(null);setApply(null);setError('');setLoading(true);Promise.all([swithpi('events'),me?swithpi('status'):null]).then(([r,s])=>{if(live){setResult(r);setStatus(s);}}).catch(e=>{if(live)setError(swithpiErrorKey(e));}).finally(()=>{if(live)setLoading(false);});return()=>{live=false;};},[me?.id]);
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),30000);return()=>clearInterval(timer);},[]);
+ useEffect(()=>{if(!result||!eventId||focusedEvent.current===eventId)return;focusedEvent.current=eventId;if(targetCard.current){targetCard.current.scrollIntoView({block:'start'});targetCard.current.focus({preventScroll:true});}else void notify('이벤트를 찾을 수 없습니다.');},[result,eventId,notify]);
  const entries=result?.entries||[],events=(result?.events||[preview]).filter(e=>(filter==='all'||e.category===filter)&&(!mine||entries.some(a=>a.event_id===e.id)));
  const addressKey=s=>s?.identity&&s.pslAddress?JSON.stringify([me?.id,s.identity.wallet_address,s.identity.verified_at,s.pslAddress]):'';
  const addressConfirmed=!!confirmedAddress&&confirmedAddress===addressKey(status);
@@ -30,8 +33,8 @@ export function SwithPiPage({me,login}) {
   {loading&&<p role="status">{t('불러오는 중…')}</p>}
   <div className="swithpi-feed">{events.map(event=>{
    const entry=entries.find(a=>a.event_id===event.id),closed=now>=Date.parse(event.closes_at),upcoming=now<Date.parse(event.opens_at),active=!!result&&event.enabled&&!closed&&!upcoming;
-   return <article className="swithpi-card" key={event.id}>
-    <div className="swithpi-card-top"><img className="swithpi-project swithpi-token-icon" src={import.meta.env.BASE_URL+'coin-icons/psl.svg'} alt="PSL"/><div><b>{event.organizer}</b><small>{t('토큰 에어드롭')}</small></div><span className={'swithpi-status '+(active?'live':'')}>{!result?t('안내'):event.completed_at?t('지급 완료'):closed?t('모집 마감'):upcoming?t('예정'):active?t('진행 중'):t('준비 중')}</span></div>
+   return <article className="swithpi-card" key={event.id} ref={event.id===eventId?targetCard:null} tabIndex={event.id===eventId?-1:undefined}>
+    <div className="swithpi-card-top"><img className="swithpi-project swithpi-token-icon" src={import.meta.env.BASE_URL+'coin-icons/psl.svg'} alt="PSL"/><div><b>{event.organizer}</b><small>{t('토큰 에어드롭')}</small></div><ShareButton kind="event" item={{...event,title:t(event.title),description:t(event.description)}}/><span className={'swithpi-status '+(active?'live':'')}>{!result?t('안내'):event.completed_at?t('지급 완료'):closed?t('모집 마감'):upcoming?t('예정'):active?t('진행 중'):t('준비 중')}</span></div>
     <div className="swithpi-banner"><span>PSL</span><SwithPiIcon/><small>Start with Pi</small></div>
     <h2>{t(event.title)}</h2><p>{t(event.description)}</p>
     <div className="swithpi-reward"><strong>1 Pi <span>=</span> 1 PSL</strong><span>{t('총 1억 PSL · 선착순 배정')}</span></div>

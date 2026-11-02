@@ -65,3 +65,14 @@ test('feed URLs retain punctuation and only recognize trusted YouTube hosts',asy
  for(const url of ['https://youtu.be/abcdefghijk?t=1m30s','https://www.youtube.com/watch?v=abcdefghijk&start=90','https://m.youtube.com/shorts/abcdefghijk?t=90','https://youtube.com/live/abcdefghijk?t=90']) assert.deepEqual(youtubeVideo(url),{id:'abcdefghijk',start:90});
  for(const url of ['https://youtube.com.evil.test/watch?v=abcdefghijk','https://youtu.be/short','https://example.org/watch?v=abcdefghijk']) assert.equal(youtubeVideo(url),null);
 });
+
+test('event share links open SwithPi instead of the restored page',async()=>{
+ const {sharedLaunchPage}=await import('../src/shared-link.js');
+ const url=shareUrl('event','psl-2026');
+ assert.equal(url,'https://koinkorae.com/?event=psl-2026');
+ assert.equal(sharedLaunchPage(new URL(url).search,'profile'),'swithpi');
+ assert.equal(sharedLaunchPage('?event=another-event','map'),'swithpi');
+ assert.equal(sharedLaunchPage('?screen=chat','home'),'chat');
+ assert.equal(sharedLaunchPage('?screen=check','home'),'check');
+ assert.equal(sharedLaunchPage('','profile'),'profile');
+});

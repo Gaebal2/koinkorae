@@ -11,3 +11,10 @@ export function sharedPostStatus(page, id, pinnedId) {
   if (page.loading) return 'loading';
   return page.nextCursor ? 'more' : 'missing';
 }
+
+export function sharedLaunchPage(search, fallback='home') {
+ const params=new URLSearchParams(search);
+ if(params.get('event'))return 'swithpi';
+ const screen=params.get('screen');
+ return ['chat','check'].includes(screen)?screen:fallback;
+}

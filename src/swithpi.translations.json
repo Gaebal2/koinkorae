@@ -1198,5 +1198,15 @@
     "fil": "Irehistro ang mga address para makatanggap ng airdrop, produkto at serbisyo",
     "ja": "エアドロップ・商品・サービスの受取先を登録",
     "de": "Empfangsadressen für Airdrops, Produkte und Dienstleistungen registrieren"
+  },
+  "이벤트를 찾을 수 없습니다.": {
+    "zh-CN": "找不到此活动。",
+    "zh-TW": "找不到此活動。",
+    "vi": "Không tìm thấy sự kiện.",
+    "id": "Acara tidak ditemukan.",
+    "hi": "इवेंट नहीं मिला।",
+    "fil": "Hindi mahanap ang event.",
+    "ja": "イベントが見つかりません。",
+    "de": "Das Event wurde nicht gefunden."
   }
 }
