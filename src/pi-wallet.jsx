@@ -26,7 +26,7 @@ export function PiWalletModal({onClose,onChange=()=>{}}) {
   <section className="wallet-card">
    <p className="wallet-network-note">{t('테스트넷과 메인넷의 Pi 지갑 주소는 동일합니다.')}</p>
    <h3>{identity?<><BadgeCheck className="pi-verified"/>{t('Pi 지갑 인증 완료')}</>:<><Wallet/>{t('Pi 테스트넷 지갑 인증')}</>}</h3>
-   {identity?<dl className="wallet-details"><dt>{t('Pi 지갑 주소')}</dt><dd>{identity.wallet_address}</dd><dt>{t('인증 완료 날짜')}</dt><dd>{walletDate(identity.verified_at)}</dd><dt>{t('인증 당시 구글 계정')}</dt><dd>{identity.verified_email}</dd><dt>{t('네트워크')}</dt><dd>{identity.network==='mainnet'?'Pi Mainnet':'Pi Testnet'}</dd></dl>:<>
+   {identity?<dl className="wallet-details"><dt>{t('Pi 지갑 주소')}</dt><dd>{identity.wallet_address}</dd><dt>{t('인증 완료 날짜')}</dt><dd>{walletDate(identity.verified_at)}</dd><dt>{t(identity.source==='psl_mining'?'연결한 Google 계정':'인증 당시 구글 계정')}</dt><dd>{identity.verified_email}</dd><dt>{t('네트워크')}</dt><dd>{identity.network==='mainnet'?'Pi Mainnet':'Pi Testnet'}</dd>{identity.source==='psl_mining'&&<><dt>{t('인증 출처')}</dt><dd>PSL Mining</dd><dt>{t('가져온 날짜')}</dt><dd>{walletDate(identity.imported_at)}</dd></>}</dl>:<>
     <p>{t('본인 Pi 테스트넷 지갑의 G로 시작하는 주소를 입력하세요. 일회성 Muxed 주소로 3.14 Test-Pi를 보내 소유권을 확인합니다.')}</p>
     <p className="wallet-fee">{t('생성된 Muxed 주소는 본인 지갑의 별칭입니다. 3.14 Test-Pi는 본인 지갑으로 돌아오며, 테스트넷 네트워크 수수료는 본인이 부담합니다. 실제 메인넷 Pi는 사용하지 않습니다. 비밀문구나 개인키는 입력하지 마세요.')}</p>
     {challenge?<>
@@ -40,6 +40,7 @@ export function PiWalletModal({onClose,onChange=()=>{}}) {
      <label className="field"><span>{t('Pi 테스트넷 지갑 주소')}</span><input required value={wallet} onChange={e=>setWallet(e.target.value)} placeholder="G…" maxLength={56} autoCapitalize="characters" autoCorrect="off" spellCheck={false}/></label>
      <button className="primary" disabled={busy||!wallet.trim()}>{busy?t('요청 생성 중…'):t('지갑 인증 시작')}</button>
     </form>}
+    <div className="wallet-import"><button type="button" className="secondary" disabled={busy} onClick={()=>run(async()=>{await swithpi('importPsl');setChallenge(null);await refresh();setNotice('PSL Mining 인증정보를 가져왔습니다.');})}>{t('PSL 채굴 인증정보 가져오기')}</button><p>{t('PSL Mining앱에서 이미 Pi 지갑 소유권 인증을 하셨으면, 해당 인증정보를 가져올 수 있습니다.')}</p><p>{t('두 앱에서 같은 Google 계정을 사용해야 합니다.')}</p></div>
    </>}
   </section>
   {identity&&<section className="wallet-card"><h3><Wallet/>{t('PSL 토큰 지갑 연결')}</h3><p>{t('PSL 에어드롭을 받을 SASEUL 지갑 주소를 입력하고 저장하세요.')}</p>

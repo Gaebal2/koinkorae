@@ -102,7 +102,13 @@ test('like toggles and self likes cannot inflate ranks; earned ranks are permane
 test('markers charge on creation, edits are free, and earned whale rank allows five slots',async()=>{
  const {pg,db}=await communityHarness({pointsPolicy:true});try{
   await balance(db);const value={title:'Marker',description:'Description',coin:'BTC',tradeCoins:['BTC'],lat:37, lng:127,category:'P2P 판매',image:'',link:''};
-  const pins=[];for(let i=0;i<3;i++)pins.push(await dispatch(db,identity,'savePin',{value}));
+  await assert.rejects(dispatch(db,identity,'savePin',{value}),/한도/);
+  const pins=[];
+  for(const [level,limit] of [[1,1],[2,2],[3,2],[4,3],[5,3]]){
+   await writeBalance(db,{...await balance(db),level});
+   while(pins.length<limit)pins.push(await dispatch(db,identity,'savePin',{value}));
+   await assert.rejects(dispatch(db,identity,'savePin',{value}),/한도/);
+  }
   assert.equal((await balance(db)).current,70);await assert.rejects(dispatch(db,identity,'savePin',{value}),/한도/);
   await dispatch(db,identity,'savePin',{id:pins[0].id,value:{...value,title:'Changed'}});assert.equal((await balance(db)).current,70);
   await writeBalance(db,{...await balance(db),level:6});
@@ -125,5 +131,19 @@ test('rollout preserves existing balances, known attendance and content without 
   assert.equal(b.current,140);assert.equal(b.lifetime,400);assert.equal(b.stats.posts,1);assert.equal(b.stats.days,2);assert.equal(b.streak,2);
   await pg.query("select korae_mutate('pointsBalance','alice')");assert.deepEqual((await db.one('balances','alice')).body,b);
   const checked=await dispatch(db,identity,'checkin');assert.equal(checked.current,160);assert.equal(checked.stats.days,3);assert.equal(checked.streak,3);
+ }finally{await pg.close();}
+});
+
+test('reduced marker limits preserve legacy markers and block filling a free low slot while over capacity',async()=>{
+ const {pg,db}=await communityHarness({pointsPolicy:true});try{
+ await balance(db);await writeBalance(db,{...await balance(db),level:6});
+ const value={title:'Existing marker',description:'Description',coin:'BTC',tradeCoins:[],lat:37,lng:127,category:'P2P 판매',image:'',link:''};
+ const pins=[];for(let i=0;i<3;i++)pins.push(await dispatch(db,identity,'savePin',{value}));
+ await writeBalance(db,{...await balance(db),level:1});
+ await db.remove('pins',pins[0].id,'','alice');
+ assert.equal((await db.list('pins')).length,2);
+ await assert.rejects(dispatch(db,identity,'savePin',{value}),/한도/);
+ await dispatch(db,identity,'savePin',{id:pins[1].id,value:{...value,title:'Edited legacy marker'}});
+ assert.equal((await db.list('pins')).length,2);
  }finally{await pg.close();}
 });

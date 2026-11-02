@@ -805,3 +805,11 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
   .post-card .score-row > .card-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); flex:0 0 176px; gap:0; }
   .post-card .card-actions button { min-width:0; padding-inline:2px; gap:2px; }
 }
+
+.ranked-avatar[data-rank="0"] > img{filter:grayscale(1)}
+.rank-collection{grid-template-columns:repeat(7,minmax(0,1fr))}
+.rank-collection>button{display:flex;align-items:center;flex-direction:column;gap:7px;min-width:0;padding:8px 2px;border:1px solid transparent;border-radius:12px;background:transparent;color:inherit}
+.rank-collection>button[aria-pressed="true"]{border-color:var(--primary);background:var(--surface-tint)}
+.rank-collection>button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.rank-collection .rank-badge{width:clamp(28px,7vw,54px);height:clamp(28px,7vw,54px)}
+.policy-rank-card .policy-progress{padding:16px 0 0;border:0;margin:16px 0 0;box-shadow:none}

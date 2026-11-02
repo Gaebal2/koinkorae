@@ -1,3 +1,4 @@
+import {loadPslProof} from '../_shared/psl-import.js';
 import {createRemoteJWKSet,jwtVerify} from 'npm:jose@6';
 import {createClient} from 'npm:@supabase/supabase-js@2';
 import {Account,Keypair,MuxedAccount} from 'npm:@stellar/stellar-sdk@14.1.1';
@@ -25,14 +26,14 @@ Deno.serve(async request=>{
     if(!bearer.startsWith('Bearer '))throw Error('token');
     const {payload:p}=await jwtVerify(bearer.slice(7),jwks,{algorithms:['RS256'],issuer:`https://securetoken.google.com/${project}`,audience:project,requiredClaims:['exp','iat','sub','auth_time']});
     if(!p.sub||p.sub.length>128||typeof p.auth_time!=='number'||p.auth_time>Date.now()/1000||!p.iat||p.iat>Date.now()/1000)throw Error('claims');
-    identity={uid:p.sub,name:typeof p.name==='string'?p.name:'회원',email:p.email,emailVerified:p.email_verified===true,provider:(p.firebase as any)?.sign_in_provider,session:String(p.auth_time)};
+    identity={uid:p.sub,name:typeof p.name==='string'?p.name:'회원',email:p.email,emailVerified:p.email_verified===true,provider:(p.firebase as any)?.sign_in_provider,googleSubject:(p.firebase as any)?.identities?.['google.com']?.[0],session:String(p.auth_time)};
    }catch{return reply({error:'로그인이 만료되었습니다. 다시 로그인해 주세요.'},401);}
   }
   if(action==='events')return reply({data:await rpc('events',identity?.uid||null)});
   if(!identity)return reply({error:'로그인이 필요합니다.'},401);
   const uid=identity.uid;
   if(action==='status')return reply({data:await rpc('status',uid)});
-  if(!['savePsl','apply','challenge','verify'].includes(action))throw Error('지원하지 않는 요청입니다.');
+  if(!['savePsl','apply','challenge','verify','importPsl'].includes(action))throw Error('지원하지 않는 요청입니다.');
   const {error:admissionError}=await client.rpc('korae_admit',{p_uid:uid,p_name:identity.name});
   if(admissionError)throw Error('현재 계정으로 참여할 수 없습니다. 로그인 상태와 서비스 이용 가능 여부를 확인해 주세요.');
   if(action==='savePsl'){
@@ -42,6 +43,19 @@ Deno.serve(async request=>{
   }
   if(action==='apply')return reply({data:await rpc('apply',uid,{eventId:value.eventId,termsVersion:value.termsVersion})});
   if(!identity.emailVerified||identity.provider!=='google.com')throw Error('지갑 인증은 Google 계정으로 로그인한 뒤 진행해 주세요.');
+  if(action==='importPsl'){
+   if(typeof identity.googleSubject!=='string'||!identity.googleSubject)throw Error('Google 계정 정보를 확인할 수 없습니다. 다시 로그인해 주세요.');
+   const runImport=async(value:any=null)=>{
+    const {data,error}=await client.rpc('korae_import_pi',{p_uid:uid,p_value:value});
+    if(error)throw Error(error.code==='23505'?'이미 다른 코인고래 계정에 연결된 인증정보입니다.':error.message);
+    return data;
+   };
+   const existing=await runImport();if(existing)return reply({data:{verified:true,identity:existing}});
+   const proof=await loadPslProof({subject:identity.googleSubject,email:identity.email,key:Deno.env.get('PSL_MINING_SERVICE_ROLE_KEY')});
+   Keypair.fromPublicKey(proof.walletAddress);
+   proof.email=identity.email;
+   return reply({data:{verified:true,identity:await runImport(proof)}});
+  }
   if(action==='challenge'){
    const walletAddress=String(value.walletAddress||'').trim().toUpperCase();
    try{Keypair.fromPublicKey(walletAddress);}catch{throw Error('올바른 G로 시작하는 Pi 테스트넷 주소를 입력해 주세요.');}

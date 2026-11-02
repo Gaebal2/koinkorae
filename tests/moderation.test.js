@@ -16,6 +16,8 @@ async function setup(){
  db.adminReports=(identity,before)=>rpc('select korae_admin_reports($1,$2,$3,$4) as value',[identity.uid,identity.email,identity.emailVerified,before]);
  db.moderateContent=(identity,kind,id,hidden)=>rpc('select korae_moderate_content($1,$2,$3,$4,$5,$6) as value',[identity.uid,identity.email,identity.emailVerified,kind,id,hidden]);
  for(const identity of [alice,bob,carol,admin])await dispatch(db,identity,'ensureProfile');
+ // Pin moderation requires a member with the earned creation benefit.
+ const b=await db.one('balances','alice');await db.put({...b,body:{...b.body,level:1}});
  return {pg,db,rpc};
 }
 test('administrator requires a verified email from server identity, never request arguments',async()=>{

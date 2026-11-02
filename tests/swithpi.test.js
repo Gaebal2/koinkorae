@@ -95,3 +95,33 @@ test('testnet migration preserves completed mainnet proof and expires pending ma
  assert.equal((await pg.query("select status from korae_pi_challenges where uid='bob'")).rows[0].status,'expired');
  }finally{await pg.close();}
 });
+
+test('PSL import binds Google subject and rejects stale or mismatched ownership',async()=>{
+ const {sameGoogleAccount,verifiedPslProof,loadPslProof}=await import('../supabase/functions/_shared/psl-import.js');
+ const user={id:'00000000-0000-4000-8000-000000000001',email:'a@example.test',email_confirmed_at:'2026-01-01',identities:[{provider:'google',identity_data:{sub:'google-a'}}]};
+ assert.ok(sameGoogleAccount(user,'google-a'));assert.equal(sameGoogleAccount(user,'google-b'),false);
+ assert.equal(sameGoogleAccount({...user,identities:[{provider:'email',identity_data:{sub:'google-a'}}]},'google-a'),false);
+ const identity={user_id:user.id,wallet_address:pi,network:'testnet',verification_tx_hash:hash,verified_at:'2026-01-01'};
+ const challenge={user_id:user.id,wallet_address:pi,network:'testnet',transaction_hash:hash,status:'verified'};
+ assert.equal(verifiedPslProof(user,identity,challenge).walletAddress,pi);
+ for(const altered of [{...identity,user_id:'someone'},{...identity,network:'mainnet'},{...identity,verification_tx_hash:'invalid'}])assert.throws(()=>verifiedPslProof(user,altered,challenge));
+ assert.throws(()=>verifiedPslProof(user,identity,{...challenge,transaction_hash:'b'.repeat(64)}));
+ const calls=[];const proof=await loadPslProof({subject:'google-a',key:'test-key',fetcher:async(url,options)=>{
+ calls.push([url,options]);return {ok:true,json:async()=>url.includes('/admin/users?')?{users:[{...user,identities:null,user_metadata:{sub:'google-a'}}]}:url.includes('/admin/users/')?user:url.includes('/pi_wallet_identities')?[identity]:[challenge]};
+ }});
+ await assert.rejects(loadPslProof({subject:'google-a',email:user.email,key:'test-key',fetcher:async url=>({ok:true,json:async()=>url.includes('/admin/users?')?{users:[{...user,identities:null,user_metadata:{sub:'google-a'}}]}:{...user,identities:[{provider:'google',identity_data:{sub:'someone-else'}}]}})}),/같은 Google/);
+ assert.equal(proof.sourceUserId,user.id);assert.equal(calls.length,4);assert.ok(calls.every(([url,opts])=>url.startsWith('https://xvqbsiqeoxbkxsvxgnvc.supabase.co/')&&!opts.method));
+});
+test('PSL import preserves provenance, is idempotent, private, throttled and prevents duplicate wallets',async()=>{
+ const pg=await database();try{
+ await pg.exec(await readFile(new URL('../supabase/migrations/202611020005_psl_identity_import.sql',import.meta.url),'utf8'));
+ const run=async(uid,value=null)=>(await pg.query('select korae_import_pi($1,$2) result',[uid,value&&JSON.stringify(value)])).rows[0].result;
+ const proof={sourceUserId:'00000000-0000-4000-8000-000000000001',walletAddress:pi,hash,verifiedAt:'2026-01-01',email:'a@example.test',network:'testnet'};
+ assert.equal(await run('alice'),null);await assert.rejects(run('alice'),/30초/);
+ await assert.rejects(run('alice',{...proof,network:'mainnet'}),/유효/);
+ const result=await run('alice',proof);assert.equal(result.source,'psl_mining');assert.equal(result.network,'testnet');assert.ok(result.imported_at);
+ assert.equal((await run('alice',{...proof,walletAddress:other})).wallet_address,pi);
+ await assert.rejects(run('bob',proof),/unique/);
+ await pg.exec('set role anon');await assert.rejects(run('alice',proof),/permission denied/);
+ }finally{await pg.close();}
+});

@@ -21,5 +21,5 @@ export function RankBadge({level=0,className=''}) {
   </svg>;
 }
 export function RankedAvatar({src,profile,level,className='',alt=''}){
- return <span className={`ranked-avatar ${className}`}><img src={src} alt={alt}/><RankBadge level={level ?? rankIndex(profile)}/></span>;
+ return <span data-rank={rankIndex({level:level ?? rankIndex(profile)})} className={`ranked-avatar ${className}`}><img src={src} alt={alt}/><RankBadge level={level ?? rankIndex(profile)}/></span>;
 }
