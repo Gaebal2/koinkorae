@@ -3,14 +3,11 @@ import {RankBadge} from './rank-badge.jsx';
 import {Trophy, Coins, ArrowLeft} from 'lucide-react';
 import {t} from './language.js';
 import {POINTS_POLICY,POINT_ROWS,levelFor} from '../supabase/functions/_shared/points-policy.js';
-import {useCheckinToday} from './checkin-calendar.jsx';
 const labels={days:'출석일',bp:'누적 KK',posts:'작성 피드',reposts:'리포스트',games:'배틀 완료',likes:'받은 좋아요'};
 const fmt=n=>Number(n||0).toLocaleString();
 export function PointsPolicy({balance={current:0,lifetime:0},me,onBack,login}) {
  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});},[]);
- const today=useCheckinToday(),level=levelFor(balance);
- const mission=balance.mission?.day===today?balance.mission:{};
- const streak=balance.day>=today-1?balance.streak||0:0;
+ const level=levelFor(balance);
  const [selection,setSelection]=useState(null);
  const selected=selection??Math.min(level.index+1,POINTS_POLICY.levels.length-1),target=POINTS_POLICY.levels[selected];
  const values={days:balance.stats?.days||0,bp:balance.lifetime||0,posts:balance.stats?.posts||0,reposts:balance.stats?.reposts||0,games:balance.stats?.games||0,likes:balance.stats?.likes||0};
@@ -24,7 +21,7 @@ export function PointsPolicy({balance={current:0,lifetime:0},me,onBack,login}) {
     <section className="tier-card" aria-label={t('현재 등급과 누적 KK')}><Trophy/><div><small>{t('현재 등급')}</small><b>{t(level.current.name)}</b><span>{t('누적 {0} KK',fmt(balance.lifetime))}</span><span>{t('출석 추가 +{0} KK · 마커 최대 {1}개',level.current.bonus,level.current.pins)}</span></div><i style={{width:`${level.progress}%`}}/></section>
    </div>
    {rankCard}
-   <section className="policy-mission"><h2>{t('오늘의 일일 미션')} <span>+{POINTS_POLICY.missionReward} KK</span></h2><div className="mission-counts">{Object.entries(POINTS_POLICY.mission).map(([key,max])=><span key={key}>{t(labels[key]||'댓글 작성')} <b>{Math.min(mission[key]||0,max)}/{max}</b><small>+{POINTS_POLICY.missionRewards[key]} KK · {t(mission.rewarded?.[key]||mission.claimed?'지급 완료':'달성 시 지급')}</small></span>)}</div><p role="status">{mission.claimed?t('오늘의 미션 보상을 받았습니다.'):t('각 미션을 달성하면 해당 보상이 바로 지급됩니다.')}</p><small>{t('피드는 서로 다른 내용으로 10자 이상, 댓글은 서로 다른 피드에 5자 이상 작성해 주세요. 배틀은 10초 이상 플레이하고 1점 이상 획득한 뒤 종료해야 집계됩니다. 연습은 제외됩니다.')}</small><p>{t('현재 연속 출석 {0}일 · 누적 출석 {1}일',streak,balance.stats?.days||0)}</p></section>
+
   </>:<section className="policy-guest"><p>{t('로그인하면 보유 KK와 등급, 미션 진행 상황을 확인할 수 있습니다.')}</p><button className="primary" onClick={login}>{t('로그인')}</button></section>}
   {!me && rankCard}
   <section className="points-policy">

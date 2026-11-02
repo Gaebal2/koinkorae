@@ -1,0 +1,1062 @@
+{
+  "PSL 에어드롭": {
+    "zh-CN": "PSL 空投",
+    "zh-TW": "PSL 空投",
+    "vi": "Airdrop PSL",
+    "id": "Airdrop PSL",
+    "hi": "PSL एयरड्रॉप",
+    "fil": "PSL Airdrop",
+    "ja": "PSLエアドロップ",
+    "de": "PSL-Airdrop"
+  },
+  "Pi와 함께 시작하는 PSL. 메인넷 Pi 잔액과 락업된 Pi를 합산해 1 Pi당 1 PSL을 배정합니다.": {
+    "zh-CN": "与 Pi 一起开启 PSL。按主网 Pi 余额加锁仓 Pi，以 1 Pi 分配 1 PSL。",
+    "zh-TW": "與 Pi 一起開啟 PSL。依主網 Pi 餘額加鎖倉 Pi，以 1 Pi 分配 1 PSL。",
+    "vi": "Bắt đầu với Pi và PSL. Phân bổ 1 PSL cho mỗi Pi Mainnet, gồm cả Pi bị khóa.",
+    "id": "Mulai bersama Pi dan PSL. Alokasi 1 PSL per Pi Mainnet, termasuk Pi terkunci.",
+    "hi": "Pi के साथ PSL की शुरुआत करें। लॉक किए गए Pi सहित हर मेननेट Pi पर 1 PSL आवंटित होगा।",
+    "fil": "Magsimula sa Pi at PSL. Maglalaan ng 1 PSL sa bawat Mainnet Pi, kasama ang naka-lock na Pi.",
+    "ja": "Piと始めるPSL。メインネット残高とロック中のPiを合計し、1 Piにつき1 PSLを割り当てます。",
+    "de": "Mit Pi und PSL starten: Je Mainnet-Pi wird 1 PSL zugeteilt, einschließlich gesperrter Pi."
+  },
+  "내 신청 내역": {
+    "zh-CN": "我的申请",
+    "zh-TW": "我的申請",
+    "vi": "Đơn của tôi",
+    "id": "Pengajuan saya",
+    "hi": "मेरे आवेदन",
+    "fil": "Mga aplikasyon ko",
+    "ja": "申込履歴",
+    "de": "Meine Anträge"
+  },
+  "Pi와 함께 만나는 새로운 시작과 선물": {
+    "zh-CN": "与 Pi 相遇的新起点与礼物",
+    "zh-TW": "與 Pi 相遇的新起點與禮物",
+    "vi": "Khởi đầu mới và quà tặng cùng Pi",
+    "id": "Awal baru dan hadiah bersama Pi",
+    "hi": "Pi के साथ नई शुरुआत और उपहार",
+    "fil": "Mga bagong simula at regalo kasama ang Pi",
+    "ja": "Piと出会う新たな始まりとギフト",
+    "de": "Neue Anfänge und Geschenke mit Pi"
+  },
+  "Pi 지갑 인증 완료": {
+    "zh-CN": "Pi 钱包已认证",
+    "zh-TW": "Pi 錢包已驗證",
+    "vi": "Đã xác minh ví Pi",
+    "id": "Dompet Pi terverifikasi",
+    "hi": "Pi वॉलेट सत्यापित",
+    "fil": "Na-verify na ang Pi wallet",
+    "ja": "Piウォレット認証済み",
+    "de": "Pi-Wallet verifiziert"
+  },
+  "Pi 지갑 인증하고 에어드롭에 참여하세요": {
+    "zh-CN": "认证 Pi 钱包，参与空投",
+    "zh-TW": "驗證 Pi 錢包，參加空投",
+    "vi": "Xác minh ví Pi để tham gia airdrop",
+    "id": "Verifikasi dompet Pi untuk ikut airdrop",
+    "hi": "एयरड्रॉप में भाग लेने के लिए Pi वॉलेट सत्यापित करें",
+    "fil": "I-verify ang Pi wallet para sumali sa airdrop",
+    "ja": "Piウォレットを認証してエアドロップに参加",
+    "de": "Pi-Wallet verifizieren und an Airdrops teilnehmen"
+  },
+  "PSL 수령 지갑 등록 완료": {
+    "zh-CN": "PSL 接收钱包已保存",
+    "zh-TW": "PSL 接收錢包已儲存",
+    "vi": "Đã lưu ví nhận PSL",
+    "id": "Dompet penerima PSL tersimpan",
+    "hi": "PSL प्राप्ति वॉलेट सहेजा गया",
+    "fil": "Nai-save ang wallet na tatanggap ng PSL",
+    "ja": "PSL受取ウォレット登録済み",
+    "de": "PSL-Empfangswallet gespeichert"
+  },
+  "지갑 인증 및 PSL 수령 주소 등록": {
+    "zh-CN": "钱包认证及 PSL 接收地址登记",
+    "zh-TW": "錢包驗證及 PSL 接收地址登記",
+    "vi": "Xác minh ví và đăng ký địa chỉ nhận PSL",
+    "id": "Verifikasi dompet dan alamat penerima PSL",
+    "hi": "वॉलेट सत्यापन और PSL प्राप्ति पता पंजीकरण",
+    "fil": "Pag-verify ng wallet at pagpaparehistro ng PSL address",
+    "ja": "ウォレット認証・PSL受取アドレス登録",
+    "de": "Wallet-Verifizierung und PSL-Empfangsadresse"
+  },
+  "에어드롭 종류": {
+    "zh-CN": "空投类别",
+    "zh-TW": "空投類別",
+    "vi": "Loại airdrop",
+    "id": "Kategori airdrop",
+    "hi": "एयरड्रॉप श्रेणियाँ",
+    "fil": "Mga uri ng airdrop",
+    "ja": "エアドロップの種類",
+    "de": "Airdrop-Kategorien"
+  },
+  "토큰": {
+    "zh-CN": "代币",
+    "zh-TW": "代幣",
+    "vi": "Token",
+    "id": "Token",
+    "hi": "टोकन",
+    "fil": "Token",
+    "ja": "トークン",
+    "de": "Token"
+  },
+  "상품": {
+    "zh-CN": "商品",
+    "zh-TW": "商品",
+    "vi": "Sản phẩm",
+    "id": "Produk",
+    "hi": "उत्पाद",
+    "fil": "Produkto",
+    "ja": "商品",
+    "de": "Produkte"
+  },
+  "서비스": {
+    "zh-CN": "服务",
+    "zh-TW": "服務",
+    "vi": "Dịch vụ",
+    "id": "Layanan",
+    "hi": "सेवाएँ",
+    "fil": "Serbisyo",
+    "ja": "サービス",
+    "de": "Dienste"
+  },
+  "이벤트 정보를 불러오지 못했습니다. 신청은 서버 연결 후 가능합니다.": {
+    "zh-CN": "无法加载活动。连接服务器后才能申请。",
+    "zh-TW": "無法載入活動。連接伺服器後才能申請。",
+    "vi": "Không tải được sự kiện. Cần kết nối máy chủ để đăng ký.",
+    "id": "Acara gagal dimuat. Pengajuan memerlukan koneksi server.",
+    "hi": "इवेंट लोड नहीं हुआ। आवेदन के लिए सर्वर से कनेक्शन आवश्यक है।",
+    "fil": "Hindi ma-load ang mga event. Kailangan ng koneksyon sa server para mag-apply.",
+    "ja": "イベントを読み込めません。申込みにはサーバー接続が必要です。",
+    "de": "Events konnten nicht geladen werden. Anträge benötigen eine Serververbindung."
+  },
+  "토큰 에어드롭": {
+    "zh-CN": "代币空投",
+    "zh-TW": "代幣空投",
+    "vi": "Airdrop token",
+    "id": "Airdrop token",
+    "hi": "टोकन एयरड्रॉप",
+    "fil": "Token airdrop",
+    "ja": "トークンエアドロップ",
+    "de": "Token-Airdrop"
+  },
+  "안내": {
+    "zh-CN": "活动预告",
+    "zh-TW": "活動預告",
+    "vi": "Thông tin",
+    "id": "Pratinjau",
+    "hi": "पूर्वावलोकन",
+    "fil": "Impormasyon",
+    "ja": "ご案内",
+    "de": "Vorschau"
+  },
+  "모집 마감": {
+    "zh-CN": "申请已截止",
+    "zh-TW": "申請已截止",
+    "vi": "Đã đóng đăng ký",
+    "id": "Pengajuan ditutup",
+    "hi": "आवेदन बंद",
+    "fil": "Sarado na ang aplikasyon",
+    "ja": "募集終了",
+    "de": "Anträge geschlossen"
+  },
+  "예정": {
+    "zh-CN": "即将开始",
+    "zh-TW": "即將開始",
+    "vi": "Sắp diễn ra",
+    "id": "Akan datang",
+    "hi": "आगामी",
+    "fil": "Paparating",
+    "ja": "開催予定",
+    "de": "Demnächst"
+  },
+  "진행 중": {
+    "zh-CN": "进行中",
+    "zh-TW": "進行中",
+    "vi": "Đang diễn ra",
+    "id": "Berlangsung",
+    "hi": "जारी",
+    "fil": "Kasalukuyan",
+    "ja": "開催中",
+    "de": "Läuft"
+  },
+  "총 1억 PSL · 선착순 배정": {
+    "zh-CN": "共 1 亿 PSL · 先到先得",
+    "zh-TW": "共 1 億 PSL · 先到先得",
+    "vi": "Tổng 100 triệu PSL · ưu tiên đăng ký trước",
+    "id": "Total 100 juta PSL · siapa cepat, dia dapat",
+    "hi": "कुल 10 करोड़ PSL · पहले आओ, पहले पाओ",
+    "fil": "Kabuuang 100 milyong PSL · paunahan",
+    "ja": "総額1億PSL・先着順",
+    "de": "100 Millionen PSL · nach Eingangsreihenfolge"
+  },
+  "스냅샷 / 신청 마감": {
+    "zh-CN": "快照 / 申请截止",
+    "zh-TW": "快照 / 申請截止",
+    "vi": "Chụp số dư / hạn đăng ký",
+    "id": "Snapshot / batas pengajuan",
+    "hi": "स्नैपशॉट / अंतिम तिथि",
+    "fil": "Snapshot / huling araw",
+    "ja": "スナップショット／申込締切",
+    "de": "Snapshot / Antragsfrist"
+  },
+  "잔액 기준": {
+    "zh-CN": "余额标准",
+    "zh-TW": "餘額標準",
+    "vi": "Số dư được tính",
+    "id": "Saldo yang dihitung",
+    "hi": "पात्र बैलेंस",
+    "fil": "Batayan ng balanse",
+    "ja": "残高の対象",
+    "de": "Berücksichtigtes Guthaben"
+  },
+  "메인넷 Pi + 락업된 Pi": {
+    "zh-CN": "主网 Pi + 锁仓 Pi",
+    "zh-TW": "主網 Pi + 鎖倉 Pi",
+    "vi": "Pi Mainnet + Pi bị khóa",
+    "id": "Pi Mainnet + Pi terkunci",
+    "hi": "मेननेट Pi + लॉक किए गए Pi",
+    "fil": "Mainnet Pi + naka-lock na Pi",
+    "ja": "メインネットPi＋ロック中のPi",
+    "de": "Mainnet-Pi + gesperrte Pi"
+  },
+  "지급 예정일": {
+    "zh-CN": "预计发放日",
+    "zh-TW": "預計發放日",
+    "vi": "Ngày phân phối dự kiến",
+    "id": "Tanggal distribusi",
+    "hi": "वितरण तिथि",
+    "fil": "Petsa ng pamamahagi",
+    "ja": "配布予定日",
+    "de": "Geplantes Verteilungsdatum"
+  },
+  "추후 공지": {
+    "zh-CN": "待公布",
+    "zh-TW": "待公布",
+    "vi": "Sẽ thông báo sau",
+    "id": "Akan diumumkan",
+    "hi": "बाद में घोषित होगा",
+    "fil": "Ia-anunsyo pa",
+    "ja": "後日発表",
+    "de": "Wird bekannt gegeben"
+  },
+  "지급 완료일": {
+    "zh-CN": "发放完成日",
+    "zh-TW": "發放完成日",
+    "vi": "Ngày đã phân phối",
+    "id": "Tanggal selesai distribusi",
+    "hi": "वितरण पूर्ण होने की तिथि",
+    "fil": "Petsa ng pagkakabahagi",
+    "ja": "配布完了日",
+    "de": "Verteilt am"
+  },
+  "참여 조건과 지급 기준": {
+    "zh-CN": "参与条件与分配规则",
+    "zh-TW": "參加條件與分配規則",
+    "vi": "Điều kiện và quy tắc phân bổ",
+    "id": "Syarat dan aturan alokasi",
+    "hi": "पात्रता और आवंटन नियम",
+    "fil": "Mga kondisyon at tuntunin sa alokasyon",
+    "ja": "参加条件と配布基準",
+    "de": "Teilnahme- und Zuteilungsregeln"
+  },
+  "Pi 지갑 소유권 인증과 PSL 수령 지갑 등록이 필요합니다.": {
+    "zh-CN": "需完成 Pi 钱包所有权认证并登记 PSL 接收钱包。",
+    "zh-TW": "需完成 Pi 錢包所有權驗證並登記 PSL 接收錢包。",
+    "vi": "Cần xác minh quyền sở hữu ví Pi và đăng ký ví nhận PSL.",
+    "id": "Verifikasi kepemilikan dompet Pi dan alamat penerima PSL diperlukan.",
+    "hi": "Pi वॉलेट स्वामित्व सत्यापन और PSL प्राप्ति वॉलेट पंजीकरण आवश्यक है।",
+    "fil": "Kailangan ang beripikadong pagmamay-ari ng Pi wallet at nakarehistrong PSL wallet.",
+    "ja": "Piウォレットの所有権認証とPSL受取ウォレットの登録が必要です。",
+    "de": "Verifiziertes Pi-Wallet-Eigentum und eine PSL-Empfangsadresse sind erforderlich."
+  },
+  "신청 완료 서버 기록 순서로 배정하며, 총 1억 PSL 소진 시 마지막 신청자는 잔여 물량만 받습니다.": {
+    "zh-CN": "按服务器记录的申请完成顺序分配。1 亿 PSL 用尽时，最后一位申请人仅获得剩余额度。",
+    "zh-TW": "依伺服器記錄的申請完成順序分配。1 億 PSL 用盡時，最後一位申請人僅獲得剩餘額度。",
+    "vi": "Phân bổ theo thứ tự đăng ký trên máy chủ. Khi hết 100 triệu PSL, người cuối chỉ nhận phần còn lại.",
+    "id": "Alokasi mengikuti urutan pengajuan di server. Saat 100 juta PSL habis, pemohon terakhir hanya menerima sisa.",
+    "hi": "आवंटन सर्वर पर दर्ज आवेदन क्रम से होगा। 10 करोड़ PSL समाप्त होने पर अंतिम आवेदक को केवल बची राशि मिलेगी।",
+    "fil": "Susundin ang pagkakasunod ng aplikasyon sa server. Kapag naubos ang 100 milyong PSL, natitira lang ang matatanggap ng huling aplikante.",
+    "ja": "サーバーに記録された申込完了順に割り当てます。1億PSLが尽きる場合、最後の申込者には残額のみ配布します。",
+    "de": "Zuteilung nach serverseitig erfasster Antragsreihenfolge. Beim Erreichen von 100 Millionen PSL erhält der letzte Antragsteller nur den Rest."
+  },
+  "신청 시 Pi 지갑과 PSL 수령 지갑이 고정됩니다. 같은 Pi 지갑은 한 번만 신청할 수 있습니다.": {
+    "zh-CN": "申请后 Pi 和 PSL 接收地址将固定。同一 Pi 钱包只能申请一次。",
+    "zh-TW": "申請後 Pi 和 PSL 接收地址將固定。同一 Pi 錢包只能申請一次。",
+    "vi": "Địa chỉ Pi và PSL được cố định khi đăng ký. Mỗi ví Pi chỉ được đăng ký một lần.",
+    "id": "Alamat Pi dan PSL dikunci saat pengajuan. Setiap dompet Pi hanya dapat mengajukan sekali.",
+    "hi": "आवेदन के बाद Pi और PSL पते स्थिर हो जाते हैं। हर Pi वॉलेट केवल एक बार आवेदन कर सकता है।",
+    "fil": "Hindi na mababago ang Pi at PSL address matapos mag-apply. Isang aplikasyon lang bawat Pi wallet.",
+    "ja": "申込時にPiとPSLの受取アドレスが確定します。同じPiウォレットでの申込みは1回限りです。",
+    "de": "Pi- und PSL-Adressen werden beim Antrag festgelegt. Jedes Pi-Wallet darf nur einmal teilnehmen."
+  },
+  "신청은 지급 확정이 아닙니다. 스냅샷 잔액과 선착순 배정 결과에 따라 지급량이 결정됩니다.": {
+    "zh-CN": "申请不保证获得奖励。发放数量取决于快照余额和申请顺序。",
+    "zh-TW": "申請不保證獲得獎勵。發放數量取決於快照餘額和申請順序。",
+    "vi": "Đăng ký không đảm bảo nhận thưởng. Số lượng tùy thuộc số dư chụp lại và thứ tự đăng ký.",
+    "id": "Pengajuan tidak menjamin hadiah. Jumlah ditentukan oleh saldo snapshot dan urutan pengajuan.",
+    "hi": "आवेदन से पुरस्कार की गारंटी नहीं मिलती। आवंटन स्नैपशॉट बैलेंस और आवेदन क्रम पर निर्भर है।",
+    "fil": "Hindi garantisado ang gantimpala sa pag-apply. Nakabatay ito sa balanse sa snapshot at pagkakasunod ng aplikasyon.",
+    "ja": "申込みは配布の保証ではありません。スナップショット残高と先着順の結果で配布量が決まります。",
+    "de": "Ein Antrag garantiert keine Auszahlung. Snapshot-Guthaben und Antragsreihenfolge bestimmen die Zuteilung."
+  },
+  "신청 완료": {
+    "zh-CN": "已申请",
+    "zh-TW": "已申請",
+    "vi": "Đã đăng ký",
+    "id": "Sudah diajukan",
+    "hi": "आवेदन पूरा",
+    "fil": "Nakapag-apply na",
+    "ja": "申込済み",
+    "de": "Beantragt"
+  },
+  "배정 결과": {
+    "zh-CN": "分配结果",
+    "zh-TW": "分配結果",
+    "vi": "Kết quả phân bổ",
+    "id": "Hasil alokasi",
+    "hi": "आवंटन परिणाम",
+    "fil": "Resulta ng alokasyon",
+    "ja": "割当結果",
+    "de": "Zuteilung"
+  },
+  "스냅샷 대기": {
+    "zh-CN": "等待快照",
+    "zh-TW": "等待快照",
+    "vi": "Đang chờ chụp số dư",
+    "id": "Menunggu snapshot",
+    "hi": "स्नैपशॉट की प्रतीक्षा",
+    "fil": "Naghihintay ng snapshot",
+    "ja": "スナップショット待ち",
+    "de": "Snapshot ausstehend"
+  },
+  "신청 지갑 확인": {
+    "zh-CN": "查看申请钱包",
+    "zh-TW": "查看申請錢包",
+    "vi": "Xem ví đã đăng ký",
+    "id": "Lihat dompet pengajuan",
+    "hi": "आवेदन के वॉलेट देखें",
+    "fil": "Tingnan ang mga wallet sa aplikasyon",
+    "ja": "申込ウォレットを確認",
+    "de": "Antrags-Wallets ansehen"
+  },
+  "마감": {
+    "zh-CN": "已截止",
+    "zh-TW": "已截止",
+    "vi": "Đã đóng",
+    "id": "Ditutup",
+    "hi": "बंद",
+    "fil": "Sarado",
+    "ja": "締切",
+    "de": "Geschlossen"
+  },
+  "신청하기": {
+    "zh-CN": "申请",
+    "zh-TW": "申請",
+    "vi": "Đăng ký",
+    "id": "Ajukan",
+    "hi": "आवेदन करें",
+    "fil": "Mag-apply",
+    "ja": "申し込む",
+    "de": "Beantragen"
+  },
+  "Pi 지갑 소유권 인증": {
+    "zh-CN": "认证 Pi 钱包所有权",
+    "zh-TW": "驗證 Pi 錢包所有權",
+    "vi": "Xác minh sở hữu ví Pi",
+    "id": "Verifikasi kepemilikan dompet Pi",
+    "hi": "Pi वॉलेट स्वामित्व सत्यापन",
+    "fil": "I-verify ang pagmamay-ari ng Pi wallet",
+    "ja": "Piウォレット所有権認証",
+    "de": "Pi-Wallet-Eigentum verifizieren"
+  },
+  "PSL 수령 지갑 등록": {
+    "zh-CN": "登记 PSL 接收钱包",
+    "zh-TW": "登記 PSL 接收錢包",
+    "vi": "Thêm ví nhận PSL",
+    "id": "Tambah dompet penerima PSL",
+    "hi": "PSL प्राप्ति वॉलेट जोड़ें",
+    "fil": "Magdagdag ng PSL wallet",
+    "ja": "PSL受取ウォレットを登録",
+    "de": "PSL-Empfangswallet hinzufügen"
+  },
+  "아직 신청한 이벤트가 없습니다.": {
+    "zh-CN": "您尚未申请任何活动。",
+    "zh-TW": "您尚未申請任何活動。",
+    "vi": "Bạn chưa đăng ký sự kiện nào.",
+    "id": "Anda belum mengajukan acara apa pun.",
+    "hi": "आपने अभी किसी इवेंट के लिए आवेदन नहीं किया है।",
+    "fil": "Wala ka pang aplikasyon sa mga event.",
+    "ja": "まだ申し込んだイベントはありません。",
+    "de": "Du hast noch keine Anträge gestellt."
+  },
+  "새로운 선물을 준비하고 있어요.": {
+    "zh-CN": "新的礼物即将到来。",
+    "zh-TW": "新的禮物即將到來。",
+    "vi": "Quà tặng mới sắp đến.",
+    "id": "Hadiah baru akan segera hadir.",
+    "hi": "नए उपहार जल्द आ रहे हैं।",
+    "fil": "May mga bagong regalong paparating.",
+    "ja": "新しいギフトを準備中です。",
+    "de": "Neue Geschenke sind unterwegs."
+  },
+  "PSL 에어드롭 신청": {
+    "zh-CN": "申请 PSL 空投",
+    "zh-TW": "申請 PSL 空投",
+    "vi": "Đăng ký airdrop PSL",
+    "id": "Ajukan airdrop PSL",
+    "hi": "PSL एयरड्रॉप के लिए आवेदन",
+    "fil": "Mag-apply sa PSL airdrop",
+    "ja": "PSLエアドロップ申込み",
+    "de": "PSL-Airdrop beantragen"
+  },
+  "아래 지갑으로 신청합니다. 신청 후 지갑을 변경할 수 없습니다.": {
+    "zh-CN": "使用以下钱包申请。申请后无法更改地址。",
+    "zh-TW": "使用以下錢包申請。申請後無法更改地址。",
+    "vi": "Đăng ký bằng các ví dưới đây. Không thể đổi địa chỉ sau khi đăng ký.",
+    "id": "Ajukan dengan dompet berikut. Alamat tidak dapat diubah setelah pengajuan.",
+    "hi": "नीचे दिए वॉलेट से आवेदन करें। आवेदन के बाद पते नहीं बदले जा सकते।",
+    "fil": "Gamitin ang mga wallet sa ibaba. Hindi na mababago ang mga address matapos mag-apply.",
+    "ja": "以下のウォレットで申し込みます。申込後はアドレスを変更できません。",
+    "de": "Mit den folgenden Wallets beantragen. Die Adressen sind danach nicht mehr änderbar."
+  },
+  "Pi 지갑 주소": {
+    "zh-CN": "Pi 钱包地址",
+    "zh-TW": "Pi 錢包地址",
+    "vi": "Địa chỉ ví Pi",
+    "id": "Alamat dompet Pi",
+    "hi": "Pi वॉलेट पता",
+    "fil": "Pi wallet address",
+    "ja": "Piウォレットアドレス",
+    "de": "Pi-Wallet-Adresse"
+  },
+  "PSL 수령 지갑 주소": {
+    "zh-CN": "PSL 接收钱包地址",
+    "zh-TW": "PSL 接收錢包地址",
+    "vi": "Địa chỉ ví nhận PSL",
+    "id": "Alamat dompet penerima PSL",
+    "hi": "PSL प्राप्ति वॉलेट पता",
+    "fil": "Address ng wallet na tatanggap ng PSL",
+    "ja": "PSL受取ウォレットアドレス",
+    "de": "PSL-Empfangsadresse"
+  },
+  "스냅샷 시각, 락업 포함 잔액, 선착순·잔여 물량 지급 조건을 확인했습니다.": {
+    "zh-CN": "我已确认快照时间、包含锁仓 Pi 的余额以及先到先得和剩余额度分配规则。",
+    "zh-TW": "我已確認快照時間、包含鎖倉 Pi 的餘額，以及先到先得和剩餘額度分配規則。",
+    "vi": "Tôi đã xem thời điểm chụp số dư, việc tính Pi bị khóa và quy tắc ưu tiên cùng phần dư.",
+    "id": "Saya telah memahami waktu snapshot, saldo termasuk Pi terkunci, serta aturan urutan dan sisa alokasi.",
+    "hi": "मैंने स्नैपशॉट समय, लॉक Pi सहित बैलेंस, पहले आओ आवंटन और बची राशि के नियम पढ़ लिए हैं।",
+    "fil": "Nabasa ko ang oras ng snapshot, pagsama ng naka-lock na Pi, at tuntunin sa paunahan at natitirang alokasyon.",
+    "ja": "スナップショット日時、ロック分を含む残高、先着順と残額配布の条件を確認しました。",
+    "de": "Ich habe Snapshot-Zeitpunkt, gesperrte Pi sowie die Regeln zur Reihenfolge und Restzuteilung geprüft."
+  },
+  "신청 중…": {
+    "zh-CN": "申请中…",
+    "zh-TW": "申請中…",
+    "vi": "Đang đăng ký…",
+    "id": "Mengajukan…",
+    "hi": "आवेदन जारी…",
+    "fil": "Nag-a-apply…",
+    "ja": "申込中…",
+    "de": "Antrag wird gesendet…"
+  },
+  "신청 완료하기": {
+    "zh-CN": "确认申请",
+    "zh-TW": "確認申請",
+    "vi": "Xác nhận đăng ký",
+    "id": "Konfirmasi pengajuan",
+    "hi": "आवेदन की पुष्टि करें",
+    "fil": "Kumpirmahin ang aplikasyon",
+    "ja": "申込みを確定",
+    "de": "Antrag bestätigen"
+  },
+  "지갑 인증 서비스가 준비되지 않았습니다.": {
+    "zh-CN": "钱包认证服务尚未就绪。",
+    "zh-TW": "錢包驗證服務尚未就緒。",
+    "vi": "Dịch vụ xác minh ví chưa sẵn sàng.",
+    "id": "Layanan verifikasi dompet belum tersedia.",
+    "hi": "वॉलेट सत्यापन सेवा अभी उपलब्ध नहीं है।",
+    "fil": "Hindi pa handa ang serbisyo ng pag-verify ng wallet.",
+    "ja": "ウォレット認証サービスはまだ利用できません。",
+    "de": "Die Wallet-Verifizierung ist noch nicht verfügbar."
+  },
+  "인증 완료": {
+    "zh-CN": "已认证",
+    "zh-TW": "已驗證",
+    "vi": "Đã xác minh",
+    "id": "Terverifikasi",
+    "hi": "सत्यापित",
+    "fil": "Na-verify na",
+    "ja": "認証済み",
+    "de": "Verifiziert"
+  },
+  "인증 정보를 불러오는 중…": {
+    "zh-CN": "正在加载认证信息…",
+    "zh-TW": "正在載入驗證資訊…",
+    "vi": "Đang tải thông tin xác minh…",
+    "id": "Memuat detail verifikasi…",
+    "hi": "सत्यापन विवरण लोड हो रहे हैं…",
+    "fil": "Nilo-load ang detalye ng beripikasyon…",
+    "ja": "認証情報を読み込み中…",
+    "de": "Verifizierungsdaten werden geladen…"
+  },
+  "테스트넷과 메인넷의 Pi 지갑 주소는 동일합니다.": {
+    "zh-CN": "测试网与主网的 Pi 钱包地址相同。",
+    "zh-TW": "測試網與主網的 Pi 錢包地址相同。",
+    "vi": "Địa chỉ ví Pi trên Testnet và Mainnet giống nhau.",
+    "id": "Alamat dompet Pi di Testnet dan Mainnet sama.",
+    "hi": "टेस्टनेट और मेननेट पर Pi वॉलेट का पता समान होता है।",
+    "fil": "Pareho ang Pi wallet address sa Testnet at Mainnet.",
+    "ja": "テストネットとメインネットのPiウォレットアドレスは同じです。",
+    "de": "Die Pi-Wallet-Adresse ist im Testnet und Mainnet identisch."
+  },
+  "Pi 테스트넷 지갑 인증": {
+    "zh-CN": "认证 Pi 测试网钱包",
+    "zh-TW": "驗證 Pi 測試網錢包",
+    "vi": "Xác minh ví Pi Testnet",
+    "id": "Verifikasi dompet Pi Testnet",
+    "hi": "Pi टेस्टनेट वॉलेट सत्यापित करें",
+    "fil": "I-verify ang Pi Testnet wallet",
+    "ja": "Piテストネットウォレット認証",
+    "de": "Pi-Testnet-Wallet verifizieren"
+  },
+  "인증 완료 날짜": {
+    "zh-CN": "认证完成日期",
+    "zh-TW": "驗證完成日期",
+    "vi": "Ngày xác minh",
+    "id": "Tanggal verifikasi",
+    "hi": "सत्यापन की तिथि",
+    "fil": "Petsa ng beripikasyon",
+    "ja": "認証完了日時",
+    "de": "Verifiziert am"
+  },
+  "연결한 Google 계정": {
+    "zh-CN": "已关联的 Google 账号",
+    "zh-TW": "已連結的 Google 帳戶",
+    "vi": "Tài khoản Google đã liên kết",
+    "id": "Akun Google tertaut",
+    "hi": "लिंक किया गया Google खाता",
+    "fil": "Naka-link na Google account",
+    "ja": "連携したGoogleアカウント",
+    "de": "Verknüpftes Google-Konto"
+  },
+  "인증 당시 구글 계정": {
+    "zh-CN": "认证时使用的 Google 账号",
+    "zh-TW": "驗證時使用的 Google 帳戶",
+    "vi": "Tài khoản Google dùng để xác minh",
+    "id": "Akun Google untuk verifikasi",
+    "hi": "सत्यापन में उपयोग किया गया Google खाता",
+    "fil": "Google account na ginamit sa beripikasyon",
+    "ja": "認証時のGoogleアカウント",
+    "de": "Zur Verifizierung verwendetes Google-Konto"
+  },
+  "네트워크": {
+    "zh-CN": "网络",
+    "zh-TW": "網路",
+    "vi": "Mạng",
+    "id": "Jaringan",
+    "hi": "नेटवर्क",
+    "fil": "Network",
+    "ja": "ネットワーク",
+    "de": "Netzwerk"
+  },
+  "Pi 메인넷": {
+    "zh-CN": "Pi 主网",
+    "zh-TW": "Pi 主網",
+    "vi": "Pi Mainnet",
+    "id": "Pi Mainnet",
+    "hi": "Pi मेननेट",
+    "fil": "Pi Mainnet",
+    "ja": "Piメインネット",
+    "de": "Pi-Mainnet"
+  },
+  "Pi 테스트넷": {
+    "zh-CN": "Pi 测试网",
+    "zh-TW": "Pi 測試網",
+    "vi": "Pi Testnet",
+    "id": "Pi Testnet",
+    "hi": "Pi टेस्टनेट",
+    "fil": "Pi Testnet",
+    "ja": "Piテストネット",
+    "de": "Pi-Testnet"
+  },
+  "인증 출처": {
+    "zh-CN": "认证来源",
+    "zh-TW": "驗證來源",
+    "vi": "Nguồn xác minh",
+    "id": "Sumber verifikasi",
+    "hi": "सत्यापन स्रोत",
+    "fil": "Pinagmulan ng beripikasyon",
+    "ja": "認証元",
+    "de": "Verifizierungsquelle"
+  },
+  "가져온 날짜": {
+    "zh-CN": "导入日期",
+    "zh-TW": "匯入日期",
+    "vi": "Ngày nhập",
+    "id": "Tanggal impor",
+    "hi": "आयात की तिथि",
+    "fil": "Petsa ng pag-import",
+    "ja": "取込日時",
+    "de": "Importiert am"
+  },
+  "본인 Pi 테스트넷 지갑의 G로 시작하는 주소를 입력하세요. 일회성 Muxed 주소로 3.14 Test-Pi를 보내 소유권을 확인합니다.": {
+    "zh-CN": "请输入您本人以 G 开头的 Pi 测试网钱包地址。向一次性 Muxed 地址发送 3.14 Test-Pi 以确认所有权。",
+    "zh-TW": "請輸入您本人以 G 開頭的 Pi 測試網錢包地址。向一次性 Muxed 地址發送 3.14 Test-Pi 以確認所有權。",
+    "vi": "Nhập địa chỉ ví Pi Testnet của bạn bắt đầu bằng G. Gửi 3.14 Test-Pi đến địa chỉ Muxed dùng một lần để xác minh quyền sở hữu.",
+    "id": "Masukkan alamat dompet Pi Testnet Anda yang diawali G. Kirim 3.14 Test-Pi ke alamat Muxed sekali pakai untuk memverifikasi kepemilikan.",
+    "hi": "G से शुरू होने वाला अपना Pi टेस्टनेट वॉलेट पता दर्ज करें। स्वामित्व सत्यापित करने के लिए एक बार उपयोग वाले Muxed पते पर 3.14 Test-Pi भेजें।",
+    "fil": "Ilagay ang sarili mong Pi Testnet address na nagsisimula sa G. Magpadala ng 3.14 Test-Pi sa minsanang Muxed address para patunayan ang pagmamay-ari.",
+    "ja": "ご自身のGで始まるPiテストネットアドレスを入力してください。一度限りのMuxedアドレスへ3.14 Test-Piを送り、所有権を確認します。",
+    "de": "Gib deine eigene Pi-Testnet-Adresse ein, die mit G beginnt. Sende 3.14 Test-Pi an die einmalige Muxed-Adresse, um das Eigentum zu bestätigen."
+  },
+  "생성된 Muxed 주소는 본인 지갑의 별칭입니다. 3.14 Test-Pi는 본인 지갑으로 돌아오며, 테스트넷 네트워크 수수료는 본인이 부담합니다. 실제 메인넷 Pi는 사용하지 않습니다. 비밀문구나 개인키는 입력하지 마세요.": {
+    "zh-CN": "生成的 Muxed 地址是您自己钱包的别名。3.14 Test-Pi 会回到您的钱包，测试网手续费由您承担。不使用主网 Pi。请勿输入助记词或私钥。",
+    "zh-TW": "產生的 Muxed 地址是您自己錢包的別名。3.14 Test-Pi 會回到您的錢包，測試網手續費由您負擔。不使用主網 Pi。請勿輸入助記詞或私鑰。",
+    "vi": "Địa chỉ Muxed là bí danh của ví bạn. 3.14 Test-Pi quay lại ví; bạn trả phí mạng Testnet. Không dùng Pi Mainnet thật. Không nhập cụm từ bí mật hay khóa riêng.",
+    "id": "Alamat Muxed adalah alias dompet Anda. 3.14 Test-Pi kembali ke dompet Anda; biaya jaringan Testnet ditanggung sendiri. Pi Mainnet asli tidak digunakan. Jangan masukkan frasa sandi atau kunci pribadi.",
+    "hi": "Muxed पता आपके ही वॉलेट का उपनाम है। 3.14 Test-Pi आपके वॉलेट में लौटेंगे; टेस्टनेट नेटवर्क शुल्क आप देंगे। असली मेननेट Pi उपयोग नहीं होता। सीक्रेट फ़्रेज़ या निजी कुंजी दर्ज न करें।",
+    "fil": "Ang Muxed address ay alias ng sarili mong wallet. Babalik dito ang 3.14 Test-Pi; ikaw ang magbabayad ng Testnet fee. Walang gagamiting tunay na Mainnet Pi. Huwag ilagay ang passphrase o private key.",
+    "ja": "Muxedアドレスはご自身のウォレットの別名です。3.14 Test-Piはご自身に戻り、テストネットの手数料のみご負担いただきます。実際のメインネットPiは使いません。秘密のフレーズや秘密鍵は入力しないでください。",
+    "de": "Die Muxed-Adresse ist ein Alias deines Wallets. Die 3.14 Test-Pi gehen an dich zurück; die Testnet-Gebühr trägst du selbst. Es werden keine echten Mainnet-Pi verwendet. Niemals Passphrase oder privaten Schlüssel eingeben."
+  },
+  "입력한 Pi 지갑 주소": {
+    "zh-CN": "输入的 Pi 钱包地址",
+    "zh-TW": "輸入的 Pi 錢包地址",
+    "vi": "Địa chỉ ví Pi đã nhập",
+    "id": "Alamat dompet Pi Anda",
+    "hi": "दर्ज किया गया Pi वॉलेट पता",
+    "fil": "Inilagay na Pi wallet address",
+    "ja": "入力したPiウォレットアドレス",
+    "de": "Eingegebene Pi-Wallet-Adresse"
+  },
+  "받는 주소 · 일회성 Muxed 주소": {
+    "zh-CN": "收款地址 · 一次性 Muxed 地址",
+    "zh-TW": "收款地址 · 一次性 Muxed 地址",
+    "vi": "Người nhận · địa chỉ Muxed dùng một lần",
+    "id": "Penerima · alamat Muxed sekali pakai",
+    "hi": "प्राप्तकर्ता · एक बार उपयोग वाला Muxed पता",
+    "fil": "Tatanggap · minsanang Muxed address",
+    "ja": "送金先・一度限りのMuxedアドレス",
+    "de": "Empfänger · einmalige Muxed-Adresse"
+  },
+  "주소를 복사했습니다.": {
+    "zh-CN": "地址已复制。",
+    "zh-TW": "地址已複製。",
+    "vi": "Đã sao chép địa chỉ.",
+    "id": "Alamat disalin.",
+    "hi": "पता कॉपी हो गया।",
+    "fil": "Nakopya ang address.",
+    "ja": "アドレスをコピーしました。",
+    "de": "Adresse kopiert."
+  },
+  "보낼 금액": {
+    "zh-CN": "发送金额",
+    "zh-TW": "發送金額",
+    "vi": "Số tiền gửi",
+    "id": "Jumlah kirim",
+    "hi": "भेजने की राशि",
+    "fil": "Halagang ipapadala",
+    "ja": "送金額",
+    "de": "Sendebetrag"
+  },
+  "남은 유효시간": {
+    "zh-CN": "剩余有效时间",
+    "zh-TW": "剩餘有效時間",
+    "vi": "Thời gian còn lại",
+    "id": "Sisa waktu",
+    "hi": "शेष समय",
+    "fil": "Natitirang oras",
+    "ja": "残り有効時間",
+    "de": "Verbleibende Zeit"
+  },
+  "Pi 지갑 소유권 인증이 완료되었습니다.": {
+    "zh-CN": "Pi 钱包所有权认证已完成。",
+    "zh-TW": "Pi 錢包所有權驗證已完成。",
+    "vi": "Đã xác minh quyền sở hữu ví Pi.",
+    "id": "Kepemilikan dompet Pi terverifikasi.",
+    "hi": "Pi वॉलेट स्वामित्व सत्यापित हो गया।",
+    "fil": "Na-verify ang pagmamay-ari ng Pi wallet.",
+    "ja": "Piウォレットの所有権認証が完了しました。",
+    "de": "Pi-Wallet-Eigentum wurde verifiziert."
+  },
+  "아직 일치하는 거래가 없습니다. 전송 완료 후 다시 확인해 주세요.": {
+    "zh-CN": "尚未找到匹配的交易。转账完成后请再次确认。",
+    "zh-TW": "尚未找到相符的交易。轉帳完成後請再次確認。",
+    "vi": "Chưa thấy giao dịch phù hợp. Kiểm tra lại sau khi chuyển xong.",
+    "id": "Belum ada transaksi yang cocok. Periksa lagi setelah transfer selesai.",
+    "hi": "अभी मिलती हुई लेनदेन नहीं मिली। ट्रांसफ़र पूरा होने पर फिर जाँचें।",
+    "fil": "Wala pang tugmang transaksyon. Suriin muli kapag tapos na ang paglilipat.",
+    "ja": "一致する取引がまだありません。送金完了後に再度ご確認ください。",
+    "de": "Noch keine passende Transaktion. Nach Abschluss der Überweisung erneut prüfen."
+  },
+  "입금 확인": {
+    "zh-CN": "确认转账",
+    "zh-TW": "確認轉帳",
+    "vi": "Kiểm tra giao dịch",
+    "id": "Periksa transaksi",
+    "hi": "लेनदेन जाँचें",
+    "fil": "Suriin ang transaksyon",
+    "ja": "入金確認",
+    "de": "Transaktion prüfen"
+  },
+  "지갑 주소 변경 / 재요청": {
+    "zh-CN": "更改地址 / 重新请求",
+    "zh-TW": "更改地址 / 重新請求",
+    "vi": "Đổi địa chỉ / yêu cầu lại",
+    "id": "Ubah alamat / minta ulang",
+    "hi": "पता बदलें / फिर अनुरोध करें",
+    "fil": "Palitan ang address / humiling muli",
+    "ja": "アドレス変更／再リクエスト",
+    "de": "Adresse ändern / erneut anfordern"
+  },
+  "Pi 테스트넷 지갑 주소": {
+    "zh-CN": "Pi 测试网钱包地址",
+    "zh-TW": "Pi 測試網錢包地址",
+    "vi": "Địa chỉ ví Pi Testnet",
+    "id": "Alamat dompet Pi Testnet",
+    "hi": "Pi टेस्टनेट वॉलेट पता",
+    "fil": "Pi Testnet wallet address",
+    "ja": "Piテストネットウォレットアドレス",
+    "de": "Pi-Testnet-Wallet-Adresse"
+  },
+  "요청 생성 중…": {
+    "zh-CN": "正在创建请求…",
+    "zh-TW": "正在建立請求…",
+    "vi": "Đang tạo yêu cầu…",
+    "id": "Membuat permintaan…",
+    "hi": "अनुरोध बनाया जा रहा है…",
+    "fil": "Ginagawa ang kahilingan…",
+    "ja": "リクエスト作成中…",
+    "de": "Anfrage wird erstellt…"
+  },
+  "지갑 인증 시작": {
+    "zh-CN": "开始钱包认证",
+    "zh-TW": "開始錢包驗證",
+    "vi": "Bắt đầu xác minh",
+    "id": "Mulai verifikasi",
+    "hi": "सत्यापन शुरू करें",
+    "fil": "Simulan ang beripikasyon",
+    "ja": "ウォレット認証を開始",
+    "de": "Verifizierung starten"
+  },
+  "PSL Mining 인증정보를 가져왔습니다.": {
+    "zh-CN": "已导入 PSL Mining 认证信息。",
+    "zh-TW": "已匯入 PSL Mining 驗證資訊。",
+    "vi": "Đã nhập thông tin xác minh PSL Mining.",
+    "id": "Verifikasi PSL Mining berhasil diimpor.",
+    "hi": "PSL Mining सत्यापन आयात हो गया।",
+    "fil": "Na-import ang beripikasyon mula sa PSL Mining.",
+    "ja": "PSL Miningの認証情報を取り込みました。",
+    "de": "PSL-Mining-Verifizierung wurde importiert."
+  },
+  "가져오기 완료": {
+    "zh-CN": "导入成功",
+    "zh-TW": "匯入成功",
+    "vi": "Nhập thành công",
+    "id": "Impor berhasil",
+    "hi": "आयात सफल",
+    "fil": "Matagumpay ang pag-import",
+    "ja": "取込完了",
+    "de": "Import erfolgreich"
+  },
+  "가져오기 실패": {
+    "zh-CN": "导入失败",
+    "zh-TW": "匯入失敗",
+    "vi": "Nhập thất bại",
+    "id": "Impor gagal",
+    "hi": "आयात विफल",
+    "fil": "Hindi na-import",
+    "ja": "取込失敗",
+    "de": "Import fehlgeschlagen"
+  },
+  "PSL 채굴 인증정보 가져오기": {
+    "zh-CN": "导入 PSL Mining 认证信息",
+    "zh-TW": "匯入 PSL Mining 驗證資訊",
+    "vi": "Nhập xác minh PSL Mining",
+    "id": "Impor verifikasi PSL Mining",
+    "hi": "PSL Mining सत्यापन आयात करें",
+    "fil": "I-import ang PSL Mining verification",
+    "ja": "PSL Miningの認証情報を取込",
+    "de": "PSL-Mining-Verifizierung importieren"
+  },
+  "PSL Mining앱에서 이미 Pi 지갑 소유권 인증을 하셨으면, 해당 인증정보를 가져올 수 있습니다.": {
+    "zh-CN": "若您已在 PSL Mining 应用中完成 Pi 钱包所有权认证，可导入该认证信息。",
+    "zh-TW": "若您已在 PSL Mining 應用程式中完成 Pi 錢包所有權驗證，可匯入該驗證資訊。",
+    "vi": "Nếu đã xác minh quyền sở hữu ví Pi trong PSL Mining, bạn có thể nhập thông tin đó.",
+    "id": "Jika sudah memverifikasi kepemilikan dompet Pi di aplikasi PSL Mining, Anda dapat mengimpor verifikasinya.",
+    "hi": "यदि PSL Mining ऐप में Pi वॉलेट स्वामित्व पहले सत्यापित किया है, तो वह सत्यापन आयात कर सकते हैं।",
+    "fil": "Kung na-verify mo na ang pagmamay-ari ng Pi wallet sa PSL Mining app, maaari mong i-import ang beripikasyong iyon.",
+    "ja": "PSL MiningアプリでPiウォレットの所有権を認証済みの場合、その認証情報を取り込めます。",
+    "de": "Wenn du dein Pi-Wallet-Eigentum bereits in der PSL-Mining-App verifiziert hast, kannst du diese Verifizierung importieren."
+  },
+  "두 앱에서 같은 Google 계정을 사용해야 합니다.": {
+    "zh-CN": "两个应用需使用同一 Google 账号。",
+    "zh-TW": "兩個應用程式需使用同一 Google 帳戶。",
+    "vi": "Dùng cùng tài khoản Google trong cả hai ứng dụng.",
+    "id": "Gunakan akun Google yang sama di kedua aplikasi.",
+    "hi": "दोनों ऐप में एक ही Google खाता उपयोग करें।",
+    "fil": "Gamitin ang parehong Google account sa dalawang app.",
+    "ja": "両方のアプリで同じGoogleアカウントをご利用ください。",
+    "de": "Verwende in beiden Apps dasselbe Google-Konto."
+  },
+  "PSL 토큰 지갑 연결": {
+    "zh-CN": "关联 PSL 代币钱包",
+    "zh-TW": "連結 PSL 代幣錢包",
+    "vi": "Liên kết ví token PSL",
+    "id": "Hubungkan dompet token PSL",
+    "hi": "PSL टोकन वॉलेट जोड़ें",
+    "fil": "I-link ang PSL token wallet",
+    "ja": "PSLトークンウォレット連携",
+    "de": "PSL-Token-Wallet verbinden"
+  },
+  "PSL 에어드롭을 받을 SASEUL 지갑 주소를 입력하고 저장하세요.": {
+    "zh-CN": "请输入并保存用于接收 PSL 空投的 SASEUL 钱包地址。",
+    "zh-TW": "請輸入並儲存用於接收 PSL 空投的 SASEUL 錢包地址。",
+    "vi": "Nhập và lưu địa chỉ ví SASEUL để nhận airdrop PSL.",
+    "id": "Masukkan dan simpan alamat dompet SASEUL untuk menerima airdrop PSL.",
+    "hi": "PSL एयरड्रॉप प्राप्त करने के लिए SASEUL वॉलेट पता दर्ज करके सहेजें।",
+    "fil": "Ilagay at i-save ang SASEUL wallet address na tatanggap ng PSL airdrop.",
+    "ja": "PSLエアドロップを受け取るSASEULウォレットアドレスを入力して保存してください。",
+    "de": "Gib die SASEUL-Wallet-Adresse für deinen PSL-Airdrop ein und speichere sie."
+  },
+  "PSL 지갑 주소를 저장했습니다.": {
+    "zh-CN": "PSL 钱包地址已保存。",
+    "zh-TW": "PSL 錢包地址已儲存。",
+    "vi": "Đã lưu địa chỉ ví PSL.",
+    "id": "Alamat dompet PSL tersimpan.",
+    "hi": "PSL वॉलेट पता सहेजा गया।",
+    "fil": "Nai-save ang PSL wallet address.",
+    "ja": "PSLウォレットアドレスを保存しました。",
+    "de": "PSL-Wallet-Adresse gespeichert."
+  },
+  "44자리 SASEUL 주소": {
+    "zh-CN": "44 位 SASEUL 地址",
+    "zh-TW": "44 位 SASEUL 地址",
+    "vi": "Địa chỉ SASEUL 44 ký tự",
+    "id": "Alamat SASEUL 44 karakter",
+    "hi": "44 अक्षरों का SASEUL पता",
+    "fil": "44-character na SASEUL address",
+    "ja": "44文字のSASEULアドレス",
+    "de": "SASEUL-Adresse mit 44 Zeichen"
+  },
+  "지갑주소 저장": {
+    "zh-CN": "保存钱包地址",
+    "zh-TW": "儲存錢包地址",
+    "vi": "Lưu địa chỉ ví",
+    "id": "Simpan alamat dompet",
+    "hi": "वॉलेट पता सहेजें",
+    "fil": "I-save ang wallet address",
+    "ja": "ウォレットアドレスを保存",
+    "de": "Wallet-Adresse speichern"
+  },
+  "지갑주소 변경": {
+    "zh-CN": "更改钱包地址",
+    "zh-TW": "更改錢包地址",
+    "vi": "Đổi địa chỉ ví",
+    "id": "Ubah alamat dompet",
+    "hi": "वॉलेट पता बदलें",
+    "fil": "Palitan ang wallet address",
+    "ja": "ウォレットアドレスを変更",
+    "de": "Wallet-Adresse ändern"
+  },
+  "주소 저장은 소유권 인증이 아닙니다. 이미 신청한 이벤트의 수령 주소는 변경되지 않습니다.": {
+    "zh-CN": "保存地址不代表所有权认证。已提交申请中的接收地址不会更改。",
+    "zh-TW": "儲存地址不代表所有權驗證。已提交申請中的接收地址不會更改。",
+    "vi": "Lưu địa chỉ không xác minh quyền sở hữu. Địa chỉ nhận trong các đăng ký trước không thay đổi.",
+    "id": "Menyimpan alamat bukan verifikasi kepemilikan. Alamat pada pengajuan yang sudah ada tidak berubah.",
+    "hi": "पता सहेजना स्वामित्व सत्यापन नहीं है। मौजूदा आवेदनों के प्राप्ति पते नहीं बदलेंगे।",
+    "fil": "Ang pag-save ng address ay hindi patunay ng pagmamay-ari. Hindi mababago ang address sa mga naunang aplikasyon.",
+    "ja": "アドレス保存は所有権認証ではありません。申込済みイベントの受取アドレスは変更されません。",
+    "de": "Das Speichern einer Adresse bestätigt kein Eigentum. Empfangsadressen bestehender Anträge bleiben unverändert."
+  },
+  "SASEUL 지갑 열기": {
+    "zh-CN": "打开 SASEUL 钱包",
+    "zh-TW": "開啟 SASEUL 錢包",
+    "vi": "Mở ví SASEUL",
+    "id": "Buka dompet SASEUL",
+    "hi": "SASEUL वॉलेट खोलें",
+    "fil": "Buksan ang SASEUL wallet",
+    "ja": "SASEULウォレットを開く",
+    "de": "SASEUL-Wallet öffnen"
+  },
+  "PSL Mining에서 같은 Google 계정을 찾지 못했습니다. 두 앱에서 같은 Google 계정을 사용해 주세요.": {
+    "zh-CN": "PSL Mining 中未找到同一 Google 账号。请在两个应用中使用同一 Google 账号。",
+    "zh-TW": "PSL Mining 中未找到同一 Google 帳戶。請在兩個應用程式中使用同一 Google 帳戶。",
+    "vi": "Không tìm thấy cùng tài khoản Google trong PSL Mining. Hãy dùng cùng tài khoản ở hai ứng dụng.",
+    "id": "Akun Google yang sama tidak ditemukan di PSL Mining. Gunakan akun yang sama di kedua aplikasi.",
+    "hi": "PSL Mining में वही Google खाता नहीं मिला। दोनों ऐप में एक ही Google खाता उपयोग करें।",
+    "fil": "Hindi makita ang parehong Google account sa PSL Mining. Gamitin ang parehong account sa dalawang app.",
+    "ja": "PSL Miningに同じGoogleアカウントが見つかりません。両アプリで同じアカウントをご利用ください。",
+    "de": "In PSL Mining wurde kein passendes Google-Konto gefunden. Verwende in beiden Apps dasselbe Konto."
+  },
+  "PSL Mining에서 유효한 Pi 지갑 소유권 인증을 찾지 못했습니다.": {
+    "zh-CN": "PSL Mining 中未找到有效的 Pi 钱包所有权认证。",
+    "zh-TW": "PSL Mining 中未找到有效的 Pi 錢包所有權驗證。",
+    "vi": "Không tìm thấy xác minh quyền sở hữu ví Pi hợp lệ trong PSL Mining.",
+    "id": "Verifikasi kepemilikan dompet Pi yang valid tidak ditemukan di PSL Mining.",
+    "hi": "PSL Mining में वैध Pi वॉलेट स्वामित्व सत्यापन नहीं मिला।",
+    "fil": "Walang nahanap na wastong beripikasyon ng Pi wallet sa PSL Mining.",
+    "ja": "PSL Miningに有効なPiウォレット所有権認証が見つかりません。",
+    "de": "In PSL Mining wurde keine gültige Pi-Wallet-Verifizierung gefunden."
+  },
+  "이미 다른 코인고래 계정에 연결된 인증정보입니다.": {
+    "zh-CN": "该认证信息已关联其他 KoinKorae 账号。",
+    "zh-TW": "該驗證資訊已連結其他 KoinKorae 帳戶。",
+    "vi": "Thông tin xác minh đã liên kết với tài khoản KoinKorae khác.",
+    "id": "Verifikasi ini sudah terhubung ke akun KoinKorae lain.",
+    "hi": "यह सत्यापन पहले से दूसरे KoinKorae खाते से जुड़ा है।",
+    "fil": "Naka-link na ang beripikasyong ito sa ibang KoinKorae account.",
+    "ja": "この認証情報は別のKoinKoraeアカウントに連携済みです。",
+    "de": "Diese Verifizierung ist bereits mit einem anderen KoinKorae-Konto verknüpft."
+  },
+  "지갑 인증은 Google 계정으로 로그인한 뒤 진행해 주세요.": {
+    "zh-CN": "请先使用 Google 账号登录，再认证钱包。",
+    "zh-TW": "請先使用 Google 帳戶登入，再驗證錢包。",
+    "vi": "Đăng nhập bằng Google trước khi xác minh ví.",
+    "id": "Masuk dengan Google sebelum memverifikasi dompet.",
+    "hi": "वॉलेट सत्यापन से पहले Google खाते से लॉगिन करें।",
+    "fil": "Mag-sign in gamit ang Google bago i-verify ang wallet.",
+    "ja": "Googleアカウントでログインしてからウォレットを認証してください。",
+    "de": "Melde dich vor der Wallet-Verifizierung mit Google an."
+  },
+  "로그인이 만료되었습니다. 다시 로그인해 주세요.": {
+    "zh-CN": "登录已过期，请重新登录。",
+    "zh-TW": "登入已過期，請重新登入。",
+    "vi": "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
+    "id": "Sesi masuk kedaluwarsa. Silakan masuk lagi.",
+    "hi": "लॉगिन की अवधि समाप्त हो गई। फिर लॉगिन करें।",
+    "fil": "Nag-expire ang pag-sign in. Mag-sign in muli.",
+    "ja": "ログインの有効期限が切れました。再度ログインしてください。",
+    "de": "Deine Sitzung ist abgelaufen. Bitte erneut anmelden."
+  },
+  "30초 후 다시 시도해 주세요.": {
+    "zh-CN": "请在 30 秒后重试。",
+    "zh-TW": "請在 30 秒後重試。",
+    "vi": "Thử lại sau 30 giây.",
+    "id": "Coba lagi setelah 30 detik.",
+    "hi": "30 सेकंड बाद फिर प्रयास करें।",
+    "fil": "Subukan muli pagkatapos ng 30 segundo.",
+    "ja": "30秒後にもう一度お試しください。",
+    "de": "Bitte in 30 Sekunden erneut versuchen."
+  },
+  "5초 후 다시 확인해 주세요.": {
+    "zh-CN": "请在 5 秒后再次确认。",
+    "zh-TW": "請在 5 秒後再次確認。",
+    "vi": "Kiểm tra lại sau 5 giây.",
+    "id": "Periksa lagi setelah 5 detik.",
+    "hi": "5 सेकंड बाद फिर जाँचें।",
+    "fil": "Suriin muli pagkatapos ng 5 segundo.",
+    "ja": "5秒後にもう一度ご確認ください。",
+    "de": "Bitte in 5 Sekunden erneut prüfen."
+  },
+  "서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.": {
+    "zh-CN": "无法连接服务器。请检查网络连接后重试。",
+    "zh-TW": "無法連接伺服器。請檢查網路連線後重試。",
+    "vi": "Không kết nối được máy chủ. Kiểm tra Internet rồi thử lại.",
+    "id": "Tidak dapat terhubung ke server. Periksa koneksi internet lalu coba lagi.",
+    "hi": "सर्वर से कनेक्ट नहीं हो सका। इंटरनेट जाँचकर फिर प्रयास करें।",
+    "fil": "Hindi makakonekta sa server. Suriin ang internet at subukang muli.",
+    "ja": "サーバーに接続できません。インターネット接続を確認して再試行してください。",
+    "de": "Keine Serververbindung. Prüfe deine Internetverbindung und versuche es erneut."
+  },
+  "인증 시간이 만료되었습니다. 다시 요청해 주세요.": {
+    "zh-CN": "认证请求已过期，请重新请求。",
+    "zh-TW": "驗證請求已過期，請重新請求。",
+    "vi": "Yêu cầu xác minh hết hạn. Vui lòng tạo lại.",
+    "id": "Permintaan verifikasi kedaluwarsa. Silakan minta lagi.",
+    "hi": "सत्यापन अनुरोध की अवधि समाप्त हो गई। फिर अनुरोध करें।",
+    "fil": "Nag-expire ang kahilingan sa beripikasyon. Humiling muli.",
+    "ja": "認証の有効期限が切れました。再度リクエストしてください。",
+    "de": "Die Verifizierungsanfrage ist abgelaufen. Bitte neu anfordern."
+  },
+  "올바른 G로 시작하는 Pi 테스트넷 주소를 입력해 주세요.": {
+    "zh-CN": "请输入以 G 开头的有效 Pi 测试网地址。",
+    "zh-TW": "請輸入以 G 開頭的有效 Pi 測試網地址。",
+    "vi": "Nhập địa chỉ Pi Testnet hợp lệ bắt đầu bằng G.",
+    "id": "Masukkan alamat Pi Testnet valid yang diawali G.",
+    "hi": "G से शुरू होने वाला वैध Pi टेस्टनेट पता दर्ज करें।",
+    "fil": "Maglagay ng wastong Pi Testnet address na nagsisimula sa G.",
+    "ja": "Gで始まる正しいPiテストネットアドレスを入力してください。",
+    "de": "Gib eine gültige Pi-Testnet-Adresse ein, die mit G beginnt."
+  },
+  "SASEUL 지갑 주소의 형식과 체크섬을 확인해 주세요.": {
+    "zh-CN": "请检查 SASEUL 钱包地址的格式和校验和。",
+    "zh-TW": "請檢查 SASEUL 錢包地址的格式與校驗碼。",
+    "vi": "Kiểm tra định dạng và mã kiểm tra của địa chỉ SASEUL.",
+    "id": "Periksa format dan checksum alamat dompet SASEUL.",
+    "hi": "SASEUL वॉलेट पते का प्रारूप और चेकसम जाँचें।",
+    "fil": "Suriin ang format at checksum ng SASEUL wallet address.",
+    "ja": "SASEULウォレットアドレスの形式とチェックサムをご確認ください。",
+    "de": "Prüfe Format und Prüfsumme der SASEUL-Wallet-Adresse."
+  },
+  "현재 신청 기간이 아닙니다.": {
+    "zh-CN": "当前不在申请期间。",
+    "zh-TW": "目前不在申請期間。",
+    "vi": "Hiện không trong thời gian đăng ký.",
+    "id": "Saat ini di luar periode pengajuan.",
+    "hi": "अभी आवेदन अवधि नहीं है।",
+    "fil": "Wala sa panahon ng aplikasyon ngayon.",
+    "ja": "現在は申込期間外です。",
+    "de": "Derzeit außerhalb des Antragszeitraums."
+  },
+  "참여 조건을 확인하고 동의해 주세요.": {
+    "zh-CN": "请阅读并同意参与条件。",
+    "zh-TW": "請閱讀並同意參加條件。",
+    "vi": "Đọc và đồng ý các điều kiện tham gia.",
+    "id": "Baca dan setujui syarat partisipasi.",
+    "hi": "भागीदारी की शर्तें पढ़कर सहमति दें।",
+    "fil": "Basahin at tanggapin ang mga kondisyon ng pagsali.",
+    "ja": "参加条件を確認して同意してください。",
+    "de": "Bitte Teilnahmebedingungen prüfen und zustimmen."
+  },
+  "현재 계정으로 참여할 수 없습니다. 로그인 상태와 서비스 이용 가능 여부를 확인해 주세요.": {
+    "zh-CN": "当前账号无法参与。请检查登录状态和服务使用资格。",
+    "zh-TW": "目前帳戶無法參加。請檢查登入狀態和服務使用資格。",
+    "vi": "Tài khoản hiện tại không thể tham gia. Kiểm tra đăng nhập và quyền sử dụng dịch vụ.",
+    "id": "Akun ini tidak dapat berpartisipasi. Periksa status masuk dan akses layanan.",
+    "hi": "इस खाते से भाग नहीं ले सकते। लॉगिन स्थिति और सेवा की उपलब्धता जाँचें।",
+    "fil": "Hindi makasali ang kasalukuyang account. Suriin ang pag-sign in at pahintulot sa serbisyo.",
+    "ja": "このアカウントでは参加できません。ログイン状態とサービス利用資格をご確認ください。",
+    "de": "Dieses Konto kann nicht teilnehmen. Prüfe Anmeldung und Dienstberechtigung."
+  },
+  "요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.": {
+    "zh-CN": "无法处理请求，请稍后重试。",
+    "zh-TW": "無法處理請求，請稍後重試。",
+    "vi": "Không xử lý được yêu cầu. Vui lòng thử lại sau.",
+    "id": "Permintaan tidak dapat diproses. Coba lagi nanti.",
+    "hi": "अनुरोध पूरा नहीं हुआ। कुछ देर बाद फिर प्रयास करें।",
+    "fil": "Hindi maproseso ang kahilingan. Subukan muli mamaya.",
+    "ja": "リクエストを処理できませんでした。しばらくしてから再度お試しください。",
+    "de": "Die Anfrage konnte nicht verarbeitet werden. Bitte später erneut versuchen."
+  },
+  "달성 시 지급": {
+    "zh-CN": "达成后发放",
+    "zh-TW": "達成後發放",
+    "vi": "Nhận khi hoàn thành",
+    "id": "Dibayar saat selesai",
+    "hi": "पूरा होने पर मिलेगा",
+    "fil": "Ibibigay kapag natapos",
+    "ja": "達成時に付与",
+    "de": "Bei Abschluss ausgezahlt"
+  },
+  "각 미션을 달성하면 해당 보상이 바로 지급됩니다.": {
+    "zh-CN": "每项任务完成后立即发放对应奖励。",
+    "zh-TW": "每項任務完成後立即發放對應獎勵。",
+    "vi": "Hoàn thành từng nhiệm vụ sẽ nhận thưởng ngay.",
+    "id": "Hadiah diberikan segera setelah setiap misi selesai.",
+    "hi": "हर मिशन पूरा होते ही उसका पुरस्कार मिलता है।",
+    "fil": "Makukuha agad ang gantimpala sa bawat natapos na misyon.",
+    "ja": "各ミッションを達成すると、その報酬がすぐに付与されます。",
+    "de": "Jede Mission zahlt ihre Belohnung sofort nach Abschluss aus."
+  },
+  "모든 종류": {
+    "zh-CN": "全部",
+    "zh-TW": "全部",
+    "vi": "Tất cả",
+    "id": "Semua",
+    "hi": "सभी",
+    "fil": "Lahat",
+    "ja": "すべて",
+    "de": "Alle"
+  }
+}

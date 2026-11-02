@@ -1,6 +1,6 @@
-import { t } from './language.js';
+import { t, getLanguage, subscribeLanguage } from './language.js';
 import { useBackDismiss } from './use-back-dismiss.js';
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, CircleAlert, Info, X } from 'lucide-react';
 
@@ -41,6 +41,7 @@ export function FeedbackProvider({ children }) {
 }
 
 function FeedbackDialog({ item, close }) {
+  useSyncExternalStore(subscribeLanguage,getLanguage);
   useBackDismiss(true,()=>close(false),200);
   const element = useRef(null);
   useEffect(() => {

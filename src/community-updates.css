@@ -501,8 +501,8 @@ button.tier-card:focus-visible { outline: 3px solid var(--primary); outline-offs
 .feed-battle-meter .meter-total .negative { color:#b55e82; }
 .feed-battle-meter .meter-total .meter-volume { padding-left:6px; border-left:1px solid #ded5ea; color:#8b799e; font-size:10px; font-weight:500; }
 .checkin-action-row { display:flex; justify-content:flex-end; margin:18px 0 10px; }
-.checkin-action-row .checkin-action { width:100%; justify-content:center; min-height:42px; margin:0; padding:10px 18px; display:inline-flex; align-items:center; gap:7px; border-radius:12px; }
-.checkin-action svg { width:17px; height:17px; }
+.checkin-action-row .checkin-action { width:100%; justify-content:center; min-height:64px; margin:0; padding:18px 22px;font-size:17px;font-weight:800; display:inline-flex; align-items:center; gap:7px; border-radius:12px; }
+.checkin-action svg { width:22px; height:22px; }
 .checkin-action:disabled { background:var(--surface-tint); color:var(--muted); opacity:.7; cursor:default; }
 .checkin-action-row + .checkin-calendar { margin-top:0; }
 .calendar-day { position:relative; padding:19px 4px 5px; }
@@ -815,3 +815,4 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .policy-rank-card .policy-progress{padding:16px 0 0;border:0;margin:16px 0 0;box-shadow:none}
 
 .mission-counts small{display:block;margin-top:5px;color:var(--muted);font-size:10px}
+.policy-mission h2{font-size:16px;align-items:center}

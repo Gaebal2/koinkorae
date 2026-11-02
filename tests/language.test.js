@@ -85,3 +85,36 @@ test('manual selection persists and updates the document even if storage is unav
     setLanguage(original);
   }
 });
+
+test('SwithPi, wallet and daily mission copy has native coverage in every supported language',async()=>{
+ const {swithpiErrorMessages}=await import('../src/swithpi-errors.js');
+ const overlay=JSON.parse(readFileSync(new URL('../src/swithpi.translations.json',import.meta.url),'utf8'));
+ const files=['swithpi-page.jsx','pi-wallet.jsx','daily-missions.jsx'];
+ const keys=new Set([...files.flatMap(file=>[...readFileSync(new URL('../src/'+file,import.meta.url),'utf8').matchAll(/'([^'\r\n]*[가-힣][^'\r\n]*)'/g)].map(m=>m[1])),...Object.values(swithpiErrorMessages)]);
+ const placeholders=s=>[...s.matchAll(/\{\d+\}/g)].map(m=>m[0]).sort();
+ const original=getLanguage();
+ try{
+ for(const {code} of supportedLanguages.filter(l=>l.code!=='ko')){
+  const catalog=code==='en'?{...JSON.parse(readFileSync(new URL('../src/messages.en.json',import.meta.url),'utf8')),...JSON.parse(readFileSync(new URL('../src/swithpi.en.json',import.meta.url),'utf8'))}:JSON.parse(readFileSync(new URL('../src/locales/'+code+'.json',import.meta.url),'utf8'));
+  setLanguage(code);
+  for(const key of keys){
+   const value=overlay[key]?.[code]||catalog[key];
+   assert.ok(value?.trim(),code+': '+key);
+   assert.doesNotMatch(t(key),/[가-힣]/,code+': '+key);
+   assert.deepEqual(placeholders(t(key)),placeholders(key),code+': '+key);
+  }
+ }
+ }finally{setLanguage(original);}
+});
+test('wallet failures retain actionable causes without exposing raw server errors',async()=>{
+ const {swithpiErrorKey,swithpiErrorMessages:m}=await import('../src/swithpi-errors.js');
+ for(const [message,key] of [
+ ['PSL 수령 지갑 주소를 먼저 저장해 주세요.','eligibility'],
+ ['이미 다른 계정에서 인증한 지갑입니다.','duplicate'],
+ ['30초 후 다시 요청해 주세요.','cooldown'],
+ ['Failed to fetch','network'],
+ ['이벤트 참여 조건을 확인해 주세요.','consent'],
+ ['violates secret_database_constraint','fallback']
+ ])assert.equal(swithpiErrorKey(new Error(message)),m[key]);
+ for(const value of Object.values(m))assert.equal(swithpiErrorKey(value),value);
+});

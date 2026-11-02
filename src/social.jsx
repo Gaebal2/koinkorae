@@ -1,3 +1,4 @@
+import {DailyMissions} from './daily-missions.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
 import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
 import {CheckinCalendar, useCheckinToday} from './checkin-calendar.jsx';
@@ -122,6 +123,7 @@ export function CheckinPage({ me, balance, login }) {
     finally { setBusy(false); }
   };
   return <main><PageTitle icon={CalendarCheck} title={t("오늘의 KK")} sub={t("매일 출석하고 KK를 모으세요")}/>
+    <DailyMissions balance={balance} signedIn={!!me} login={login}/>
     <div className="checkin-action-row"><button type="button" className="primary checkin-action" disabled={busy || checked} onClick={checkin}>{checked ? <Check/> : <CalendarCheck/>}{checked ? t('출석 완료') : busy ? t('출석 확인 중…') : t('출석체크')}</button></div>
     <CheckinCalendar key={me?.id || 'guest'} balance={checked ? {...balance,day:today} : balance} signedIn={!!me} today={today}/>
     <section className="reward-row"><div><span>REWARDED AD</span><b>{t("광고 보상 준비 중")}</b><small>{t("광고 서비스 연결 후 이용할 수 있어요")}</small></div><button disabled>{t("준비 중")}</button></section>{error && <p className="error" role="alert">{error}</p>}<div className="notice-box"><Shield/><p>{t("KK는 커뮤니티 참여 포인트입니다.")}<br/>{t("배틀은 무료로 참여할 수 있습니다.")}</p></div>
