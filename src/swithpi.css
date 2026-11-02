@@ -108,6 +108,7 @@
 .wallet-card .wallet-countdown{font-size:18px;font-weight:750;color:var(--primary-dark);font-variant-numeric:tabular-nums}
 .swithpi-steps{display:grid;gap:10px;margin-top:16px}
 .swithpi-steps>.primary{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;min-height:46px;line-height:1.5}
-.step-number,.step-complete{flex:none;width:24px;height:24px;display:inline-grid;place-items:center}
+.swithpi-steps .step-complete{box-sizing:border-box;flex:0 0 24px;width:24px;min-width:24px;max-width:24px;height:24px;min-height:24px;max-height:24px;aspect-ratio:1;display:inline-grid;place-items:center;overflow:hidden}
+.swithpi-steps .step-complete>svg{display:block;width:20px;height:20px;flex:none}
 .swithpi-steps .step-complete{color:#15803d;background:#fff;border-radius:50%;padding:2px}
 .swithpi-address-actions{display:flex;gap:10px;margin-top:20px}.swithpi-address-actions>button{flex:1}

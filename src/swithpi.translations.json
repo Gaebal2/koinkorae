@@ -1158,5 +1158,25 @@
     "fil": "Nagbago ang impormasyon ng wallet. Kumpirmahin muli ang address ng PSL wallet.",
     "ja": "ウォレット情報が変更されました。PSL ウォレットアドレスを再確認してください。",
     "de": "Die Wallet-Daten haben sich geändert. Bitte bestätigen Sie die PSL-Wallet-Adresse erneut."
+  },
+  "1단계: Pi 지갑 소유권 인증": {
+    "zh-CN": "第 1 步：认证 Pi 钱包所有权",
+    "zh-TW": "第 1 步：驗證 Pi 錢包所有權",
+    "vi": "Bước 1: Xác minh sở hữu ví Pi",
+    "id": "Langkah 1: Verifikasi kepemilikan dompet Pi",
+    "hi": "चरण 1: Pi वॉलेट स्वामित्व सत्यापन",
+    "fil": "Hakbang 1: I-verify ang pagmamay-ari ng Pi wallet",
+    "ja": "ステップ1：Piウォレット所有権認証",
+    "de": "Schritt 1: Pi-Wallet-Eigentum verifizieren"
+  },
+  "2단계: PSL 지갑 주소 확인": {
+    "zh-CN": "第 2 步：确认 PSL 钱包地址",
+    "zh-TW": "第 2 步：確認 PSL 錢包地址",
+    "vi": "Bước 2: Xác nhận địa chỉ ví PSL",
+    "id": "Langkah 2: Konfirmasi alamat dompet PSL",
+    "hi": "चरण 2: PSL वॉलेट पते की पुष्टि करें",
+    "fil": "Hakbang 2: Kumpirmahin ang address ng PSL wallet",
+    "ja": "ステップ2：PSL ウォレットアドレスの確認",
+    "de": "Schritt 2: PSL-Wallet-Adresse bestätigen"
   }
 }

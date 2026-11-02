@@ -39,9 +39,9 @@ export function SwithPiPage({me,login}) {
     <details className="swithpi-rules"><summary>{t('참여 조건과 지급 기준')}</summary><ul><li>{t('Pi 지갑 소유권 인증과 PSL 수령 지갑 등록이 필요합니다.')}</li><li>{t('신청 완료 서버 기록 순서로 배정하며, 총 1억 PSL 소진 시 마지막 신청자는 잔여 물량만 받습니다.')}</li><li>{t('신청 시 Pi 지갑과 PSL 수령 지갑이 고정됩니다. 같은 Pi 지갑은 한 번만 신청할 수 있습니다.')}</li><li>{t('신청은 지급 확정이 아닙니다. 스냅샷 잔액과 선착순 배정 결과에 따라 지급량이 결정됩니다.')}</li></ul></details>
     {entry&&<div className="swithpi-entry" role="status"><b><BadgeCheck size={17}/>{t('신청 완료')}</b><span>{walletDate(entry.applied_at)}</span><span>{entry.paid_at?t('지급 완료'):entry.allocation!=null?`${entry.allocation} PSL · ${t('배정 결과')}`:t('스냅샷 대기')}</span><details><summary>{t('신청 지갑 확인')}</summary><p>Pi: {entry.pi_address}</p><p>PSL: {entry.psl_address}</p></details></div>}
     <div className="swithpi-steps">
-     <button className="primary" disabled={busy} onClick={openWallet}>{status?.identity?<BadgeCheck className="step-complete" aria-label={t('인증 완료')}/>:<span className="step-number">1</span>}<span>{t('Pi 지갑 소유권 인증')}</span></button>
-     <button className="primary" disabled={busy} onClick={reviewAddress}>{addressConfirmed?<BadgeCheck className="step-complete" aria-label={t('확인 완료')}/>:<span className="step-number">2</span>}<span>{t('PSL 지갑 주소 확인')}</span></button>
-     <button className="primary" disabled={!active||!!entry||busy||!status?.identity||!addressConfirmed} onClick={()=>{setAccepted(false);setApply(event);}}><span className="step-number">3</span><span>{entry?t('신청 완료'):closed?t('마감'):t('신청하기')}</span></button>
+     <button className="primary" disabled={busy} onClick={openWallet}>{status?.identity&&<span className="step-complete"><BadgeCheck aria-label={t('인증 완료')}/></span>}<span>{t('1단계: Pi 지갑 소유권 인증')}</span></button>
+     <button className="primary" disabled={busy} onClick={reviewAddress}>{addressConfirmed&&<span className="step-complete"><BadgeCheck aria-label={t('확인 완료')}/></span>}<span>{t('2단계: PSL 지갑 주소 확인')}</span></button>
+     <button className="primary" disabled={!active||!!entry||busy||!status?.identity||!addressConfirmed} onClick={()=>{setAccepted(false);setApply(event);}}><span>{entry?t('신청 완료'):closed?t('마감'):t('신청하기')}</span></button>
     </div>
    </article>;
   })}</div>
