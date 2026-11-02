@@ -94,7 +94,7 @@
 .swithpi-mine svg,.profile-head>.pi-wallet-button svg{width:16px;height:16px;flex:none}
 .swithpi-mine.active{background:var(--primary);border-color:var(--primary);color:white;box-shadow:0 4px 12px #7157ff26}
 .profile-head>.pi-wallet-button{max-width:164px;white-space:normal}
-.profile-head>.pi-wallet-button .pi-verified{color:#16a34a}
+.profile-head>.pi-wallet-button .pi-verified,.swithpi-wallet-bar>.pi-verified{color:#16a34a}
 .pi-wallet-button span{word-break:normal;overflow-wrap:anywhere;line-height:1.35}
 .pi-wallet-button:focus-visible,.swithpi-mine:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
 .wallet-import>.primary,.wallet-card form>.primary{min-height:46px}
