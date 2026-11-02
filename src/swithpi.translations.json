@@ -1178,5 +1178,25 @@
     "fil": "Hakbang 2: Kumpirmahin ang address ng PSL wallet",
     "ja": "ステップ2：PSL ウォレットアドレスの確認",
     "de": "Schritt 2: PSL-Wallet-Adresse bestätigen"
+  },
+  "Pi 지갑 인증 및 에드 지갑주소, 상품 및 서비스를 받을 주소 등록": {
+    "zh-CN": "验证 Pi 钱包并登记接收空投、商品和服务的地址",
+    "zh-TW": "驗證 Pi 錢包並登記接收空投、商品和服務的地址",
+    "vi": "Xác minh ví Pi và đăng ký địa chỉ nhận airdrop, sản phẩm và dịch vụ",
+    "id": "Verifikasi dompet Pi dan daftarkan alamat untuk menerima airdrop, produk, dan layanan",
+    "hi": "Pi वॉलेट सत्यापित करें और एयरड्रॉप, उत्पाद तथा सेवाएँ प्राप्त करने के पते दर्ज करें",
+    "fil": "I-verify ang Pi wallet at irehistro ang mga address para makatanggap ng airdrop, produkto at serbisyo",
+    "ja": "Pi ウォレットを認証し、エアドロップ・商品・サービスの受取先を登録",
+    "de": "Pi-Wallet verifizieren und Empfangsadressen für Airdrops, Produkte und Dienstleistungen registrieren"
+  },
+  "에드 지갑주소, 상품 및 서비스를 받을 주소 등록": {
+    "zh-CN": "登记接收空投、商品和服务的地址",
+    "zh-TW": "登記接收空投、商品和服務的地址",
+    "vi": "Đăng ký địa chỉ nhận airdrop, sản phẩm và dịch vụ",
+    "id": "Daftarkan alamat untuk menerima airdrop, produk, dan layanan",
+    "hi": "एयरड्रॉप, उत्पाद तथा सेवाएँ प्राप्त करने के पते दर्ज करें",
+    "fil": "Irehistro ang mga address para makatanggap ng airdrop, produkto at serbisyo",
+    "ja": "エアドロップ・商品・サービスの受取先を登録",
+    "de": "Empfangsadressen für Airdrops, Produkte und Dienstleistungen registrieren"
   }
 }
