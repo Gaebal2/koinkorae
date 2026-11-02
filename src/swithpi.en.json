@@ -100,5 +100,9 @@
   "흑백": "Grayscale",
   "컬러": "Color",
   "선택한 등급의 모든 조건을 충족해야 합니다. 출석은 누적 출석일, 포인트는 누적 KK 기준입니다. 받은 좋아요는 본인을 제외한 사용자와 피드의 조합당 한 번 집계합니다. 배틀 횟수는 새 정책 적용 이후의 완료 기록부터 집계합니다.": "Meet all requirements for the selected rank. Attendance and KK are cumulative. Received likes count once per other user and post. Battles count completed rounds recorded since the policy took effect.",
-  "연결한 Google 계정": "Linked Google account"
+  "연결한 Google 계정": "Linked Google account",
+  "달성 시 지급": "Paid on completion",
+  "각 미션을 달성하면 해당 보상이 바로 지급됩니다.": "Each mission pays its reward as soon as you complete it.",
+  "피드 1개 20 KK · 배틀 5회 40 KK · 댓글 5개 40 KK. 항목별 하루 1회 자동 지급": "1 post: 20 KK · 5 battles: 40 KK · 5 comments: 40 KK. Each reward is paid once per day.",
+  "조건 없음": "No requirement"
 }

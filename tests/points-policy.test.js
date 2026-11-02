@@ -18,11 +18,11 @@ test('workbook rows are all represented, adjusted policy matches SQL, and levels
  for(let i=0;i<P.levels.length;i++){
   const l=P.levels[i],stats={days:l.days,posts:l.posts,reposts:l.reposts,games:l.games,likes:l.likes};
   assert.equal(levelFor({lifetime:l.bp,current:0,stats}).index,i);
-  if(i){for(const key of Object.keys(stats)){assert.ok(levelFor({lifetime:l.bp,stats:{...stats,[key]:stats[key]-1}}).index<i);}}
+  if(i){for(const key of Object.keys(stats).filter(key=>stats[key]>0)){assert.ok(levelFor({lifetime:l.bp,stats:{...stats,[key]:stats[key]-1}}).index<i);}}
  }
  assert.equal(levelFor({level:6,current:0,lifetime:100000}).current.name,'고래');
  // Before extras, the requested mission has a positive but bounded daily budget.
- assert.equal(P.attendance+P.missionReward-P.mission.posts*P.costs.posts-P.mission.comments*P.costs.comments,80);
+ assert.equal(P.attendance+P.missionReward-P.mission.posts*P.costs.posts-P.mission.comments*P.costs.comments,100);
 });
 
 test('welcome is once per account, existing KK is preserved, service role can execute and anon cannot',async()=>{
@@ -56,11 +56,11 @@ test('attendance awards milestones exactly once, resets on gaps and after 365 da
 
 test('activity charges are atomic, spend does not lower lifetime, repost retries and edits do not charge twice',async()=>{
  const {pg,db}=await communityHarness({pointsPolicy:true});try{
-  await publish(db);let b=await balance(db);assert.equal(b.current,90);assert.equal(b.lifetime,100);assert.equal(b.stats.posts,1);
+  await publish(db);let b=await balance(db);assert.equal(b.current,110);assert.equal(b.lifetime,120);assert.equal(b.stats.posts,1);
   const post=(await db.list('posts'))[0];
-  await dispatch(db,identity,'comment',{postId:post.id,content:'First comment',side:'support'});assert.equal((await balance(db)).current,88);
-  await dispatch(db,identity,'repost',{postId:post.id,enabled:true});await dispatch(db,identity,'repost',{postId:post.id,enabled:true});assert.equal((await balance(db)).current,78);assert.equal((await balance(db)).stats.reposts,1);
-  await dispatch(db,identity,'repost',{postId:post.id,enabled:false});await dispatch(db,identity,'repost',{postId:post.id,enabled:true});assert.equal((await balance(db)).current,78);
+  await dispatch(db,identity,'comment',{postId:post.id,content:'First comment',side:'support'});assert.equal((await balance(db)).current,108);
+  await dispatch(db,identity,'repost',{postId:post.id,enabled:true});await dispatch(db,identity,'repost',{postId:post.id,enabled:true});assert.equal((await balance(db)).current,98);assert.equal((await balance(db)).stats.reposts,1);
+  await dispatch(db,identity,'repost',{postId:post.id,enabled:false});await dispatch(db,identity,'repost',{postId:post.id,enabled:true});assert.equal((await balance(db)).current,98);
   b=await balance(db);await writeBalance(db,{...b,current:1});const count=(await db.list('posts')).length;
   await assert.rejects(publish(db,'Not enough points to publish'),/KK가 부족/);assert.equal((await db.list('posts')).length,count);assert.equal((await balance(db)).current,1);
  }finally{await pg.close();}
@@ -71,9 +71,9 @@ test('mission rewards only unique qualifying activities and verified rounds, onc
   await balance(db);await writeBalance(db,{...await balance(db),current:1000});
   for(let i=0;i<5;i++)await publish(db,'Distinct original content '+i);
   await publish(db,'Distinct original content 0');
-  const posts=await db.list('posts');let b=await balance(db);assert.equal(b.mission.posts,3);
+  const posts=await db.list('posts');let b=await balance(db);assert.equal(b.mission.posts,1);assert.equal(b.lifetime,120);assert.equal(b.mission.rewarded.posts,true);assert.equal(b.mission.claimed,false);
   for(let i=0;i<5;i++)await dispatch(db,identity,'comment',{postId:posts[i].id,content:'Useful comment',side:'support'});
-  await dispatch(db,identity,'comment',{postId:posts[0].id,content:'Another comment same feed',side:'support'});assert.equal((await balance(db)).mission.comments,5);
+  await dispatch(db,identity,'comment',{postId:posts[0].id,content:'Another comment same feed',side:'support'});assert.equal((await balance(db)).mission.comments,5);assert.equal((await balance(db)).lifetime,160);
   const progress=newBattleProgress('runner',1),session={id:'session',postId:posts[0].id,side:'support',protocol:2,gameVersion:4,status:'playing',startedAt:Date.now()-120000,progress};
   await db.put({kind:'battleSessions',id:'alice',parent:'',owner:'alice',body:session});
   // Model the already verified checkpoint state written by the production transaction.
@@ -83,9 +83,10 @@ test('mission rewards only unique qualifying activities and verified rounds, onc
    await db.put({kind:'battleSessions',id:'alice',parent:'',owner:'alice',body:{...session,progress:p}});
   }
   b=await balance(db);assert.equal(b.mission.games,5);assert.equal(b.stats.games,5);assert.equal(b.mission.claimed,true);assert.equal(b.lifetime,200);assert.equal(b.current,1028);
-  assert.equal(+(await pg.query("select count(*) n from korae_point_events where action='mission-reward'")).rows[0].n,1);
+  assert.equal(+(await pg.query("select count(*) n from korae_point_events where action like 'mission-reward-%'")).rows[0].n,3);
   await db.put({kind:'battleSessions',id:'alice',parent:'',owner:'alice',body:{...session,progress:{...progress,round:5,game:{...progress.game,ended:true,time:1,score:0}}}});
   assert.equal((await balance(db)).stats.games,5);
+  await pg.query("update korae_point_events set event_key=$1 where uid='alice' and action like 'mission-reward-%'",[String(today()-1)]);
   await writeBalance(db,{...b,mission:{...b.mission,day:today()-1}});await publish(db,'New day unique content');b=await balance(db);assert.equal(b.mission.posts,1);assert.equal(b.mission.games,0);assert.equal(b.mission.claimed,false);
  }finally{await pg.close();}
 });
@@ -145,5 +146,30 @@ test('reduced marker limits preserve legacy markers and block filling a free low
  await assert.rejects(dispatch(db,identity,'savePin',{value}),/한도/);
  await dispatch(db,identity,'savePin',{id:pins[1].id,value:{...value,title:'Edited legacy marker'}});
  assert.equal((await db.list('pins')).length,2);
+ }finally{await pg.close();}
+});
+
+test('partial mission rollout settles only today, prevents legacy double payment, and promotes newly eligible ranks',async()=>{
+ const {pg,db}=await communityHarness({pointsPolicy:true,partialMissions:false});try{
+ const base={policyVersion:1,current:100,lifetime:300,level:0,stats:{days:7,posts:3,reposts:1,games:20,likes:0}};
+ await db.put({kind:'balances',id:'partial',parent:'',owner:'partial',body:{...base,mission:{day:today(),posts:1,games:5,comments:4,claimed:false}}});
+ await db.put({kind:'balances',id:'paid',parent:'',owner:'paid',body:{...base,mission:{day:today(),posts:3,games:5,comments:5,claimed:true}}});
+ await pg.query("insert into korae_point_events(uid,action,event_key,delta) values('paid','mission-reward',$1,100)",[String(today())]);
+ await db.put({kind:'balances',id:'yesterday',parent:'',owner:'yesterday',body:{...base,mission:{day:today()-1,posts:3,games:5,comments:5,claimed:false}}});
+ await db.put({kind:'balances',id:'whale',parent:'',owner:'whale',body:{...base,lifetime:65000,level:5,stats:{days:365,posts:500,reposts:250,games:2000,likes:2000}}});
+ await pg.exec(await readFile(new URL('../supabase/migrations/202611020006_partial_missions.sql',import.meta.url),'utf8'));
+ let b=(await db.one('balances','partial')).body;assert.equal(b.current,160);assert.equal(b.lifetime,360);assert.equal(b.level,1);assert.equal(b.mission.rewardTotal,60);assert.equal(b.mission.claimed,false);
+ assert.equal((await db.one('balances','paid')).body.current,100);
+ assert.equal((await db.one('balances','yesterday')).body.current,100);
+ assert.equal((await db.one('balances','whale')).body.level,6);
+ const event=()=>pg.query("select korae_points_event('partial','comments','fifth',2,'comments','new-post')");
+ await event();await event();b=(await db.one('balances','partial')).body;assert.equal(b.current,198);assert.equal(b.mission.rewardTotal,100);assert.equal(b.mission.claimed,true);
+ assert.equal(+(await pg.query("select sum(delta) total from korae_point_events where uid='partial' and action like 'mission-reward-%'")).rows[0].total,100);
+ await pg.query("select korae_points_event('paid','games','extra',0,'games','extra')");assert.equal((await db.one('balances','paid')).body.current,100);
+ // A new Korean day has a fresh independent set of three rewards.
+ await pg.query("update korae_point_events set event_key=$1 where uid='partial' and action like 'mission-reward-%'",[String(today()-1)]);
+ await db.put({kind:'balances',id:'partial',parent:'',owner:'partial',body:{...b,mission:{...b.mission,day:today()-1}}});
+ await pg.query("select korae_points_event('partial','posts','next-day',10,'posts','next-day')");
+ b=(await db.one('balances','partial')).body;assert.equal(b.current,208);assert.equal(b.mission.rewardTotal,20);assert.equal(b.mission.claimed,false);
  }finally{await pg.close();}
 });

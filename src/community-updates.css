@@ -813,3 +813,5 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .rank-collection>button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 .rank-collection .rank-badge{width:clamp(28px,7vw,54px);height:clamp(28px,7vw,54px)}
 .policy-rank-card .policy-progress{padding:16px 0 0;border:0;margin:16px 0 0;box-shadow:none}
+
+.mission-counts small{display:block;margin-top:5px;color:var(--muted);font-size:10px}
