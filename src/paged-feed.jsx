@@ -30,10 +30,10 @@ export function useCursorPage(options,scope,enabled=true){
 export function MoreResults({page}){
   const target=useRef(null);
   useEffect(()=>{
-    if(!page.nextCursor||page.loading||page.error||!globalThis.IntersectionObserver)return;
+    if(!page.nextCursor||page.loading||page.refreshing||page.error||!globalThis.IntersectionObserver)return;
     const observer=new IntersectionObserver(([entry])=>{if(entry.isIntersecting)void page.more();},{rootMargin:'200px'});
     observer.observe(target.current);return()=>observer.disconnect();
-  },[page.nextCursor,page.loading,page.error,page.more]);
+  },[page.nextCursor,page.loading,page.refreshing,page.error,page.more]);
   return <div ref={target} className="more-results">{page.error?<><p role="alert">{t("목록을 불러오지 못했습니다.")}</p><button onClick={page.retry}>{t("다시 시도")}</button></>:page.loading?<p role="status">{t("불러오는 중…")}</p>:page.nextCursor?<button onClick={page.more}>{t("더 보기")}</button>:null}</div>;
 }
 export function PagedPosts({options,me,onPin,onProfile,actions,onReady,excludeId,focusPostId}){
@@ -41,8 +41,8 @@ export function PagedPosts({options,me,onPin,onProfile,actions,onReady,excludeId
   useContentRefresh('home', page.retry, options.mode === 'posts' && !!options.coin);
   useEffect(()=>{
     if(sharedPostStatus(page,focusPostId,excludeId)==='more')void page.more();
-  },[focusPostId,excludeId,page.loading,page.error,page.nextCursor,page.items,page.more]);
-  useEffect(()=>{if(!page.loading&&!page.error)onReady?.();},[page.loading,page.error,onReady]);
+  },[focusPostId,excludeId,page.loading,page.refreshing,page.error,page.nextCursor,page.items,page.more]);
+  useEffect(()=>{if(!page.loading&&!page.refreshing&&!page.error)onReady?.();},[page.loading,page.refreshing,page.error,onReady]);
   return <>{sharedPostStatus(page,focusPostId,excludeId)==='missing'&&<p role="status">{t('삭제되었거나 더 이상 존재하지 않는 피드입니다.')}</p>}<div className="feed">{page.items.filter(post=>post.id!==excludeId).map(post=><CommunityPost focusPostId={focusPostId} key={post.id} post={post} onPin={onPin} onProfile={onProfile} {...actions}/>)}</div>{!excludeId&&!page.loading&&!page.error&&!page.items.length&&<Empty text={t("아직 게시물이 없습니다")}/>}<MoreResults page={page}/></>;
 }
 export function PagedOwnComments({me,onComment}){

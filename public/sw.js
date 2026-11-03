@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v28-chat-cache-badges';
+const CACHE = 'korae-community-v29-cache-revisions';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -10,6 +10,24 @@ self.addEventListener('activate', event => event.waitUntil(Promise.all([
 ])));
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  // Content-addressed public uploads have immutable URLs. Keep a bounded image
+  // cache independent of app deployments; never intercept private/signed URLs.
+  const media = url.origin === 'https://cxvznpfcmorysnwwmbna.supabase.co'
+    && /^\/storage\/v1\/object\/public\/community-media\/[a-f0-9]{64}\.(jpeg|png|webp)$/.test(url.pathname) && !url.search;
+  if(event.request.method==='GET' && media){
+    event.respondWith((async()=>{
+      const cache=await caches.open('community-media-v1');
+      const cached=await cache.match(event.request);if(cached)return cached;
+      const response=await fetch(new Request(event.request,{mode:'cors',credentials:'omit'})).catch(()=>fetch(event.request));
+      if(response.ok && response.type!=='opaque' && response.headers.get('content-type')?.startsWith('image/')){
+        const copy=response.clone();event.waitUntil((async()=>{
+          await cache.put(event.request,copy);
+          const keys=await cache.keys();await Promise.all(keys.slice(0,Math.max(0,keys.length-100)).map(key=>cache.delete(key)));
+        })());
+      }
+      return response;
+    })());return;
+  }
   // Account data and API results must never enter the offline cache.
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
   const staticAsset = /\.(?:js|css|png|jpg|jpeg|webp|svg|woff2?|webmanifest)$/.test(url.pathname);

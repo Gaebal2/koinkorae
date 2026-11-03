@@ -8,6 +8,56 @@ import {createQueryStorage} from '../src/query-storage.js';
 import {createCommunityClient} from '../src/supabase-client.js';
 import {parseEvents} from '../src/change-stream.js';
 import {debounce} from '../src/query-timing.js';
+import {createRevisionSync} from '../src/revision-sync.js';
+import {createPublicReadCache} from '../supabase/functions/community/public-cache.js';
+import {queryAffected} from '../src/query-impact.js';
+import {readFile} from 'node:fs/promises';
+
+test('revision checkpoints skip unchanged reconnects and clear stale disk rows before advancing',async()=>{
+ const rows=new Map(),events=[];
+ const storage={get:async key=>rows.get(key),set:async row=>rows.set(row.key,row),remove:async predicate=>{for(const [key,row] of rows)if(predicate(row))rows.delete(key);}};
+ const sync=createRevisionSync({storage,scope:'alice',notify:async actions=>events.push(actions)});
+ const first={version:1,revisions:{'public:posts':'1','user:alice:balances':'2'}};
+ await sync(first);assert.equal(events.length,1);events.length=0;
+ rows.set('feed',{scope:'alice',action:'page'});rows.set('bob',{scope:'bob',action:'page'});
+ await sync(first);assert.equal(events.length,0);assert.ok(rows.has('feed'));
+ await sync({...first,revisions:{...first.revisions,'public:posts':'2'}});
+ assert.equal(events.length,1);assert.ok(events[0].includes('page'));assert.ok(!rows.has('feed'));assert.ok(rows.has('bob'));
+ await sync({});assert.equal(events.at(-1),null);
+ let active=false;const cancelled=createRevisionSync({storage,scope:'alice',notify:()=>assert.fail(),isActive:()=>active});await cancelled(first);
+});
+
+test('public shared reads deduplicate, respect revisions and TTL, and retry failures',async()=>{
+ let time=0,calls=0;const cache=createPublicReadCache({now:()=>time,ttl:10,maxEntries:2});
+ const load=async()=>++calls;
+ assert.deepEqual(await Promise.all([cache('page','v1',load),cache('page','v1',load)]),[1,1]);
+ assert.equal(await cache('page','v2',load),2);time=11;assert.equal(await cache('page','v2',load),3);
+ await assert.rejects(cache('bad','v1',async()=>{throw Error('offline');}));assert.equal(await cache('bad','v1',load),4);
+});
+
+test('change impact isolates detail IDs and separates map pages from feed changes',()=>{
+ assert.equal(queryAffected('getPin',{id:'a'},[{kind:'pins',id:'b'}]),false);
+ assert.equal(queryAffected('getPin',{id:'a'},[{kind:'pins',id:'a'}]),true);
+ assert.equal(queryAffected('page',{options:{mode:'pins'}},[{kind:'posts',id:'p'}]),false);
+ assert.equal(queryAffected('page',{options:{mode:'posts'}},[{kind:'pins',id:'p'}]),false);
+ assert.equal(queryAffected('page',{options:{mode:'posts'}},[{kind:'comments',parent:'p'}]),true);
+});
+
+test('durable revisions include deletions and moderation but isolate private users',async()=>{
+ const {pg,db}=await communityHarness();try{
+  await pg.exec('create table korae_content_moderation(kind text,target text,hidden boolean);');
+  await pg.exec(await readFile(new URL('../supabase/migrations/202611030001_cache_revisions.sql',import.meta.url),'utf8'));
+  const snapshot=async uid=>(await pg.query('select korae_cache_snapshot($1) as value',[uid])).rows[0].value;
+  await db.put({kind:'posts',id:'p',parent:'',owner:'alice',body:{content:'one'}});
+  await db.put({kind:'balances',id:'alice',parent:'',owner:'alice',body:{current:1}});
+  assert.deepEqual(await snapshot(null),{'public:posts':'1'});
+  assert.equal((await snapshot('alice'))['user:alice:balances'],'1');assert.equal((await snapshot('bob'))['user:alice:balances'],undefined);
+  await db.put({kind:'posts',id:'p',parent:'',owner:'alice',body:{content:'one'}});assert.equal((await snapshot(null))['public:posts'],'1');
+  await pg.exec("insert into korae_content_moderation values('posts','p',true)");assert.equal((await snapshot(null))['public:posts'],'2');
+  await db.remove('posts','p','','alice');assert.equal((await snapshot(null))['public:posts'],'3');
+  await pg.exec('set role anon');await assert.rejects(snapshot('alice'),/permission denied/);
+ }finally{await pg.close();}
+});
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const user={uid:'alice',name:'Alice'};
 test('SQL cursor pages preserve tied records, global ranking, coin totals, profiles and counts',async()=>{

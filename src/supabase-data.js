@@ -6,6 +6,7 @@ import { createMessageStore } from './message-store.js';
 import { createCommunityClient } from './supabase-client.js';
 import { createQueryStorage } from './query-storage.js';
 import { connectChanges, changedActions } from './change-stream.js';
+import {createRevisionSync} from './revision-sync.js';
 
 const config={
   apiKey:import.meta.env.VITE_FIREBASE_API_KEY || publicConfig.apiKey,
@@ -23,7 +24,12 @@ const connection={url:import.meta.env.VITE_SUPABASE_URL || 'https://cxvznpfcmory
 const storage=createQueryStorage();
 const client=createCommunityClient({
   ...connection,storage,batch:true,
-  subscribe:notify=>connectChanges({...connection,onChange:event=>{if(changedActions[event.kind])notify(changedActions[event.kind]);},onReady:()=>notify(null)}),
+  subscribe:notify=>{
+    let active=true;const scope=client.getScope();
+    const ready=createRevisionSync({storage,scope,notify,isActive:()=>active&&client.getScope()===scope});
+    const stop=connectChanges({...connection,onChange:event=>{if(changedActions[event.kind])notify(changedActions[event.kind],false,[event]);},onReady:snapshot=>{void ready(snapshot).catch(()=>{if(active)notify(null);});}});
+    return()=>{active=false;stop();};
+  },
 });
 export const dayNumber=(time=Date.now())=>Math.floor((time+9*3600000)/86400000);
 const call=client.call, watch=client.watch;

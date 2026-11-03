@@ -3,6 +3,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { dispatch, publicActions } from './handler.js';
 import { changeStream } from './stream.ts';
 import { createPhotoStore, MEDIA_BUCKET } from './media.js';
+import {createPublicReadCache} from './public-cache.js';
+const publicRead=createPublicReadCache();
 
 const project = Deno.env.get('FIREBASE_PROJECT_ID') || 'koinkorae-map';
 const jwks = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
@@ -72,8 +74,13 @@ Deno.serve(async request=>{
       } catch { return reply({error:'로그인이 만료되었습니다. 다시 로그인해 주세요.'},401); }
     }
     if(identity) await result(client.rpc('korae_admit',{p_uid:identity.uid,p_name:identity.name}));
-    if(action==='subscribe') return await changeStream(request,identity?.uid || null,cors);
+    if(action==='subscribe') return await changeStream(request,identity?.uid || null,cors,()=>result(client.rpc('korae_cache_snapshot',{p_uid:identity?.uid || null})));
     if(!identity && !publicActions.has(action)) return reply({error:'로그인이 필요합니다.'},401);
+    if(!identity && publicActions.has(action) && action!=='recordShare') {
+      let revisions;
+      try{revisions=await result(client.rpc('korae_cache_snapshot',{p_uid:null}));}catch{/* Older DB deployments retain uncached reads. */}
+      if(revisions)return reply({data:await publicRead(JSON.stringify([action,args]),revisions,()=>dispatch(db,null,action,args))});
+    }
     return reply({data:await dispatch(db,identity,action,args)});
   } catch(error:any) {
     return reply({error:error.message || '요청을 처리하지 못했습니다.'},error.status || 400);

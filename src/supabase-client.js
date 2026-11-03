@@ -1,6 +1,7 @@
 import {createReadBatcher} from './read-batcher.js';
+import {queryAffected} from './query-impact.js';
 const reads=new Set(['battleRankings','page','profiles','commentCounts','listPins','getPin','profile','posts','authorPosts','postsById','following','relationships','reposts','commentCount','comments','balance','ownComments','friends','messages']);
-const silentWrites=new Set(['chatReadState','markChatRead','notificationInbox','reportContent','adminReports','notificationSettings','saveNotificationSettings','subscribePush','unsubscribePush','recordShare','checkpointBattle','continueBattle']);
+const silentWrites=new Set(['ensureProfile','chatReadState','markChatRead','notificationInbox','reportContent','adminReports','notificationSettings','saveNotificationSettings','subscribePush','unsubscribePush','recordShare','checkpointBattle','continueBattle']);
 const affected={
   dismissReports:['page','getPin','listPins','posts','authorPosts','postsById','comments','ownComments','battleRankings','reposts','commentCount','commentCounts'],
   moderateContent:['profile','profiles','page','getPin','listPins','posts','authorPosts','postsById','comments','ownComments','battleRankings','reposts','commentCount','commentCounts'],
@@ -17,31 +18,35 @@ const canonical=value=>Array.isArray(value)?value.map(canonical):value && typeof
 export function createCommunityClient({url,key='',token,fetcher=fetch,interval=300000,visibility=globalThis.document,storage,subscribe,batch=false}) {
   const cache=new Map(), pending=new Map(), watchers=new Map();
   const observers=new Set();let scope='guest',scopeVersion=0,disconnect,changeTimer;
-  const queuedChanges=new Set();
+  const queuedChanges=new Set();let queuedEvents=[],queuedUnscoped=false;
   const persistent=(action,args={})=>['profile','profiles','getPin','friends','following','relationships','listPins','reposts','comments'].includes(action) || (action==='page' && args.options?.mode!=='ownComments');
   let generation=0;
   const revisions=new Map();
   const versionOf=action=>generation+':'+(revisions.get(action)||0);
   const visible=()=>!visibility?.hidden;
-  function invalidate(actions,clearStored=true) {
+  function invalidate(actions,clearStored=true,events=[]) {
     if(actions){actions=[...new Set([...actions,...(actions.includes('profile')?['profiles']:[]),...(actions.includes('commentCount')?['commentCounts']:[]),...(actions.some(action=>['posts','authorPosts','listPins','reposts','following','profile','commentCount'].includes(action))?['page']:[])])];}
     if(actions)for(const action of actions)revisions.set(action,(revisions.get(action)||0)+1);
     else generation++;
-    for(const [id,entry] of cache) if(!actions || actions.includes(entry.action)) cache.delete(id);
+    for(const [id,entry] of cache) if((!actions || actions.includes(entry.action)) && queryAffected(entry.action,entry.args,events)) cache.delete(id);
     for(const id of pending.keys())if(!actions || actions.some(action=>id.startsWith(action+':')))pending.delete(id);
     const invalidatedScope=scope;
-    if(clearStored)void storage?.remove(entry=>entry.scope===invalidatedScope && (!actions||actions.includes(entry.action)));
-    for(const entry of watchers.values()) if(!actions || actions.includes(entry.action)) {entry.last=undefined;entry.refresh(true);}
-    for(const listener of observers)listener(actions);
+    const cleared=clearStored?storage?.remove(entry=>entry.scope===invalidatedScope && (!actions||actions.includes(entry.action)) && (!entry.args||queryAffected(entry.action,entry.args,events))):undefined;
+    for(const entry of watchers.values()) if((!actions || actions.includes(entry.action)) && (entry.running || queryAffected(entry.action,entry.args,events))) {entry.last=undefined;entry.refresh(true);}
+    for(const listener of observers)listener(actions,events);
+    return cleared;
   }
   function syncTransport(){
     const needed=visible() && (watchers.size||observers.size);
-    if(!needed){disconnect?.();disconnect=null;clearTimeout(changeTimer);changeTimer=null;queuedChanges.clear();return;}
-    if(!disconnect && subscribe)disconnect=subscribe(actions=>{
+    if(!needed){disconnect?.();disconnect=null;clearTimeout(changeTimer);changeTimer=null;queuedChanges.clear();queuedEvents=[];queuedUnscoped=false;return;}
+    if(!disconnect && subscribe)disconnect=subscribe((actions,immediate=false,events=[])=>{
+      if(immediate)return invalidate(actions,true,events);
+      queuedEvents.push(...events);
+      if(!events.length)queuedUnscoped=true;
       if(actions)actions.forEach(action=>queuedChanges.add(action));
       else reads.forEach(action=>queuedChanges.add(action));
       // Coalesce a burst of battle/comment writes into one refresh per query.
-      if(!changeTimer)changeTimer=setTimeout(()=>{changeTimer=null;const changed=[...queuedChanges];queuedChanges.clear();invalidate(changed);},150);
+      if(!changeTimer)changeTimer=setTimeout(()=>{changeTimer=null;const changed=[...queuedChanges],events=queuedUnscoped?[]:queuedEvents;queuedEvents=[];queuedUnscoped=false;queuedChanges.clear();invalidate(changed,true,events);},150);
     });
   }
   function observe(callback){observers.add(callback);visibility?.addEventListener('visibilitychange',onVisibility);syncTransport();return()=>{observers.delete(callback);syncTransport();if(!observers.size&&!watchers.size)visibility?.removeEventListener('visibilitychange',onVisibility);};}
@@ -74,16 +79,16 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
         try { row=await storage.get(requestScope+':'+id); } catch {}
         if(requestScope!==scope || version!==versionOf(action))throw Error('데이터가 변경되었습니다. 다시 시도해 주세요.');
         if(row && Number.isFinite(row.time) && Date.now()-row.time>=0 && Date.now()-row.time<ttl){
-          cache.set(id,{action,value:row.value,time:row.time});
+          cache.set(id,{action,args,value:row.value,time:row.time});
           if(cache.size>500)cache.delete(cache.keys().next().value);
           return row.value;
         }
       }
       const value=await read(action,args);
       if(version===versionOf(action) && ttl){
-        cache.delete(id); cache.set(id,{action,value,time:Date.now()});
+        cache.delete(id); cache.set(id,{action,args,value,time:Date.now()});
         if(cache.size>500)cache.delete(cache.keys().next().value);
-        if(persistent(action,args))void storage?.set({key:requestScope+':'+id,scope:requestScope,action,value,time:Date.now()});
+        if(persistent(action,args))void storage?.set({key:requestScope+':'+id,scope:requestScope,action,args,value,time:Date.now()});
       }
       return value;
     })().finally(()=>{if(pending.get(id)===promise)pending.delete(id);});
@@ -93,7 +98,7 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
     const id=action+':'+JSON.stringify(canonical(args));
     let entry=watchers.get(id);
     if(!entry){
-      entry={action,listeners:new Set(),running:false,again:false,timer:null,last:undefined,value:undefined};
+      entry={action,args,listeners:new Set(),running:false,again:false,timer:null,last:undefined,value:undefined};
       entry.refresh=async(force=false)=>{
         if(!entry.listeners.size || !visible())return;
         if(entry.running){entry.again=true;return;}
@@ -119,7 +124,7 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
       if(storage && persistent(action,args) && !cache.has(id)){
         const version=versionOf(action);
         void storage.get(scope+':'+id).then(saved=>{
-          if(version===versionOf(action) && entry.listeners.size && saved){entry.value=saved.value;entry.last=JSON.stringify(saved.value);if(Date.now()-saved.time<interval)cache.set(id,{action,value:saved.value,time:saved.time});for(const item of entry.listeners)item.callback(saved.value);}
+          if(version===versionOf(action) && entry.listeners.size && saved){entry.value=saved.value;entry.last=JSON.stringify(saved.value);if(Date.now()-saved.time<interval)cache.set(id,{action,args,value:saved.value,time:saved.time});for(const item of entry.listeners)item.callback(saved.value);}
           void entry.refresh();
         });
       }else void entry.refresh();

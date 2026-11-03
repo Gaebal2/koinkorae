@@ -133,3 +133,42 @@ Apply 202610160005_report_resolution.sql, deploy community/push-dispatch, then t
 Validation: 11 focused moderation/inbox/push tests passed, frontend build and both Edge bundles passed. Browser preview verified confirmation, completion and case removal. Not deployed yet.
 
 Release 2026-10-16: migration 202610160005 applied to production and community/push-dispatch deployed. Frontend publishes via main branch Pages workflow. Device-level receipt remains a manual check.
+
+## 2026-11-03 Cache revisions
+
+Release: the production DB migration and `community` function were deployed on
+2026-11-03. Live checks passed for public posts/pins (200), unauthenticated balance
+access (401), and the version-1 revision stream. The accompanying frontend is
+published by the main-branch GitHub Pages workflow.
+
+Apply `202611030001_cache_revisions.sql`, deploy the `community` Edge function,
+then publish the frontend. This change does not require another service or a paid
+cache instance. The migration adds private, service-only revision counters and
+triggers on documents and moderation records; it does not modify existing content.
+
+The stream sends a revision snapshot after its subscriptions are ready. The device
+compares it with its account-scoped IndexedDB checkpoint, clears affected persisted
+queries before advancing that checkpoint, and refreshes only changed data types.
+The first checkpoint requires a reconciliation; unchanged subsequent reconnects
+do not reload collections. Missing/old protocol support falls back to the previous
+full reconciliation. The 120-second Edge stream lifetime remains unchanged.
+
+Live events narrow invalidation by detail ID and distinguish map pages from feed
+pages. Collections whose order/membership may change still refresh conservatively.
+Login profile admission no longer invalidates feeds merely because the app opened.
+Cached pages remain visible while revalidating; explicit refresh still reaches the
+backend. Public upload URLs receive a separate, bounded 100-image device cache.
+
+Anonymous public reads can share results within an Edge isolate (100 entries,
+8 MiB, 10-second maximum age). Every lookup checks the durable revision snapshot,
+including moderation changes. Authenticated data and share writes bypass this
+cache. This reduces repeated collection/aggregation work, not all DB calls: a
+small revision query is still made. It is not a distributed cache and time-based
+rankings may be up to 10 seconds old on this path.
+
+Before rollout, run `npm.cmd test` and `npm.cmd run build`. After rollout, verify
+on a device: unchanged foreground reconnections omit page reads; a change made
+while offline is reconciled; account switching does not expose prior account data;
+reopening a photo reuses the media cache. Real billing and device cold-start timings
+require production measurements. Rollback can redeploy the previous frontend and
+Edge function; the additive revision schema can remain in place.

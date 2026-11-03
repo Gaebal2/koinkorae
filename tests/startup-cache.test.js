@@ -8,12 +8,12 @@ function worker(fetcher, entries=new Map(), fastTimeout=false){
  vm.runInNewContext(source,{
   self:{location:{href:'https://example.com/app/sw.js',origin:'https://example.com'},addEventListener:(type,fn)=>handlers[type]=fn},
   URL,Request:class {constructor(request){Object.assign(this,request);}},Response,fetch:fetcher,
-  caches:{match:async req=>entries.get(typeof req==='string'?req:req.url),open:async()=>({put:async(req,res)=>writes.push([req,res])})},
+  caches:{match:async req=>entries.get(typeof req==='string'?req:req.url),open:async()=>({match:async req=>entries.get(req.url),keys:async()=>[],delete:async()=>true,put:async(req,res)=>writes.push([req,res])})},
   setTimeout:fastTimeout?(fn)=>setTimeout(fn,1):setTimeout,clearTimeout,
  });
  return {writes,waits,run(path,mode='cors'){
   let result;
-  handlers.fetch({request:{url:'https://example.com'+path,method:'GET',mode},respondWith:value=>result=value,waitUntil:value=>waits.push(value)});
+  handlers.fetch({request:{url:path.startsWith('https://')?path:'https://example.com'+path,method:'GET',mode},respondWith:value=>result=value,waitUntil:value=>waits.push(value)});
   return result;
  }};
 }
@@ -21,6 +21,14 @@ test('cached immutable chunks start without any network request',async()=>{
  let calls=0;const response=new Response('cached');
  const app=worker(()=>{calls++;return Promise.reject(Error('offline'));},new Map([['https://example.com/app/assets/index-abcdefgh.js',response]]));
  assert.equal(await app.run('/app/assets/index-abcdefgh.js'),response);assert.equal(calls,0);
+});
+
+test('immutable public upload images reuse cache, while signed and foreign URLs are excluded',async()=>{
+ const url='https://cxvznpfcmorysnwwmbna.supabase.co/storage/v1/object/public/community-media/'+'a'.repeat(64)+'.png';
+ let calls=0;const cached=new Response('photo');const app=worker(async()=>{calls++;return new Response('new',{headers:{'content-type':'image/png'}});},new Map([[url,cached]]));
+ assert.equal(await app.run(url),cached);assert.equal(calls,0);
+ assert.equal(app.run(url+'?token=private'),undefined);assert.equal(app.run(url.replace('cxvznpfcmorysnwwmbna','other')),undefined);
+ const next=url.replace('a'.repeat(64),'b'.repeat(64));await app.run(next);await Promise.all(app.waits);assert.equal(calls,1);assert.equal(app.writes.length,1);
 });
 test('missing chunks are downloaded and saved',async()=>{
  const app=worker(async()=>new Response('new',{headers:{'content-type':'text/javascript'}}));

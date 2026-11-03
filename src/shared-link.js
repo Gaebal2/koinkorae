@@ -8,7 +8,7 @@ export async function resolveSharedPost(data, id) {
 export function sharedPostStatus(page, id, pinnedId) {
   if (!id || id === pinnedId || page.items.some(post => post.id === id)) return 'found';
   if (page.error) return 'error';
-  if (page.loading) return 'loading';
+  if (page.loading || page.refreshing) return 'loading';
   return page.nextCursor ? 'more' : 'missing';
 }
 

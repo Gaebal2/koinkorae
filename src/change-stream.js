@@ -29,7 +29,7 @@ export function connectChanges({url,key,token,onChange,onReady,onStatus=()=>{},f
       const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';
       while(!stopped){const {done,value}=await reader.read();if(done)break;
         buffer=parseEvents(buffer+decoder.decode(value,{stream:true}).replace(/\r\n/g,'\n'),(event,data)=>{
-          if(event==='ready'){attempt=0;onStatus('connected');onReady();}
+          if(event==='ready'){attempt=0;onStatus('connected');onReady(data);}
           else if(event==='change')onChange(data);
         });
         if(buffer.length>65536)throw Error('Invalid stream');

@@ -2,6 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createContentRefresh} from '../src/content-refresh.js';
 import {createPagedStore} from '../src/paged-store.js';
+
+test('persisted feed renders immediately without foreground loading while revalidating',async()=>{
+ let release;const store=createPagedStore({saved:async()=>({value:{items:[{id:'cached'}],nextCursor:null}}),load:()=>new Promise(resolve=>{release=resolve;}),observe:()=>()=>{}});
+ const entry=store.get({mode:'posts'}),stop=entry.subscribe(()=>{});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(entry.getSnapshot().items[0].id,'cached');assert.equal(entry.getSnapshot().loading,false);assert.equal(entry.getSnapshot().refreshing,true);
+ release({items:[],nextCursor:null});await new Promise(resolve=>setImmediate(resolve));assert.equal(entry.getSnapshot().refreshing,false);stop();
+});
 test('refresh targets mounted content only, coalesces gestures, and unregisters cleanly', async () => {
  const bus=createContentRefresh(); let feed=0, friends=0, release;
  const stop=bus.subscribe('home',()=>{feed++;return new Promise(resolve=>{release=resolve;});});

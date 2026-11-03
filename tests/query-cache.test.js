@@ -3,6 +3,20 @@ import assert from 'node:assert/strict';
 import {createCommunityClient} from '../src/supabase-client.js';
 import {dispatch} from '../supabase/functions/community/handler.js';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
+
+test('live Pin signals preserve unrelated detail caches and startup admission preserves feeds',async()=>{
+ let notify;const calls=[];
+ const client=createCommunityClient({url:'https://example.test',token:async()=>null,subscribe:fn=>{notify=fn;return()=>{};},
+  fetcher:async(_,request)=>{const {action,args}=JSON.parse(request.body);calls.push({action,args});return {ok:true,json:async()=>({data:{id:args.id}})};}});
+ const a=client.watch('getPin',{id:'a'},()=>{}),b=client.watch('getPin',{id:'b'},()=>{}),posts=client.watch('posts',{},()=>{});
+ try{
+  await tick();await client.call('ensureProfile');await tick();assert.equal(calls.filter(row=>row.action==='posts').length,1);
+  notify(['page','getPin','listPins'],false,[{kind:'pins',id:'a'}]);await new Promise(resolve=>setTimeout(resolve,180));
+  assert.equal(calls.filter(row=>row.action==='getPin'&&row.args.id==='a').length,2);
+  assert.equal(calls.filter(row=>row.action==='getPin'&&row.args.id==='b').length,1);
+  await client.call('getPin',{id:'b'});assert.equal(calls.filter(row=>row.args.id==='b').length,1);
+ }finally{a();b();posts();}
+});
 function setup(options={}) {
   const calls=[];
   const client=createCommunityClient({url:'https://example.test/',token:async()=>null,

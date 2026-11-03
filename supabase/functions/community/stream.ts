@@ -8,7 +8,7 @@ const hub=createRealtimeHub(async()=>{
 });
 // Firebase JWT verification happens before this function; only public signals
 // and the verified user's private topic are forwarded to each browser.
-export async function changeStream(request: Request, uid: string|null, cors: Record<string,string>) {
+export async function changeStream(request: Request, uid: string|null, cors: Record<string,string>, snapshot:()=>Promise<unknown>) {
   const encoder=new TextEncoder();
   let closed=false, heartbeat:ReturnType<typeof setInterval>, expiry:ReturnType<typeof setTimeout>;
   let controller:ReadableStreamDefaultController<Uint8Array>;
@@ -24,7 +24,7 @@ export async function changeStream(request: Request, uid: string|null, cors: Rec
       const send=(event:string,data:unknown)=>{if(!closed)c.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));};
       const topics=['korae:public',...(uid?['korae:user:'+uid]:[])],ready=new Set<string>();
       for(const topic of topics)stops.push(hub.subscribe(topic,()=>{
-        ready.add(topic);if(ready.size===topics.length)send('ready',{});
+        ready.add(topic);if(ready.size===topics.length)void snapshot().then(revisions=>send('ready',{version:1,revisions})).catch(()=>{send('ready',{});});
       },payload=>send('change',payload),status=>{send('unavailable',{status});cleanup();}));
       heartbeat=setInterval(()=>{if(!closed)c.enqueue(encoder.encode(': heartbeat\n\n'));},20000);
       // Free Edge workers have a finite lifetime; retain bounded reconnects.
