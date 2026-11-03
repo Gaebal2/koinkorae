@@ -1,4 +1,48 @@
 {
+  "{0} 미션 안내": {
+    "en": "{0} mission details",
+    "zh-CN": "{0}任务说明",
+    "zh-TW": "{0}任務說明",
+    "vi": "Hướng dẫn nhiệm vụ {0}",
+    "id": "Panduan misi {0}",
+    "hi": "{0} मिशन की जानकारी",
+    "fil": "Gabay sa misyong {0}",
+    "ja": "{0}のミッション説明",
+    "de": "Hinweise zur Mission {0}"
+  },
+  "피드는 서로 다른 내용으로 10자 이상 작성해 주세요.": {
+    "en": "Write posts with distinct content and at least 10 characters each.",
+    "zh-CN": "请发布内容不同且每篇至少10个字符的帖子。",
+    "zh-TW": "請發布內容不同且每篇至少10個字元的貼文。",
+    "vi": "Viết các bài đăng có nội dung khác nhau, mỗi bài ít nhất 10 ký tự.",
+    "id": "Buat postingan dengan isi yang berbeda dan minimal 10 karakter per postingan.",
+    "hi": "हर पोस्ट में अलग सामग्री और कम से कम 10 अक्षर लिखें।",
+    "fil": "Sumulat ng mga post na magkakaiba ang nilalaman at may hindi bababa sa 10 character bawat isa.",
+    "ja": "投稿はそれぞれ異なる内容で、10文字以上入力してください。",
+    "de": "Schreibe Beiträge mit unterschiedlichen Inhalten und jeweils mindestens 10 Zeichen."
+  },
+  "배틀은 10초 이상 플레이하고 1점 이상 획득한 뒤 종료해야 집계됩니다. 연습은 제외됩니다.": {
+    "en": "A battle counts after you play for at least 10 seconds, score at least 1 point, and finish it. Practice is excluded.",
+    "zh-CN": "对战需进行至少10秒、获得至少1分并结束后才计入。练习不计入。",
+    "zh-TW": "對戰需進行至少10秒、獲得至少1分並結束後才計入。練習不計入。",
+    "vi": "Trận đấu chỉ được tính khi bạn chơi ít nhất 10 giây, đạt ít nhất 1 điểm và kết thúc trận. Không tính luyện tập.",
+    "id": "Battle dihitung setelah bermain minimal 10 detik, meraih minimal 1 poin, dan mengakhirinya. Latihan tidak dihitung.",
+    "hi": "बैटल तभी गिना जाएगा जब आप कम से कम 10 सेकंड खेलें, कम से कम 1 अंक पाएँ और बैटल समाप्त करें। अभ्यास शामिल नहीं है।",
+    "fil": "Mabibilang ang battle kapag naglaro nang hindi bababa sa 10 segundo, nakakuha ng kahit 1 puntos, at tinapos ito. Hindi kasama ang practice.",
+    "ja": "バトルは10秒以上プレイし、1点以上獲得して終了すると集計されます。練習は対象外です。",
+    "de": "Ein Battle zählt, wenn du mindestens 10 Sekunden spielst, mindestens 1 Punkt erzielst und es beendest. Übung zählt nicht."
+  },
+  "댓글은 서로 다른 피드에 5자 이상 작성해 주세요.": {
+    "en": "Write comments of at least 5 characters each on different posts.",
+    "zh-CN": "请在不同帖子下发表评论，每条至少5个字符。",
+    "zh-TW": "請在不同貼文下留言，每則至少5個字元。",
+    "vi": "Viết bình luận ít nhất 5 ký tự trên các bài đăng khác nhau.",
+    "id": "Tulis komentar minimal 5 karakter pada postingan yang berbeda.",
+    "hi": "अलग-अलग पोस्ट पर कम से कम 5 अक्षरों की टिप्पणियाँ लिखें।",
+    "fil": "Magkomento ng hindi bababa sa 5 character sa magkakaibang post.",
+    "ja": "それぞれ異なる投稿に、5文字以上のコメントを入力してください。",
+    "de": "Schreibe Kommentare mit jeweils mindestens 5 Zeichen zu unterschiedlichen Beiträgen."
+  },
   "PSL 에어드롭": {
     "zh-CN": "PSL 空投",
     "zh-TW": "PSL 空投",

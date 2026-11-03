@@ -47,14 +47,14 @@
 .swithpi-error{padding:12px;border-radius:12px;background:#fff4f2;font-size:12px;overflow-wrap:anywhere}
 .swithpi-consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.6;margin:20px 0}
 .swithpi-consent input{width:18px;height:18px;flex:none;margin-top:4px}
-.pi-verified{color:#2589df;flex:none}
+.pi-verified{color:#16a34a;flex:none}
 .pi-wallet-button{display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #e3ddec;border-radius:12px;background:white;color:var(--primary-dark);font-size:10px;line-height:1.5;padding:9px;max-width:116px}
 .pi-wallet-button svg{width:17px;height:17px}
-.profile-page-x .profile-head:has(.pi-wallet-button){grid-template-columns:40px minmax(0,1fr) auto;column-gap:10px}
-.profile-page-x .profile-head:has(.pi-wallet-button) .profile-avatar{width:40px;height:40px;border:0;grid-row:1}
+.profile-page-x .profile-head.profile-member-head{grid-template-columns:40px minmax(0,1fr) auto;column-gap:10px}
+.profile-page-x .profile-head.profile-member-head .profile-avatar{width:40px;height:40px;border:0;grid-row:1}
 .profile-head>.pi-wallet-button{grid-column:3;grid-row:1;align-self:center}
-.profile-head:has(.pi-wallet-button)>p{grid-column:1/-1;grid-row:2;margin-top:10px}
-.profile-head:has(.pi-wallet-button) h1{font-size:18px}
+.profile-page-x .profile-head.profile-member-head>p{grid-column:1/-1;grid-row:2;margin-top:10px}
+.profile-page-x .profile-head.profile-member-head h1{font-size:18px}
 .wallet-card{border:1px solid var(--line,#e7e0ef);border-radius:16px;padding:16px;margin-bottom:16px;background:#fff}
 .wallet-card h3{display:flex;align-items:center;gap:8px;font-size:15px;margin:0 0 12px}
 .wallet-card h3 svg{width:20px}
@@ -69,8 +69,8 @@
 .wallet-notice{padding:12px;background:#edf8f2;color:#287746;border-radius:10px;font-size:12px}
 .battle-choice>.battle-practice{width:100%;margin-top:14px;background:#f0f1f4;color:#686b77;border:1px solid #e0e2e7;border-radius:14px;min-height:46px;font-weight:700}
 
-@media(max-width:360px){.profile-page-x .profile-head:has(.pi-wallet-button){padding:14px;column-gap:7px;grid-template-columns:40px minmax(0,1fr) auto}
-.profile-page-x .profile-head:has(.pi-wallet-button) .profile-avatar{width:40px;height:40px}
+@media(max-width:360px){.profile-page-x .profile-head.profile-member-head{padding:14px;column-gap:7px;grid-template-columns:40px minmax(0,1fr) auto}
+.profile-page-x .profile-member-head .profile-avatar{width:40px;height:40px}
 .pi-wallet-button{font-size:9px;padding:7px}
 .swithpi-facts>div{flex-direction:column;gap:4px}
 .swithpi-facts dd{text-align:left}
@@ -85,20 +85,23 @@
 .chat-unread-divider{align-self:stretch;text-align:center;color:#2563eb;font-size:12px;border-top:1px solid #bfdbfe;padding:10px;margin:12px 0}
 .wallet-network-note{font-size:13px;color:#64748b;line-height:1.6}
 
-.profile-head:has(.pi-wallet-button) .profile-name-row{align-self:center;overflow:hidden}
-.profile-head:has(.pi-wallet-button) h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;display:block}
+.profile-member-head .profile-name-row{align-self:center;overflow:hidden}
+.profile-member-head h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;display:block}
 .profile-head>.pi-wallet-button{white-space:nowrap;max-width:none;font-size:10px;padding:8px 6px}
 .wallet-import{border-top:1px solid var(--line);margin-top:20px;padding-top:12px}
 
-.swithpi-mine,.profile-head>.pi-wallet-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:9px 12px;border-radius:999px;border:1px solid #ddd4f5;background:var(--surface,#fff);color:var(--primary-dark);font-weight:700;box-shadow:0 3px 10px #7157ff0c;max-width:46%;font-size:11px;line-height:1.4}
+.swithpi-mine,.profile-head>.pi-wallet-button,.profile-member-head>.follow-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:9px 12px;border-radius:999px;border:1px solid #ddd4f5;background:var(--surface,#fff);color:var(--primary-dark);font-weight:700;box-shadow:0 3px 10px #7157ff0c;max-width:46%;font-size:11px;line-height:1.4}
 .swithpi-mine svg,.profile-head>.pi-wallet-button svg{width:16px;height:16px;flex:none}
 .swithpi-mine.active{background:var(--primary);border-color:var(--primary);color:white;box-shadow:0 4px 12px #7157ff26}
 .profile-head>.pi-wallet-button{max-width:164px;white-space:normal}
+.profile-member-head>.follow-button{grid-column:3;grid-row:1;align-self:center;max-width:164px;white-space:normal;overflow-wrap:anywhere}
+.profile-member-head>.follow-button[data-following="true"]{background:var(--surface-tint);border-color:#ded6ff}
+.profile-member-head>.follow-button:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
 .profile-head>.pi-wallet-button .pi-verified,.swithpi-wallet-bar>.pi-verified{color:#16a34a}
 .pi-wallet-button span{word-break:normal;overflow-wrap:anywhere;line-height:1.35}
 .pi-wallet-button:focus-visible,.swithpi-mine:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
 .wallet-import>.primary,.wallet-card form>.primary{min-height:46px}
-@media(max-width:360px){.profile-head>.pi-wallet-button{max-width:140px}.profile-head>.pi-wallet-button,.swithpi-mine{padding:8px;gap:4px}}
+@media(max-width:360px){.profile-head>.pi-wallet-button,.profile-member-head>.follow-button{max-width:140px}.profile-head>.pi-wallet-button,.profile-member-head>.follow-button,.swithpi-mine{padding:8px;gap:4px}}
 
 .wallet-test-payment{display:grid;gap:8px;margin:20px 0;padding:18px;border:2px solid #d7b550;border-radius:14px;background:#fff8df;color:#60460b}
 .wallet-test-payment>span{font-size:16px;font-weight:700}

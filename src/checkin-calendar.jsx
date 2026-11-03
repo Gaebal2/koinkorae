@@ -12,8 +12,10 @@ export function CheckinCalendar({balance, signedIn, today}) {
   const offset = new Date(first*86400000).getUTCDay();
   const days = new Set([...(balance.checkinDays || []),balance.day]);
   const historySince = balance.historySince ?? today;
+  const streak=signedIn&&balance.day>=today-1?balance.streak||0:0;
   const move = delta => {const next=new Date(Date.UTC(month.year,month.month+delta,1));setMonth({year:next.getUTCFullYear(),month:next.getUTCMonth()});};
   return <section className="checkin-calendar" aria-label={t('출석 달력')}>
+    <p className="checkin-summary">{t('현재 연속 출석 {0}일 · 누적 출석 {1}일',streak,signedIn?balance.stats?.days||0:0)}</p>
     <header><button onClick={()=>move(-1)} aria-label={t('이전 달')}><ChevronLeft/></button><h2>{t('{0}년 {1}월',month.year,month.month+1)}</h2><button onClick={()=>move(1)} aria-label={t('다음 달')}><ChevronRight/></button></header>
     <div className="calendar-grid">{['일','월','화','수','목','금','토'].map(day=><span className="calendar-weekday" key={day}>{t(day)}</span>)}
       {Array.from({length:offset},(_,i)=><span key={'blank'+i}/>)}

@@ -571,8 +571,16 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 .level-progress-grid [data-complete=true] b { color:#17804d; }
 .policy-mission h2 { display:flex; justify-content:space-between; gap:10px; }
 .policy-mission h2 span { color:var(--primary); white-space:nowrap; }
-.mission-counts { display:flex; flex-wrap:wrap; gap:8px; }
-.mission-counts span { border-radius:8px; padding:8px; background:var(--surface-tint); font-size:12px; }
+.mission-counts { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; }
+.mission-item { display:flex; align-items:center; gap:12px; padding:12px 10px 12px 14px; border-radius:12px; background:var(--surface-tint); }
+.mission-item-content { flex:1; min-width:0; }
+.mission-item-heading { display:flex; align-items:baseline; gap:10px; font-size:13px; }
+.mission-item-heading b { font-variant-numeric:tabular-nums; }
+.mission-help { display:grid; place-items:center; flex:none; width:44px; height:44px; padding:10px; border:0; border-radius:50%; background:transparent; color:var(--primary-dark); cursor:pointer; }
+.mission-help svg { width:20px; height:20px; }
+.mission-help:hover { background:var(--surface); }
+.mission-help:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+.checkin-calendar>.checkin-summary { margin:0 0 16px; padding-bottom:14px; border-bottom:1px solid var(--line); font-size:12px; line-height:1.6; font-weight:600; color:var(--primary-dark); }
 .policy-mission small { display:block; color:var(--muted); font-size:12px; line-height:1.7; }
 .points-policy-page .points-policy { max-width:none; }
 .points-policy-page .points-policy h2 { margin-top:28px; }
