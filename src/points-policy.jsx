@@ -1,3 +1,4 @@
+import {LoadingIndicator,QueryStatus} from './loading-indicator.jsx';
 import {RankBadge} from './rank-badge.jsx';
 ﻿import React,{useEffect,useState} from 'react';
 import {Trophy, Coins, ArrowLeft} from 'lucide-react';
@@ -13,6 +14,7 @@ export function PointsPolicy({balance={current:0,lifetime:0},me,onBack,login}) {
  const values={days:balance.stats?.days||0,bp:balance.lifetime||0,posts:balance.stats?.posts||0,reposts:balance.stats?.reposts||0,games:balance.stats?.games||0,likes:balance.stats?.likes||0};
  const rankCard=<section className="points-policy policy-rank-card"><h2>{t('등급 배지')}</h2><p>{t('선택한 등급의 모든 조건을 충족해야 합니다. 출석은 누적 출석일, 포인트는 누적 KK 기준입니다. 받은 좋아요는 본인을 제외한 사용자와 피드의 조합당 한 번 집계합니다. 배틀 횟수는 새 정책 적용 이후의 완료 기록부터 집계합니다.')}</p><div className="rank-collection" aria-label={t('등급 배지')}>{POINTS_POLICY.levels.map((rank,i)=><button type="button" key={rank.name} aria-pressed={selected===i} onClick={()=>setSelection(i)} data-earned={!!me&&level.index>=i}><RankBadge level={i}/><b>{t(rank.name)}</b><small>{me&&level.index>=i?t('획득'):t('도전')}</small></button>)}</div>
  <section className="policy-progress" aria-live="polite"><h2>{t(selection===null&&level.next?'다음 등급: {0}':'선택 등급: {0}',t(target.name))}</h2><div className="level-progress-grid">{Object.entries(values).map(([key,value])=><div key={key} data-complete={!!me&&value>=target[key]}><span>{t(labels[key])}</span><b>{target[key]===0?t('조건 없음'):(me?fmt(value)+' / ':'')+fmt(target[key])}</b>{me&&<progress value={target[key]===0?1:Math.min(value,target[key])} max={target[key]||1} aria-label={t(labels[key])}/>}</div>)}</div></section></section>;
+ if(me&&balance._pending)return <main><QueryStatus query={balance._query||{}}/></main>;
  return <main className="points-policy-page">
   <div className="policy-heading"><button className="policy-back" onClick={onBack} aria-label={t('이전 화면')}><ArrowLeft/></button><div><h1>{t('포인트 정책')}</h1><p>{t('내 KK 현황과 활동별 포인트 기준')}</p></div></div>
   {me?<>

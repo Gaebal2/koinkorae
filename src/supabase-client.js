@@ -19,7 +19,7 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
   const cache=new Map(), pending=new Map(), watchers=new Map();
   const observers=new Set();let scope='guest',scopeVersion=0,disconnect,changeTimer;
   const queuedChanges=new Set();let queuedEvents=[],queuedUnscoped=false;
-  const persistent=(action,args={})=>['profile','profiles','getPin','friends','following','relationships','listPins','reposts','comments'].includes(action) || (action==='page' && args.options?.mode!=='ownComments');
+  const persistent=(action,args={})=>['balance','profile','profiles','getPin','friends','following','relationships','listPins','reposts','comments'].includes(action) || (action==='page' && args.options?.mode!=='ownComments');
   let generation=0;
   const revisions=new Map();
   const versionOf=action=>generation+':'+(revisions.get(action)||0);
@@ -85,7 +85,7 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
         }
       }
       const value=await read(action,args);
-      if(version===versionOf(action) && ttl){
+      if(version===versionOf(action)){
         cache.delete(id); cache.set(id,{action,args,value,time:Date.now()});
         if(cache.size>500)cache.delete(cache.keys().next().value);
         if(persistent(action,args))void storage?.set({key:requestScope+':'+id,scope:requestScope,action,args,value,time:Date.now()});
@@ -120,13 +120,14 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
     }
     const listener={callback,onError,pollInterval};entry.listeners.add(listener);
     if(entry.last!==undefined)callback(entry.value);
+    else if(cache.has(id)){const saved=cache.get(id);entry.value=saved.value;entry.last=JSON.stringify(saved.value);callback(saved.value);}
     if(entry.listeners.size===1){
       if(storage && persistent(action,args) && !cache.has(id)){
-        const version=versionOf(action);
+        const version=versionOf(action),savedScope=scope;
         void storage.get(scope+':'+id).then(saved=>{
-          if(version===versionOf(action) && entry.listeners.size && saved){entry.value=saved.value;entry.last=JSON.stringify(saved.value);if(Date.now()-saved.time<interval)cache.set(id,{action,args,value:saved.value,time:saved.time});for(const item of entry.listeners)item.callback(saved.value);}
+          if(savedScope===scope && version===versionOf(action) && entry.listeners.size && saved && Number.isFinite(saved.time) && Date.now()-saved.time>=0 && Date.now()-saved.time<86400000){entry.value=saved.value;entry.last=JSON.stringify(saved.value);if(Date.now()-saved.time<interval)cache.set(id,{action,args,value:saved.value,time:saved.time});for(const item of entry.listeners)item.callback(saved.value);}
           void entry.refresh();
-        });
+        }).catch(()=>void entry.refresh());
       }else void entry.refresh();
     }
     if(watchers.size===1)visibility?.addEventListener('visibilitychange',onVisibility);
@@ -145,5 +146,5 @@ export function createCommunityClient({url,key='',token,fetcher=fetch,interval=3
     void storage?.remove(entry=>entry.scope===previous);invalidate(undefined,false);syncTransport();
   }
   const saved=(action,args={})=>storage?.get(scope+':'+action+':'+JSON.stringify(canonical(args)));
-  return {call,watch,invalidate,observe,setScope,saved,getScope:()=>scope,getScopeVersion:()=>scopeVersion};
+  return {call,watch,invalidate,observe,setScope,saved,peek:(action,args={})=>cache.get(action+':'+JSON.stringify(canonical(args)))?.value,getScope:()=>scope,getScopeVersion:()=>scopeVersion};
 }

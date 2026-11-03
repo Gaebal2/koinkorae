@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import { t } from './language.js';
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {bufferedBounds,containsBounds,retainMapResult} from './map-updates.js';
@@ -32,5 +33,5 @@ export function PagedMap({component:Map,ownPins=[],...props}){
     props.select(detail||{...pin,_detailPending:!('description' in pin)});
   };
   return <Map {...props} pins={pins} pinCount={page.totalCount ?? '…'} select={select} onBounds={onBounds} ownPinCount={ownPins.length}
-    moreControl={<div className="map-results">{(error||page.error)&&<p role="alert">{t(error||"지도를 불러오지 못했습니다.")}<button onClick={()=>error&&props.selected?.id?retryDetail(value=>value+1):page.retry()}>{t("다시 시도")}</button></p>}{page.loading?(!items.length&&<span role="status">{t("주변 Pin 불러오는 중…")}</span>):page.nextCursor?<button onClick={page.more}>{t("주변 Pin 20개 더 보기")}</button>:null}</div>}/>;
+    moreControl={<div className="map-results">{(error||page.error)&&<p role="alert">{t(error||"지도를 불러오지 못했습니다.")}<button onClick={()=>error&&props.selected?.id?retryDetail(value=>value+1):page.retry()}>{t("다시 시도")}</button></p>}{page.loading?(!items.length&&<LoadingIndicator label="주변 Pin 불러오는 중…"/>):page.nextCursor?<button onClick={page.more}>{t("주변 Pin 20개 더 보기")}</button>:null}</div>}/>;
 }

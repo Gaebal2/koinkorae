@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import {FeedContent} from './feed-content.jsx';
 import { coinMarker } from './coin-artwork.js';
 import { useAppMessage, useFeedback } from './feedback.jsx';
@@ -20,7 +21,7 @@ function useResource(loader, deps) {
 function Status({ loading, error, retry }) {
   const [, showError] = useAppMessage();
   useEffect(() => { showError(error); }, [error, showError]);
-  if (loading) return <p className="loading-state" role="status">불러오는 중…</p>;
+  if (loading) return <LoadingIndicator/>;
   if (error) return <div className="connection-error" role="alert"><p>{error}</p><button className="secondary" onClick={retry}>다시 시도</button></div>;
   return null;
 }

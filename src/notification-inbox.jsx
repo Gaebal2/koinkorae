@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import {markDeviceNotificationsRead} from './app-badge.js';
 import React,{useEffect,useRef,useState} from 'react';
 import {ShieldCheck,UserPlus,Siren,Trash2,Bell,MessageCircle,Repeat2,Heart,Share2,MessagesSquare,CalendarCheck,ArrowUpRight,RefreshCw} from 'lucide-react';
@@ -22,6 +23,6 @@ export function NotificationInbox({me}){
  {error&&<p role="alert" className="error">{t(error)}<button onClick={()=>refresh(v=>v+1)}>{t('다시 시도')}</button></p>}
  {!loading&&!error&&!items.length&&<div className="empty-state"><Bell/><h3>{t('아직 받은 알림이 없습니다')}</h3><p>{t('새로운 푸시 알림이 도착하면 여기에 표시됩니다.')}</p></div>}
  {items.map(item=>{const Icon=icons[item.kind]||Bell;return <article className="own-comment-card notification-card" key={item.id}><header className="own-comment-heading"><span className="own-comment-icon"><Icon size={17}/></span><b>{t(labels[item.kind]||'알림')}</b><time dateTime={item.createdAt}>{age(Date.parse(item.createdAt))}</time></header><p className="own-comment-body">{t(notificationText(item.kind))}</p>{item.details?.contentKind&&<p className="notification-context"><b>{item.details.contentKind==='pins'?'Pin':t('피드')}</b>{item.details.summary&&<span>{item.details.summary}</span>}</p>}{notificationTarget(item)&&<a className="notification-open" href={notificationTarget(item)}><span>{t(item.kind==='follow'?'프로필 보기':item.details?.contentKind==='pins'?'Pin 보기':item.kind==='chat'?'채팅 보기':item.kind==='checkin'?'체크인 하러 가기':'관련 피드 보기')}</span><ArrowUpRight size={18}/></a>}</article>;})}
- {loading&&<p role="status">{t('불러오는 중…')}</p>}{cursor!==null&&<button className="secondary" disabled={loading} onClick={more}>{t('더 보기')}</button>}
+ {loading&&<LoadingIndicator label="불러오는 중…"/>}{cursor!==null&&<button className="secondary" disabled={loading} onClick={more}>{t('더 보기')}</button>}
  </section>;
 }

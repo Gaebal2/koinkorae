@@ -32,7 +32,7 @@ export function createPagedStore({load,saved,observe},maxEntries=30){
           if(!hydrated){hydrated=true;void Promise.resolve(saved?.(options)).then(row=>{
             if(row && !hasResult){hasResult=true;emit({items:row.value.items,nextCursor:row.value.nextCursor,totalCount:row.value.totalCount,loading:false});}
             if(stale)void refresh(false);
-          });}else if(stale)void refresh();
+          }).catch(()=>{if(stale)void refresh(false);});}else if(stale)void refresh();
         }
         return()=>{listeners.delete(callback);if(!listeners.size){active--;if(!active){sharedStop?.();sharedStop=null;}}};
       },

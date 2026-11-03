@@ -135,17 +135,18 @@ test('persistent cache failure is optional and debounce sends only the final val
   const storage=createQueryStorage(null);assert.equal(await storage.get('x'),undefined);await storage.set({key:'x'});
   const seen=[];const update=debounce(v=>seen.push(v),5);update('a');update('ab');update('abc');await new Promise(r=>setTimeout(r,20));assert.deepEqual(seen,['abc']);update('discard');update.cancel();await new Promise(r=>setTimeout(r,10));assert.equal(seen.length,1);
 });
-test('offline profile hydration works, and sensitive balance/message responses are never persisted',async()=>{
-  const writes=[],values=[];const storage={get:async()=>({value:{id:'alice',username:'cached'}}),set:async row=>writes.push(row),remove:async()=>{}};
+test('offline profiles hydrate; balance snapshots are account scoped while messages and own comments stay out of query storage',async()=>{
+  const writes=[],values=[];const storage={get:async()=>({time:Date.now(),value:{id:'alice',username:'cached'}}),set:async row=>writes.push(row),remove:async()=>{}};
   let offline=true;
   const client=createCommunityClient({url:'https://example.test',token:async()=>null,storage,fetcher:async()=>{
     if(offline)throw Error('offline');return {ok:true,json:async()=>({data:{current:42}})};
   }});
+  client.setScope('alice');
   const stop=client.watch('profile',{id:'alice'},value=>values.push(value),()=>{});await tick();
   assert.equal(values[0].username,'cached');stop();offline=false;
   await client.call('balance',{uid:'alice'});await client.call('messages',{friendId:'bob'});
   await client.call('page',{options:{mode:'ownComments'}});
-  assert.equal(writes.length,0);
+  assert.equal(writes.length,1);assert.equal(writes[0].action,'balance');assert.equal(writes[0].scope,'alice');assert.ok(writes[0].key.startsWith('alice:'));
 });
 test('account switch clears the previous account without deleting startup cache for the new account',async()=>{
   const rows=[{scope:'guest'},{scope:'alice'}];

@@ -1,3 +1,4 @@
+import {LoadingIndicator,QueryStatus} from './loading-indicator.jsx';
 import {DailyMissions} from './daily-missions.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
 import {POINTS_POLICY} from '../supabase/functions/_shared/points-policy.js';
@@ -29,7 +30,7 @@ export function HomePage({ onCoin, onPin, onReposted, me, options, setOptions, f
   const result = filterFeed(posts.map(post => ({...post, likeCount: actions.likes.filter(like => like.postId === post.id).length})), options, following);
   const card = post => <CommunityPost onPin={onPin} key={post.id} post={post} onProfile={onProfile} {...actions}/>;
   return <main className="home-page"><FeedControls options={options} setOptions={setOptions}/>
-    {loading && <p className="loading-state" role="status">{t("피드를 불러오는 중…")}</p>}{error && <p className="error" role="alert">{error}</p>}
+    {loading && <LoadingIndicator label="피드를 불러오는 중…"/>}{error && <p className="error" role="alert">{error}</p>}
     {!loading && !error && !result.posts.length && <Empty text={options.category === '팔로잉' ? t("팔로우한 사용자의 게시물이 없습니다") : t("첫 번째 이야기를 남겨보세요")}/>}
     {options.feed === '유저 피드' ? <div className="feed">{result.posts.map(card)}</div> : [...result.groups].sort((a,b)=>Number(b.coin===options.focusCoin)-Number(a.coin===options.focusCoin)).map((group, index) => <section className="coin-group" key={group.coin}><button className="coin-group-head" aria-expanded={!!open[group.coin]} onClick={() => setOpen({ ...open, [group.coin]: !open[group.coin] })}><Coin symbol={group.coin}/><div><b>{group.coin}</b><small>{options.category === '최신' ? age(group.score) : `${t(options.category === '논쟁' ? '논쟁' : options.category === '급상승' ? '급상승' : '코인 지지')} ${group.score.toLocaleString()}`} · {group.items.length}{t("개의 피드")}</small></div>{open[group.coin] ? <ChevronUp/> : <ChevronDown/>}</button>{open[group.coin] && group.items.map(card)}</section>)}
     <button className="fab" onClick={compose} aria-label={t("새 피드 작성")}><SquarePen/></button>
@@ -48,8 +49,8 @@ function CommentThread({post,me,close,query,onProfile}) {
   const { confirm } = useFeedback();
   const [deleting, setDeleting] = useState(null);
   const [pendingScroll, setPendingScroll] = useState(null);
-  const [legacyItems, setItems] = useState([]), [content, setContent] = useState(''), [reply, setReply] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
-  const items=query?[...query.items].sort((a,b)=>a.createdAt-b.createdAt||a.id.localeCompare(b.id)):legacyItems;
+  const [legacyItems, setItems] = useState(null), [content, setContent] = useState(''), [reply, setReply] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useAppMessage();
+  const items=query?[...query.items].sort((a,b)=>a.createdAt-b.createdAt||a.id.localeCompare(b.id)):legacyItems||[];
   const timer = useRef(null), origin = useRef(null), nodes = useRef(new Map()), sending = useRef(false), input = useRef(null);
   const cancelPress = () => clearTimeout(timer.current);
   useEffect(() => { if(query)return; return data.watchComments(post.id, setItems, () => setError('댓글을 불러오지 못했습니다.')); }, [post.id,!!query]);
@@ -83,7 +84,7 @@ function CommentThread({post,me,close,query,onProfile}) {
     <div className="chat-messages" aria-label={t("댓글 대화")}>
       {query?.nextCursor&&<button disabled={query.loading} onClick={query.more}>{t("이전 댓글 20개 보기")}</button>}
       {query?.error&&<button onClick={query.retry}>{t("댓글 다시 불러오기")}</button>}
-      {!items.length && <p className="form-help">{query?.loading?t("댓글을 불러오는 중…"):t("첫 댓글을 남겨보세요.")}</p>}
+      {!items.length && <p className="form-help">{(query?query.loading:legacyItems===null)?<LoadingIndicator inline label="댓글을 불러오는 중…"/>:t("첫 댓글을 남겨보세요.")}</p>}
       {items.map(c => <article key={c.id} ref={node => { if (node) nodes.current.set(c.id, node); else nodes.current.delete(c.id); }} tabIndex={-1} className={'chat-message ' + (c.side || 'neutral')}>
         <div className="chat-message-head"><CommentAuthor id={c.authorId} name={c.author} initial={c.authorProfile} onProfile={onProfile? id=>{close();onProfile(id);}:undefined}/>{c.authorId === me?.id && <button type="button" className="chat-delete" disabled={!!deleting} onClick={() => remove(c)} aria-label={t("내 댓글 삭제")}>×</button>}</div>
         <div className="chat-bubble" tabIndex={0} aria-label={c.author + (c.side === 'support' ? t(" 지지") : c.side === 'oppose' ? t(" 반대") : '') + t(" 댓글. 길게 누르거나 Enter 키로 답글 작성")}
@@ -122,6 +123,7 @@ export function CheckinPage({ me, balance, login }) {
     } catch (error) { setError(error.message || '출석을 저장하지 못했습니다. 인터넷 연결을 확인해 주세요.'); }
     finally { setBusy(false); }
   };
+  if(me&&balance._pending)return <main><QueryStatus query={balance._query||{}}/></main>;
   return <main><PageTitle icon={CalendarCheck} title={t("오늘의 KK")} sub={t("매일 출석하고 KK를 모으세요")}/>
     <DailyMissions balance={balance} signedIn={!!me} login={login}/>
     <div className="checkin-action-row"><button type="button" className="primary checkin-action" disabled={busy || checked} onClick={checkin}>{checked ? <Check/> : <CalendarCheck/>}{checked ? t('출석 완료') : busy ? t('출석 확인 중…') : t('출석체크')}</button></div>

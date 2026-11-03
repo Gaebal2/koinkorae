@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
 import {useContentRefresh} from './content-refresh.jsx';
 import { t, getLocale } from './language.js';
@@ -66,7 +67,7 @@ function Conversation({friend,me,onClose}) {
   return <main className="friend-conversation"><header className="friend-chat-head"><button onClick={onClose} aria-label={t("친구 목록으로")}><ArrowLeft/></button><RankedAvatar src={(profile ? profile.profileImage : friend.profileImage) || profileImage()} profile={profile || friend}/><b>{profile?.username || friend.username}</b></header>
     <div className="chat-messages direct-messages" ref={scroll} onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<80;}} aria-label={t("친구와의 대화")}>
       {more&&<button className="text-action" disabled={busy} onClick={loadOlder}>{t("이전 메시지 보기")}</button>}
-      {loading ? <p role="status">{t("대화를 불러오는 중…")}</p> : !rows.length && <Empty text={t("친구에게 첫 메시지를 보내보세요.")}/>}
+      {loading ? <LoadingIndicator label="대화를 불러오는 중…"/> : !rows.length && <Empty text={t("친구에게 첫 메시지를 보내보세요.")}/>}
       {rows.map(row=><React.Fragment key={row.id}>{entry?.firstUnread?.id===row.id&&<div ref={unreadAnchor} className="chat-unread-divider" role="separator">{t('여기부터 안 읽은 메시지')}</div>}<article data-message-id={row.id} className={'chat-message direct-message '+(row.senderId===me.id?'mine':'theirs')}><div className="chat-message-head"><b>{row.senderId===me.id?t("나"):profile?.username||friend.username}</b></div><div className="chat-bubble"><p>{row.content}</p></div><small>{new Date(row.createdAt).toLocaleString(getLocale(),{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small>{row.delivery==='sending'&&<small role="status">{t('전송 중…')}</small>}{row.delivery==='failed'&&<button type="button" className="chat-retry" onClick={()=>retry(row)}>{t('전송 실패 · 다시 보내기')}</button>}</article></React.Fragment>)}<div ref={end}/>
     </div>{entryError&&<p role="alert" className="error">{t(entryError)} <button onClick={()=>setEntryAttempt(value=>value+1)}>{t('다시 시도')}</button></p>}{error&&<p role="alert" className="error">{t(error)}</p>}
     <form className="chat-composer direct-composer" onSubmit={send}><div className="chat-input-row"><textarea ref={input} aria-label={t("메시지")} maxLength={1000} value={content} onChange={e=>setContent(e.target.value)} placeholder={t("메시지를 입력하세요")}/><button type="submit" className="primary" onPointerDown={e=>{if(e.button===0)e.preventDefault();}} disabled={!content.trim()} aria-label={t("메시지 보내기")}><Send/></button></div></form>
@@ -79,7 +80,7 @@ function SignedInChat({me}) {
   useEffect(()=>{if(selected&&friends&&!friends.some(friend=>friend.id===selected.id))setSelected(null);},[friends,selected]);
   useBackDismiss(!!selected,()=>setSelected(null),40);
   if(selected)return <Conversation key={selected.id} friend={selected} me={me} onClose={()=>setSelected(null)}/>;
-  return <main><PageTitle icon={MessagesSquare} title={t("맞팔 친구와 채팅")} sub={t("친구와 이야기를 나누세요")}/>{error&&<p className="error" role="alert">{t(error)}</p>}{friends===null?<p role="status">{t("친구를 불러오는 중…")}</p>:!friends.length?<Empty text={t("등록 된 친구가 없습니다.")}/>:<div className="chat-friends">{friends.map(friend=><button key={friend.id} onClick={()=>setSelected(friend)}><RankedAvatar src={friend.profileImage||profileImage()} profile={friend}/><span><b>{friend.username}</b><small>{friend.bio}</small></span><MessagesSquare/></button>)}</div>}</main>;
+  return <main><PageTitle icon={MessagesSquare} title={t("맞팔 친구와 채팅")} sub={t("친구와 이야기를 나누세요")}/>{error&&<p className="error" role="alert">{t(error)}</p>}{friends===null?<LoadingIndicator label="친구를 불러오는 중…"/>:!friends.length&&!error?<Empty text={t("등록 된 친구가 없습니다.")}/>:<div className="chat-friends">{friends.map(friend=><button key={friend.id} onClick={()=>setSelected(friend)}><RankedAvatar src={friend.profileImage||profileImage()} profile={friend}/><span><b>{friend.username}</b><small>{friend.bio}</small></span><MessagesSquare/></button>)}</div>}</main>;
 }
 export function FriendChat({me,login}) {
   if(!me)return <main><PageTitle icon={MessagesSquare} title={t("맞팔 친구와 채팅")}/><p>{t("로그인하고 친구와 채팅하세요.")}</p><button className="primary" onClick={login}>{t("로그인")}</button></main>;

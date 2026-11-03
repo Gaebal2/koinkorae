@@ -2,6 +2,50 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCommunityClient} from '../src/supabase-client.js';
 import {dispatch} from '../supabase/functions/community/handler.js';
+import {createSwithpiCache} from '../src/swithpi-cache.js';
+
+function walletFixture(){
+ const rows=new Map();let scope='alice',version=0,clock=1000000,calls=0;
+ const status={identity:{wallet_address:'verified'},pslAddress:'wallet'},events={events:[{id:'psl'}],entries:[{event_id:'psl'}]};
+ let response=async action=>action==='status'?status:events;
+ const storage={get:async key=>rows.get(key),set:async row=>rows.set(row.key,row),remove:async fn=>{for(const [key,row] of rows)if(fn(row))rows.delete(key);}};
+ const options={storage,getScope:()=>scope,getScopeVersion:()=>version,now:()=>clock,request:action=>{calls++;return response(action);}};
+ return {rows,options,status,events,cache:createSwithpiCache(options),calls:()=>calls,respond:fn=>response=fn,advance:()=>clock+=61000,switch:()=>{scope='bob';version++;}};
+}
+test('wallet reads deduplicate, survive navigation and hydrate after app restart without another request',async()=>{
+ const f=walletFixture();let release;f.respond(()=>new Promise(resolve=>release=resolve));
+ const a=f.cache.call('events'),b=f.cache.call('events');await tick();assert.equal(f.calls(),1);release(f.events);
+ assert.deepEqual(await a,await b);assert.deepEqual(f.cache.peek('events'),f.events);
+ const restarted=createSwithpiCache(f.options),seen=[];const stop=restarted.watch('events',value=>seen.push(value));await tick();stop();
+ assert.deepEqual(seen,[f.events]);assert.equal(f.calls(),1);
+});
+test('stale wallet snapshots stay visible when revalidation fails and forced reads bypass freshness',async()=>{
+ const f=walletFixture();await f.cache.call('status');await f.cache.call('status',{},true);assert.equal(f.calls(),2);
+ f.advance();f.respond(async()=>{throw Error('offline');});const restarted=createSwithpiCache(f.options),seen=[],errors=[];
+ const stop=restarted.watch('status',value=>seen.push(value),error=>errors.push(error));await tick();stop();
+ assert.deepEqual(seen,[f.status]);assert.equal(errors.length,1);assert.deepEqual(restarted.peek('status'),f.status);
+});
+test('wallet cache rejects responses after account change and never hydrates another account',async()=>{
+ const f=walletFixture();let release;f.respond(()=>new Promise(resolve=>release=resolve));
+ const request=f.cache.call('status');await tick();f.switch();f.cache.clear();release(f.status);await assert.rejects(request,/Session changed/);
+ assert.equal(f.cache.peek('status'),null);assert.equal(f.rows.size,0);
+});
+test('confirmed application persists before revalidation and invalidates an older in-flight read',async()=>{
+ const f=walletFixture();f.respond(async()=>({...f.events,entries:[]}));await f.cache.call('events');
+ let release;f.respond(()=>new Promise(resolve=>release=resolve));const old=f.cache.call('events',{},true);await tick();
+ f.respond(async()=>({event_id:'psl',applied_at:'now'}));await f.cache.call('apply');release({...f.events,entries:[]});await assert.rejects(old,/Session changed/);
+ assert.equal(f.cache.peek('events').entries[0].applied_at,'now');
+ const restarted=createSwithpiCache(f.options);assert.equal((await restarted.call('events')).entries[0].applied_at,'now');
+});
+test('optional wallet storage failures do not fail successful server reads',async()=>{
+ const f=walletFixture();const broken={get:async()=>{throw Error('disk');},set:async()=>{throw Error('quota');}};
+ const cache=createSwithpiCache({...f.options,storage:broken});assert.deepEqual(await cache.call('status'),f.status);
+});
+test('balance subscribers receive a confirmed cached value synchronously while server refresh is pending',async()=>{
+ let release;const client=createCommunityClient({url:'https://example.test',token:async()=>null,fetcher:async()=>({ok:true,json:async()=>({data:release?await new Promise(resolve=>release=resolve):{current:42}})})});
+ await client.call('balance',{uid:'a'});release=true;const seen=[];const stop=client.watch('balance',{uid:'a'},value=>seen.push(value));
+ assert.deepEqual(seen,[{current:42}]);await tick();release({current:43});await tick();assert.deepEqual(seen,[{current:42},{current:43}]);stop();
+});
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('live Pin signals preserve unrelated detail caches and startup admission preserves feeds',async()=>{

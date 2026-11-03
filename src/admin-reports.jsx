@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import React,{useEffect,useRef,useState} from 'react';
 import {Siren,CheckCircle2,Trash2,RefreshCw} from 'lucide-react';
 import {data} from './data.js';
@@ -45,7 +46,7 @@ export function AdminReports() {
    {row.item?<><h4>{row.item.title||row.item.author||t('피드')}</h4>{row.kind==='pins'&&<small>@{row.item.creator||t('사용자')}</small>}<p>{row.item.description||row.item.content}</p>{row.item.repostComment&&<p>{row.item.repostComment}</p>}{row.item.image&&<img src={row.item.image} loading="lazy" alt={t('신고된 콘텐츠 사진')}/>}</>:<p>{t('작성자가 삭제한 항목입니다.')}</p>}
    <footer><time dateTime={row.createdAt}>{new Date(row.createdAt).toLocaleDateString(getLocale())}</time><div className="admin-report-actions"><button type="button" disabled={!row.item||busy!==null||row.hidden||row.kind!=='posts'} onClick={()=>moderate(row,true)}><Trash2 size={15}/>{t('피드 삭제')}</button><button type="button" disabled={!row.item||busy!==null||row.hidden||row.kind!=='pins'} onClick={()=>moderate(row,true)}><Trash2 size={15}/>{t('Pin 삭제')}</button><button type="button" disabled={!row.item||busy!==null||row.hidden} onClick={()=>moderate(row,false)}><CheckCircle2 size={15}/>{t('신고 철회')}</button></div></footer>
   </article>)}
-  {loading&&<p role="status">{t('불러오는 중…')}</p>}
+  {loading&&<LoadingIndicator label="불러오는 중…"/>}
   {cursor!==null&&<button type="button" className="secondary" disabled={loading||busy!==null} onClick={more}>{t('더 보기')}</button>}
  </div>;
 }

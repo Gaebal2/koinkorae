@@ -1,3 +1,4 @@
+import {LoadingRing} from './loading-indicator.jsx';
 import {CircleAlert} from 'lucide-react';
 import React, {useEffect, useRef, useState} from 'react';
 import {contentRefresh} from './content-refresh.js';
@@ -53,6 +54,6 @@ export function ContentRefresh({page}) {
   if(!distance && !busy && !error) return null;
   const label = error ? t('새로고침하지 못했습니다. 다시 당겨 주세요.') : busy ? t('갱신 중…') : distance >= 64 ? t('놓으면 새로고침') : t('당겨서 새로고침');
   return <div className={'content-refresh-status'+(error ? ' has-error' : '')} role="status" aria-label={label} style={error ? undefined : {transform:`translate(-50%, ${busy ? 12 : Math.min(distance,64)-36}px)`, opacity:busy ? 1 : Math.min(1,distance/24)}}>
-    {error ? <><CircleAlert aria-hidden="true"/><span>{label}</span></> : <svg className={busy ? "refresh-spinner" : "refresh-pull-ring"} viewBox="0 0 24 24" aria-hidden="true" style={busy ? undefined : {transform:`rotate(${distance*4}deg)`}}><circle className={busy ? "refresh-ring-arc" : undefined} cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeDasharray={busy ? "42 57" : `${Math.max(4,Math.min(distance/64,1)*48)} 57`}/></svg>}
+    {error ? <><CircleAlert aria-hidden="true"/><span>{label}</span></> : busy ? <LoadingRing/> : <svg className={busy ? "refresh-spinner" : "refresh-pull-ring"} viewBox="0 0 24 24" aria-hidden="true" style={busy ? undefined : {transform:`rotate(${distance*4}deg)`}}><circle className={busy ? "refresh-ring-arc" : undefined} cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeDasharray={busy ? "42 57" : `${Math.max(4,Math.min(distance/64,1)*48)} 57`}/></svg>}
   </div>;
 }

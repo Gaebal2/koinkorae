@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import {useFeedback} from './feedback.jsx';
 import {swithpiErrorKey} from './swithpi-errors.js';
 import React,{useEffect,useState,useRef} from 'react';
@@ -6,26 +7,29 @@ import {data} from './data.js';
 import {Modal} from './ui.jsx';
 import {t,getLocale} from './language.js';
 import './swithpi.css';
-export const swithpi=(action,value)=>data.swithpi?data.swithpi(action,value):Promise.reject(Error('지갑 인증 서비스가 준비되지 않았습니다.'));
+export const swithpi=(action,value,force=false)=>data.swithpi?data.swithpi(action,value,force):Promise.reject(Error('지갑 인증 서비스가 준비되지 않았습니다.'));
+export const peekSwithpi=action=>data.peekSwithpi?.(action)||null;
+export function watchSwithpi(action,callback,error=()=>{}){if(data.watchSwithpi)return data.watchSwithpi(action,callback,error);let active=true;swithpi(action).then(value=>{if(active)callback(value);}).catch(reason=>{if(active)error(reason);});return()=>{active=false;};}
 export const walletDate=value=>new Intl.DateTimeFormat(getLocale(),{dateStyle:'medium',timeStyle:'short',hourCycle:'h23',timeZone:'Asia/Seoul'}).format(new Date(value))+' KST';
 export function PiWalletButton({userId}) {
- const [open,setOpen]=useState(false),[verified,setVerified]=useState(false);
- useEffect(()=>{let live=true;setVerified(false);swithpi('status').then(s=>{if(live)setVerified(!!s.identity);}).catch(()=>{});return()=>{live=false;};},[userId]);
- return <><button className="pi-wallet-button" data-verified={verified} onClick={()=>setOpen(true)}>{verified?<BadgeCheck className="pi-verified" aria-label={t('인증 완료')}/>:<Wallet aria-hidden="true"/>}<span>{t('Pi 지갑 소유권 인증')}</span></button>{open&&<PiWalletModal key={userId} onClose={()=>setOpen(false)} onChange={s=>setVerified(!!s.identity)}/>}</>;
+ const [open,setOpen]=useState(false),[verified,setVerified]=useState(()=>peekSwithpi("status")?!!peekSwithpi("status").identity:null);
+ useEffect(()=>watchSwithpi('status',s=>setVerified(!!s.identity)),[userId]);
+ return <><button className="pi-wallet-button" data-verified={verified} onClick={()=>setOpen(true)}>{verified===null?<LoadingIndicator inline/>:verified?<BadgeCheck className="pi-verified" aria-label={t('인증 완료')}/>:<Wallet aria-hidden="true"/>}<span>{t('Pi 지갑 소유권 인증')}</span></button>{open&&<PiWalletModal key={userId} onClose={()=>setOpen(false)} onChange={s=>setVerified(!!s.identity)}/>}</>;
 }
 export function PiWalletModal({onClose,onChange=()=>{}}) {
  const {notify,confirm}=useFeedback(),importLock=useRef(false);
- const [status,setStatus]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
- const [wallet,setWallet]=useState(''),[challenge,setChallenge]=useState(null),[now,setNow]=useState(Date.now()),[psl,setPsl]=useState(''),[editing,setEditing]=useState(false);
- const refresh=async()=>{const s=await swithpi('status');setStatus(s);setPsl(s.pslAddress||'');setEditing(!s.pslAddress);onChange(s);return s;};
- useEffect(()=>{let active=true;swithpi('status').then(s=>{if(active){setStatus(s);setPsl(s.pslAddress||'');setEditing(!s.pslAddress);}}).catch(e=>{if(active)setError(swithpiErrorKey(e));});return()=>{active=false;};},[]);
+ const [status,setStatus]=useState(()=>peekSwithpi("status")),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
+ const [wallet,setWallet]=useState(''),[challenge,setChallenge]=useState(null),[now,setNow]=useState(Date.now()),[psl,setPsl]=useState(()=>peekSwithpi('status')?.pslAddress||''),[editing,setEditing]=useState(()=>!!peekSwithpi('status')&&!peekSwithpi('status').pslAddress);
+ const refresh=async()=>{const s=await swithpi('status',{},true);setStatus(s);setPsl(s.pslAddress||'');setEditing(!s.pslAddress);onChange(s);return s;};
+ const initialized=useRef(!!status);
+ useEffect(()=>watchSwithpi('status',s=>{setStatus(s);if(!initialized.current){initialized.current=true;setPsl(s.pslAddress||'');setEditing(!s.pslAddress);}},e=>setError(swithpiErrorKey(e))),[]);
  useEffect(()=>{if(!challenge)return;const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[challenge]);
  const run=async fn=>{if(busy)return;setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(swithpiErrorKey(e));}finally{setBusy(false);}};
  const remaining=challenge?Math.max(0,Math.ceil((Date.parse(challenge.expires_at)-now)/1000)):0;
  const identity=status?.identity;
  return <Modal title={t('Pi 지갑 소유권 인증')} onClose={onClose} className="pi-wallet-modal">
   {error&&<p className="error" role="alert">{t(error)}</p>}{notice&&<p className="wallet-notice" role="status">{t(notice)}</p>}
-  {!status?<><p role="status">{t('인증 정보를 불러오는 중…')}</p>{error&&<button className="secondary" disabled={busy} onClick={()=>run(refresh)}>{t('다시 시도')}</button>}</>:<>
+  {!status?<><LoadingIndicator label="인증 정보를 불러오는 중…"/>{error&&<button className="secondary" disabled={busy} onClick={()=>run(refresh)}>{t('다시 시도')}</button>}</>:<>
   <section className="wallet-card">
    <p className="wallet-network-note">{t('테스트넷과 메인넷의 Pi 지갑 주소는 동일합니다.')}</p>
    <h3>{identity?<><BadgeCheck className="pi-verified"/>{t('Pi 지갑 인증 완료')}</>:<><Wallet/>{t('Pi 테스트넷 지갑 인증')}</>}</h3>
@@ -52,8 +56,8 @@ export function PiWalletModal({onClose,onChange=()=>{}}) {
    </>}
   </section>
   {identity&&<section className="wallet-card"><h3><Wallet/>{t('PSL 토큰 지갑 연결')}</h3><p>{t('PSL 에어드롭을 받을 SASEUL 지갑 주소를 입력하고 저장하세요.')}</p>
-   <form onSubmit={e=>{e.preventDefault();if(!editing){setEditing(true);return;}void run(async()=>{await swithpi('savePsl',{address:psl});await refresh();setNotice('PSL 지갑 주소를 저장했습니다.');});}}>
-    <label className="field"><span>{t('PSL 수령 지갑 주소')}</span>{editing?<input required value={psl} onChange={e=>setPsl(e.target.value)} minLength={44} maxLength={44} placeholder={t('44자리 SASEUL 주소')} autoCapitalize="none" autoCorrect="off" spellCheck={false}/>:<output className="wallet-address">{psl}</output>}</label>
+   <form onSubmit={e=>{e.preventDefault();if(!editing){setPsl(status.pslAddress||'');setEditing(true);return;}void run(async()=>{await swithpi('savePsl',{address:psl});await refresh();setNotice('PSL 지갑 주소를 저장했습니다.');});}}>
+    <label className="field"><span>{t('PSL 수령 지갑 주소')}</span>{editing?<input required value={psl} onChange={e=>setPsl(e.target.value)} minLength={44} maxLength={44} placeholder={t('44자리 SASEUL 주소')} autoCapitalize="none" autoCorrect="off" spellCheck={false}/>:<output className="wallet-address">{status.pslAddress}</output>}</label>
     <button className="secondary" disabled={busy}>{busy?t('저장 중…'):editing?t('지갑주소 저장'):t('지갑주소 변경')}</button>
    </form><p className="form-help">{t('주소 저장은 소유권 인증이 아닙니다. 이미 신청한 이벤트의 수령 주소는 변경되지 않습니다.')}</p>
    <a className="wallet-link" href="https://wallet.pslmining.com/" target="_blank" rel="noopener noreferrer">{t('SASEUL 지갑 열기')}<ExternalLink size={15}/></a>

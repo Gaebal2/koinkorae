@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import {FitText} from './fit-text.jsx';
 import {FeedContent} from './feed-content.jsx';
 import {RankedAvatar} from './rank-badge.jsx';
@@ -64,7 +65,7 @@ export function useFeedActions(me, login, onReposted, enriched = false, onProfil
       catch { setError('게시물을 삭제하지 못했습니다.'); }
     },
   };
-  const overlays = <>{repostDraft && <Modal title={t('리포스트')} onClose={() => { if (!repostLock.current) setRepostDraft(null); }} className="repost-composer"><form onSubmit={event => { event.preventDefault(); void saveRepost(); }}><label className="field"><span>{t('리포스트 코멘트')}</span><textarea autoFocus rows={3} maxLength={100} value={repostComment} disabled={busy} placeholder={t('이 피드에 대한 생각을 남겨보세요')} onChange={event => setRepostComment(event.target.value)}/></label><div className="repost-compose-footer"><small aria-live="polite">{repostComment.length}/100</small><button className="primary" type="submit" disabled={busy}>{busy?t('저장 중…'):t('리포스트 · 최초 {0} KK',POINTS_POLICY.costs.reposts)}</button></div></form></Modal>}{battle && <Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}><BattleGames post={battle} onClose={() => setBattle(null)}/></Suspense>}{comments && <Comments post={comments} onProfile={onProfile} me={me} close={() => setComments(null)}/ >}{photo && <Modal title={t("피드 사진")} onClose={() => setPhoto(null)}><img className="expanded-photo" src={photo} alt={t("피드 첨부 사진 확대")}/></Modal>}</>;
+  const overlays = <>{repostDraft && <Modal title={t('리포스트')} onClose={() => { if (!repostLock.current) setRepostDraft(null); }} className="repost-composer"><form onSubmit={event => { event.preventDefault(); void saveRepost(); }}><label className="field"><span>{t('리포스트 코멘트')}</span><textarea autoFocus rows={3} maxLength={100} value={repostComment} disabled={busy} placeholder={t('이 피드에 대한 생각을 남겨보세요')} onChange={event => setRepostComment(event.target.value)}/></label><div className="repost-compose-footer"><small aria-live="polite">{repostComment.length}/100</small><button className="primary" type="submit" disabled={busy}>{busy?t('저장 중…'):t('리포스트 · 최초 {0} KK',POINTS_POLICY.costs.reposts)}</button></div></form></Modal>}{battle && <Suspense fallback={<LoadingIndicator label="불러오는 중…"/>}><BattleGames post={battle} onClose={() => setBattle(null)}/></Suspense>}{comments && <Comments post={comments} onProfile={onProfile} me={me} close={() => setComments(null)}/ >}{photo && <Modal title={t("피드 사진")} onClose={() => setPhoto(null)}><img className="expanded-photo" src={photo} alt={t("피드 첨부 사진 확대")}/></Modal>}</>;
   return { actions, overlays };
 }
 
@@ -77,7 +78,7 @@ function AttachedPin({ id, onPin }) {
     data.getPin(id).then(value => { if (active) { setPin(value); setStatus(value ? 'ready' : 'missing'); } }, () => { if (active) setStatus('error'); });
     return () => { active = false; };
   }, [id, revision]);
-  if (!pin) return <div className="attached-pin-status" role="status">{status === 'loading' ? t("첨부 Pin을 불러오는 중…") : status === 'missing' ? t("삭제된 Pin입니다.") : <button type="button" onClick={() => retry(value => value + 1)}>{t("Pin 다시 불러오기")}</button>}</div>;
+  if (!pin) return <div className="attached-pin-status" role="status">{status === 'loading' ? <LoadingIndicator inline label="첨부 Pin을 불러오는 중…"/> : status === 'missing' ? t("삭제된 Pin입니다.") : <button type="button" onClick={() => retry(value => value + 1)}>{t("Pin 다시 불러오기")}</button>}</div>;
   return <PinDetailCard pin={pin} className="feed-pin-card" onActivate={() => onPin?.(id)}/>;
 }
 

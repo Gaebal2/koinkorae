@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import React,{useEffect,useRef,useState} from 'react';
 import {ShieldCheck,UserPlus,Siren,Trash2,Bell,MessageCircle,Repeat2,Heart,Share2,MessagesSquare,CalendarCheck} from 'lucide-react';
 import {data} from './data.js';
@@ -22,7 +23,7 @@ export function NotificationSettings({me}) {
  const switchButton=(key,label,on,disabled=false)=><button type="button" className="notification-switch" role="switch" aria-label={t(label)} aria-checked={on} disabled={busy||disabled} onClick={()=>change(key,!on)}><span/></button>;
  return <section className="notification-settings" aria-labelledby="notification-heading" aria-busy={busy}>
   <div className="notification-heading"><span className="notification-heading-icon"><Bell size={21}/></span><div><h3 id="notification-heading">{t('알림 설정')}</h3><p>{t('받고 싶은 소식만 골라보세요')}</p></div></div>
-  {!state&&!error&&<p role="status">{t('불러오는 중…')}</p>}
+  {!state&&!error&&<LoadingIndicator label="불러오는 중…"/>}
   {state&&<><div className="notification-master"><div><b>{t('전체 알림')}</b><small>{t('전체 알림을 한 번에 켜거나 꺼요')}</small></div>{switchButton('enabled','전체 알림',state.preferences.enabled,!state.publicKey&&!state.preferences.enabled)}</div>
    {!state.publicKey&&<p className="notification-help">{t('알림 서비스 준비 중입니다.')}</p>}
    {!pushSupported()&&<p className="notification-help">{t('iPhone에서는 홈 화면에 앱을 추가한 뒤 알림을 켜 주세요.')}</p>}

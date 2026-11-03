@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import {FitText} from './fit-text.jsx';
 import {PinLocationPicker} from './pin-location-picker.jsx';
 import {FeedContent} from './feed-content.jsx';
@@ -156,7 +157,7 @@ export function PinDetailCard({ pin, onProfile, onImage, onDelete, onEdit, onAct
       <div className="pin-detail-content">
         {!!pin.tradeCoins?.length && <div className="pin-trade-coins"><small>{t("거래 가능한 코인:")}</small>{pin.tradeCoins.map(symbol => <Coin key={symbol} symbol={symbol} size="trade"/>)}</div>}
         <b>{pin.title}</b>
-        {pin._detailPending?<p role="status">{t('상세 정보 불러오는 중…')}</p>:<p>{pin.description}</p>}
+        {pin._detailPending?<LoadingIndicator label="상세 정보 불러오는 중…"/>:<p>{pin.description}</p>}
         {pin.link && (passive ? <span className="pin-inactive-link">{pin.link}</span> : <a href={pin.link} target="_blank" rel="noreferrer">{pin.link}</a>)}
       </div>
       {footer && <div className="pin-detail-footer">{footer}</div>}
@@ -270,7 +271,7 @@ export function PinForm({ center, onClose, onSave, initial, pinCost = 1 }) {
   );
 }
 
-export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChange, onPickMap, hidden = false, initialDraft }) {
+export function Composer({pinsPending=false, onClose, onPublish, pins = [], selectedPin, onPinChange, onPickMap, hidden = false, initialDraft }) {
   const [error, setError] = useAppMessage();
   const [busy, setBusy] = useState(false), [picker, setPicker] = useState(null);
   const [content, setContent] = useState(initialDraft?.content || ''), [coin, setCoin] = useState(initialDraft?.coin || cmcCoins[0].symbol);
@@ -287,7 +288,7 @@ export function Composer({ onClose, onPublish, pins = [], selectedPin, onPinChan
   if (picker === 'pin') return <Modal title={t("Pin 추가")} onClose={() => setPicker(null)}>
     <button className="pin-map-picker" onClick={() => { setPicker(null); onPickMap?.(); }}><MapPin/><span>{t("지도 위에서 선택")}</span></button>
     <h3>{t("내가 생성한 Pin")}</h3><div className="composer-pin-list">{pins.map(pin => <PinDetailCard key={pin.id} pin={pin} interactionDisabled className={`composer-pin-card ${selectedPin?.id === pin.id ? 'selected' : ''}`} topAction={<button className="pin-list-select" onClick={() => { onPinChange?.(pin); setPicker(null); }}>{selectedPin?.id === pin.id && <Check/>}{t("선택")}</button>}/>)}</div>
-    {!pins.length && <p>{t("아직 생성한 Pin이 없습니다. 지도에서 Pin을 선택할 수 있습니다.")}</p>}
+    {pinsPending?<LoadingIndicator/>:!pins.length && <p>{t("아직 생성한 Pin이 없습니다. 지도에서 Pin을 선택할 수 있습니다.")}</p>}
   </Modal>;
   return <><Modal title={t("새 피드 작성")} onClose={onClose} className="composer-modal">
     <textarea className="composer-text" autoFocus value={content} maxLength={200} onChange={e => handleDescriptionInput(e, setContent)} placeholder={t("커뮤니티에 어떤 이야기를 전할까요?")}/>
@@ -360,7 +361,7 @@ export function Field({ label, children, group = false }) {
 
 export function CoinPicker({values = [], onChange, options, disabled = false, max = 1}) {
   const [order,setOrder] = useState('지지순위'), [query,setQuery] = useState('');
-  const [ranking,setRanking] = useState([]), [status,setStatus] = useState('');
+  const [ranking,setRanking] = useState(null), [status,setStatus] = useState('순위를 불러오는 중…');
   useEffect(()=>{
     let active = true;
     if (!data.page) return data.watchPosts(posts=>setRanking(filterFeed(posts,{category:'지지',period:'전체'}).groups.map(group=>group.coin)));
@@ -376,15 +377,15 @@ export function CoinPicker({values = [], onChange, options, disabled = false, ma
     return ()=>{active=false;stop();};
   },[]);
   const pinned=['PI','SL','PSL'];
-  const ranks=new Map([...pinned,...ranking.filter(symbol=>!pinned.includes(symbol))].map((symbol,index)=>[symbol,index]));
+  const ranks=new Map([...pinned,...(ranking||[]).filter(symbol=>!pinned.includes(symbol))].map((symbol,index)=>[symbol,index]));
   const available=cmcCoins.filter(coin=>!options || options.some(option=>option.coin===coin.symbol));
   const sorted=[...available].sort((a,b)=>order==='시총순위' ? (a.cmcRank??Infinity)-(b.cmcRank??Infinity) : (ranks.get(a.symbol)??Infinity)-(ranks.get(b.symbol)??Infinity));
   const filtered=sorted.filter(coin=>[coin.symbol,coin.name,t(coin.name),coin.aliases||''].join(' ').toLowerCase().includes(query.toLowerCase()));
   return <div className="coin-picker"><div className="segments">{['시총순위','지지순위'].map(item=><button type="button" key={item} className={order===item?'active':''} aria-pressed={order===item} onClick={()=>setOrder(item)}>{t(item)}</button>)}</div>
     <label className="search"><Search/><input aria-label={t('코인 검색')} placeholder={t('코인 검색')} value={query} onChange={event=>setQuery(event.target.value)}/></label>
-    {order==='지지순위' && status && <small role="status">{t(status)}</small>}
+    {order==='지지순위' && status && (status==='순위를 불러오는 중…'?(!ranking&&<LoadingIndicator/>):<small role="alert">{t(status)}</small>)}
     <div className="app-select-options coin-picker-options">{options?.filter(option=>!option.coin).map(option=><button type="button" className="select-reset" key={option.value} onClick={()=>onChange(option.value)}>{t(option.label)}</button>)}
-      {filtered.map(coin=><button type="button" key={coin.symbol} className={values.includes(coin.symbol)?'selected':''} aria-pressed={values.includes(coin.symbol)} disabled={disabled || (max>1 && !values.includes(coin.symbol) && values.length>=max)} onClick={()=>onChange(coin.symbol)}><Coin symbol={coin.symbol} size="sm"/><span><b>{t(coin.name)}</b><small>{coin.symbol}</small></span>{values.includes(coin.symbol)&&<Check size={16}/>}<span className="coin-pin-slot">{order==='지지순위'&&pinned.includes(coin.symbol)&&<Pin size={16} aria-label={t('상단 고정')}/>}</span></button>)}
+      {(order==='지지순위'&&!ranking?[]:filtered).map(coin=><button type="button" key={coin.symbol} className={values.includes(coin.symbol)?'selected':''} aria-pressed={values.includes(coin.symbol)} disabled={disabled || (max>1 && !values.includes(coin.symbol) && values.length>=max)} onClick={()=>onChange(coin.symbol)}><Coin symbol={coin.symbol} size="sm"/><span><b>{t(coin.name)}</b><small>{coin.symbol}</small></span>{values.includes(coin.symbol)&&<Check size={16}/>}<span className="coin-pin-slot">{order==='지지순위'&&pinned.includes(coin.symbol)&&<Pin size={16} aria-label={t('상단 고정')}/>}</span></button>)}
     </div>{!filtered.length&&<p>{t('검색 결과가 없습니다.')}</p>}
   </div>;
 }

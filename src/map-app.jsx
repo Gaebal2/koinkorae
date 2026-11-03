@@ -1,3 +1,5 @@
+import {useQueryState} from './use-query-state.js';
+import {LoadingIndicator,QueryStatus} from './loading-indicator.jsx';
 import {SwithPiIcon} from './swithpi-icon.jsx';
 import './swithpi.css';
 const SwithPiPage = lazy(() => import('./swithpi-page.jsx').then(module => ({default:module.SwithPiPage})));
@@ -66,7 +68,7 @@ function GoogleAuth({ close, done }) {
   </Modal>;
 }
 
-export function MapPage({ pinLimit=3, pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick, onBounds, moreControl, ownPinCount, coinFilter = '', onCoinFilter, pinCategory = '', onPinCategory, pinCount }) {
+export function MapPage({ pinsPending=false, balancePending=false, pinLimit=3, pins, selected, select, me, login, edit, onProfile, onDelete, picking, onPick, onCancelPick, onBounds, moreControl, ownPinCount, coinFilter = '', onCoinFilter, pinCategory = '', onPinCategory, pinCount }) {
   const element = useRef(null), map = useRef(null), markers = useRef(null), markerById = useRef(new Map());
   const selectPin = useRef(select);
   selectPin.current = select;
@@ -147,7 +149,7 @@ export function MapPage({ pinLimit=3, pins, selected, select, me, login, edit, o
     {picking && !selected && <div className="pin-detail pin-selection-empty"><p>{t("지도에서 첨부할 Pin을 눌러 주세요.")}</p><div className="pin-detail-footer">{pickActions}</div></div>}
     {!picking && <div className="map-intro"><div><b>{t("내 주변 P2P 거래")}</b><small>{t("현재 총 {0}개의 핀이 생성됨", pinCount ?? pins.length)}</small></div><div className="map-filters"><AppSelect resetLabel="초기화" title={t("코인 선택")} value={coinFilter} onChange={onCoinFilter} searchable floating options={[{value:"",label:"전체코인"},...cmcCoins.map(c=>({value:c.symbol,label:c.symbol,coin:c.symbol,search:c.name}))]}/><AppSelect resetLabel="초기화" title={t("Pin 종류")} value={pinCategory} onChange={onPinCategory} floating options={[{value:"",label:"전체 Pin"},...pinCategories.map(value=>({value,label:value}))]}/></div></div>}
     {locationError && <div className="map-message" role="alert">{locationError}</div>}{moreControl}
-    <div className="map-toolbar"><span>{me ? t("내 거래 {0}/{1} · 등록 {2} KK", ownPinCount ?? pins.filter(p => p.owner).length,pinLimit,POINTS_POLICY.costs.pins) : t("로그인하고 거래를 등록하세요")}</span><button disabled={picking} aria-label={t("내 위치")} onClick={() => { setLocationError(''); if (!navigator.geolocation) { setLocationError('위치 정보를 지원하지 않는 브라우저입니다.'); return; } navigator.geolocation.getCurrentPosition(p => map.current?.setView([p.coords.latitude, p.coords.longitude], 16), () => setLocationError('위치 권한을 확인하거나 지도를 직접 움직여 주세요.'), { timeout: 10000 }); }}><LocateFixed/></button><button aria-label={t("거래 등록")} disabled={picking || (!!me && (ownPinCount ?? pins.filter(p => p.owner).length) >= pinLimit)} onClick={() => me ? edit({ center }) : login()}><MapPinPlus/></button></div>
+    <div className="map-toolbar"><span>{me&&(pinsPending||balancePending)?<LoadingIndicator inline/>:me ? t("내 거래 {0}/{1} · 등록 {2} KK", ownPinCount ?? pins.filter(p => p.owner).length,pinLimit,POINTS_POLICY.costs.pins) : t("로그인하고 거래를 등록하세요")}</span><button disabled={picking} aria-label={t("내 위치")} onClick={() => { setLocationError(''); if (!navigator.geolocation) { setLocationError('위치 정보를 지원하지 않는 브라우저입니다.'); return; } navigator.geolocation.getCurrentPosition(p => map.current?.setView([p.coords.latitude, p.coords.longitude], 16), () => setLocationError('위치 권한을 확인하거나 지도를 직접 움직여 주세요.'), { timeout: 10000 }); }}><LocateFixed/></button><button aria-label={t("거래 등록")} disabled={picking || (!!me&&(pinsPending||balancePending)) || (!!me && (ownPinCount ?? pins.filter(p => p.owner).length) >= pinLimit)} onClick={() => me ? edit({ center }) : login()}><MapPinPlus/></button></div>
     {selected && <div key={selected.id} ref={cardAnchor} className="map-pin-card-anchor" style={{visibility:'hidden'}}><PinDetailCard pin={selected} interactionDisabled={picking} footer={pickActions} onDelete={selected.owner ? onDelete : undefined} onProfile={() => onProfile(selected.ownerId)} onEdit={selected.owner ? p => edit({ initial: p, center }) : undefined} onImage={p => setPhoto(p.image)}/></div>}
     {photo && <Modal title={t("거래 사진")} onClose={() => setPhoto(null)}><img style={{ width: '100%' }} src={photo} alt={t("거래 첨부 사진")}/></Modal>}
   </main>;
@@ -178,10 +180,17 @@ export default function App() {
   const [practiceDraft,setPracticeDraft]=useState(null);
   const [authReady, setAuthReady] = useState(false);
   useEffect(()=>{if(authReady)trackScreen(page);},[authReady,page]);
-  const [compose, setCompose] = useState(false), [following, setFollowing] = useState([]), [balance, setBalance] = useState({ current: 0, lifetime: 0, day: -1 });
+  const [compose, setCompose] = useState(false);
   useEffect(()=>{if(me&&practiceDraft)setCompose(true);},[me,practiceDraft]);
   useEffect(()=>{const open=()=>setPage('battle');window.addEventListener('korae:practice',open);return()=>window.removeEventListener('korae:practice',open);},[]);
   const sharePractice=draft=>{setPracticeDraft(draft);setAttachedPin(null);if(me)setCompose(true);else setAuth(true);};
+  const balanceQuery=useQueryState('balance:'+me?.id,(ok,fail)=>data.watchBalance(me?.id,ok,fail),()=>data.peekQuery?.('balance',{uid:me?.id}));
+  const balance=balanceQuery.value||{current:0,lifetime:0,day:-1,_pending:!!me,_query:balanceQuery};
+  const followingQuery=useQueryState('following:'+me?.id,(ok,fail)=>data.watchFollowing(me?.id,ok,fail),()=>data.peekQuery?.('following',{uid:me?.id}));
+  const following=followingQuery.value||[];
+  const [pinScope,setPinScope]=useState(null);
+  const expectedPinScope=page==='profile'?profileId:me?.id;
+  const pinsPending=!!expectedPinScope&&pinScope!==expectedPinScope;
   const [options, setOptions] = useState(restored.options);
   const [profileFeed, setProfileFeed] = useState('작성 피드');
   const [profileEntry,setProfileEntry]=useState(0);
@@ -202,17 +211,15 @@ export default function App() {
   const refresh = async () => { try { setPins(data.page ? me ? (await data.page({mode:'pins',owner:me.id,detail:true},null,true)).items : [] : await data.listPins()); } catch { setError('거래 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'); } };
   useEffect(()=>{if(!me?.id||!data.subscribePush)return;void import('./push-notifications.js').then(({syncDevicePush})=>syncDevicePush(data)).catch(()=>{});},[me?.id]);
   useEffect(() => data.watchAuth(user => { setMe(user); setAuthReady(true); }), []);
-  useEffect(() => { setBalance({ current: 0, lifetime: 0, day: -1 }); return data.watchBalance(me?.id, setBalance, () => setError('KK를 불러오지 못했습니다.')); }, [me?.id]);
-  useEffect(() => { setFollowing([]); if(data.page && page!=='profile')return; return data.watchFollowing(me?.id, setFollowing, () => setError('팔로잉 정보를 불러오지 못했습니다.')); }, [me?.id,page]);
-  useEffect(() => { select(null); setPins([]); }, [me?.id]);
+  useEffect(() => { select(null); setPins([]); setPinScope(null); }, [me?.id]);
   useEffect(() => {
     if(page!=='map' && page!=='profile' && !compose)return;
     if(data.watchPinPage){
       const owner=page==='profile'?profileId:me?.id;
       if(!owner){setPins([]);return;}
-      return data.watchPinPage(owner,setPins,()=>setError('거래 정보를 불러오지 못했습니다.'));
+      return data.watchPinPage(owner,rows=>{setPins(rows);setPinScope(owner);},()=>setError('거래 정보를 불러오지 못했습니다.'));
     }
-    if(data.watchPins)return data.watchPins(setPins,()=>setError('거래 정보를 불러오지 못했습니다.'));
+    if(data.watchPins)return data.watchPins(rows=>{setPins(rows);setPinScope(expectedPinScope);},()=>setError('거래 정보를 불러오지 못했습니다.'));
     void refresh();
   },[me?.id,profileId,page,compose]);
   useEffect(() => { setProfile(viewedProfile); }, [viewedProfile]);
@@ -242,9 +249,9 @@ export default function App() {
   },[authReady,sharedPost,shareRevision]);
   const perform = async action => { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
   // A pending session is not a signed-out session. Avoid guest UI during restoration.
-  if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main aria-label={t("불러오는 중…")}/></div>;
-  return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}><RankedAvatar src={myProfile?.profileImage || profileImage()} profile={myProfile} level={levelFor(balance).index} alt={t("내 프로필")}/><span>{myProfile?.username || me.username}</span></button> : <div className="logo"><img className="brand-icon" src={brandImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}<div className="header-actions">{!me && <button className="text-action header-login" disabled={pickingPin} onClick={()=>setAuth(true)}><FitText>{t('로그인')}</FitText></button>}<button type="button" className="bp-pill header-control" disabled={pickingPin} onClick={openPolicy} aria-label={t('보유 {0} KK · 포인트 정책 보기',balance.current.toLocaleString())}><FitText>{balance.current.toLocaleString()+" KK"}</FitText></button><LanguageSelector disabled={pickingPin}/>{me && page==='profile' && <button type="button" className="profile-settings-button header-control" aria-label={t('설정')} onClick={()=>setSettings(true)}><Settings aria-hidden="true"/></button>}</div></header>
-    <Suspense fallback={<main role="status"><p className="loading-state">{t("불러오는 중…")}</p></main>}>
+  if (!authReady) return <div className="app-shell community-app" aria-busy="true"><header className="topbar"/><main><LoadingIndicator/></main></div>;
+  return <div className={`app-shell community-app ${page === 'map' ? 'map-active' : ''}`}><header className="topbar">{me ? <button className="signed-in-brand" disabled={pickingPin} onClick={() => {openProfile(me.id);setProfileEntry(value=>value+1);}} aria-label={t("내 프로필로 이동")}>{!myProfile?<LoadingIndicator inline/>:<RankedAvatar src={myProfile?.profileImage || profileImage()} profile={myProfile} level={balance._pending?undefined:levelFor(balance).index} alt={t("내 프로필")}/>}<span>{myProfile?.username || ""}</span></button> : <div className="logo"><img className="brand-icon" src={brandImage()} alt="ㅋㅇㄱㄹ"/><div>ㅋㅇㄱㄹ<small>POWERED BY COIN HODLER</small></div></div>}<div className="header-actions">{!me && <button className="text-action header-login" disabled={pickingPin} onClick={()=>setAuth(true)}><FitText>{t('로그인')}</FitText></button>}<button type="button" className="bp-pill header-control" disabled={pickingPin} onClick={openPolicy} aria-label={balance._pending?t('불러오는 중…'):t('보유 {0} KK · 포인트 정책 보기',balance.current.toLocaleString())}>{balance._pending?<LoadingIndicator inline/>:<FitText>{balance.current.toLocaleString()+" KK"}</FitText>}</button><LanguageSelector disabled={pickingPin}/>{me && page==='profile' && <button type="button" className="profile-settings-button header-control" aria-label={t('설정')} onClick={()=>setSettings(true)}><Settings aria-hidden="true"/></button>}</div></header>
+    <Suspense fallback={<main role="status"><LoadingIndicator label="불러오는 중…"/></main>}>
     <ContentRefresh page={page}/>
     {error && <div className="app-error" role="alert">{error}<button disabled={pickingPin} aria-label={t("닫기")} onClick={() => setError('')}><X/></button></div>}
     {page === 'home' && <FeedHome onCoin={openCoin} onReposted={() => openProfile(me.id, '리포스트')} me={me} options={options} setOptions={setOptions} following={following} onProfile={openProfile} login={() => setAuth(true)} onPin={openPin} compose={() => { if (me) { setPracticeDraft(null); setAttachedPin(null); setCompose(true); } else setAuth(true); }}/>}
@@ -253,16 +260,16 @@ export default function App() {
     {page === 'chat' && <FriendChat me={me} login={() => setAuth(true)}/>}
     {page === 'points' && <PointsPolicy me={me} balance={balance} login={()=>setAuth(true)} onBack={goBack}/>}
     {page === 'check' && <CheckinPage me={me} balance={balance} login={() => setAuth(true)}/>}
-    {page === 'map' && <MapScreen pinLimit={levelFor(balance).current.pins} picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
-    {page === 'profile' && <CommunityProfile focusPostId={focusPostId} onCoin={openCoin} key={profileEntry} initialFeed={profileFeed} onPin={openPin} profileId={profileId} profile={viewedProfile || (profile?.id===profileId ? profile : null)} me={me} balance={balance} pins={pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
+    {page === 'map' && <MapScreen pinsPending={pinsPending} balancePending={balance._pending} pinLimit={levelFor(balance).current.pins} picking={pickingPin} onPick={finishPick} onCancelPick={() => finishPick(null)} pins={pins} selected={selected} select={select} me={me} login={() => setAuth(true)} edit={setForm} onProfile={openProfile} onDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
+    {page === 'profile' && me&&followingQuery.pending&&followingQuery.error ? <QueryStatus query={followingQuery}/> : page === 'profile' && <CommunityProfile focusPostId={focusPostId} onCoin={openCoin} key={String(profileId)+":"+profileEntry} pinsPending={pinsPending} followingPending={!!me&&followingQuery.pending} initialFeed={profileFeed} onPin={openPin} profileId={profileId} profile={viewedProfile || (profile?.id===profileId ? profile : null)} me={me} balance={balance} pins={pinsPending?[]:pins} following={following} busy={busy} login={() => setAuth(true)} onProfile={openProfile} onEdit={() => setEditing(true)} onLogout={() => perform(async () => { await data.logout(); setProfileId(null); })} onFollow={id => me ? perform(() => data.follow(id, !following.includes(id))) : setAuth(true)} onMap={pin => { select(pin); setPage('map'); }} onPinEdit={pin => setForm({initial:pin,center:pin})} onPinDelete={pin => perform(async () => { await data.deletePin(pin.id); select(null); await refresh(); void notify("거래 정보를 삭제했습니다.", {kind:"success",title:"삭제 완료"}); })}/>}
     </Suspense>
     <nav className="bottom-nav">{[['home', '홈', Home], ['map', '지도', MapIcon], ['check', '체크인', CalendarCheck], ['chat', '채팅', MessagesSquare], ['swithpi', '스윗파이', SwithPiIcon]].map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} disabled={pickingPin} onClick={() => setPage(id)}><Icon/><FitText>{t(label)}</FitText></button>)}</nav>
-    {compose && <Composer initialDraft={practiceDraft} hidden={pickingPin} pins={pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setPracticeDraft(null); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setPracticeDraft(null); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
+    {compose && <Composer initialDraft={practiceDraft} hidden={pickingPin} pinsPending={pinsPending} pins={pinsPending?[]:pins.filter(pin => pin.owner)} selectedPin={attachedPin} onPinChange={setAttachedPin} onPickMap={() => { select(null); setPickingPin(true); setPage('map'); }} onClose={() => { setCompose(false); setPracticeDraft(null); setAttachedPin(null); }} onPublish={async value => { await data.publish(value); setPracticeDraft(null); setCompose(false); setPage('home'); void notify('새 피드를 게시했습니다.', {kind:'success',title:'게시 완료'}); }}/>}
     {form && <PinForm {...form} pinCost={POINTS_POLICY.costs.pins} onClose={() => setForm(null)} onSave={async value => { const pin = await data.savePin(value, form.initial?.id); setForm(null); await refresh(); select(pin.mapHidden ? null : pin); setPage('map'); }}/>}
-    <Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}>{editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}</Suspense>
+    <Suspense fallback={<LoadingIndicator label="불러오는 중…"/>}>{editing && profile && profileId === me?.id && <ProfileEditor profile={viewedProfile || profile} onClose={() => setEditing(false)} onSaved={saved => { setProfile(saved); setEditing(false); void notify('프로필을 저장했습니다.', {kind:'success',title:'저장 완료'}); }}/>}</Suspense>
 
-    {sharedPost && <Modal title={t('공유 피드')} onClose={()=>setSharedPost(null)}>{shareError?<><p role="alert">{t(shareError)}</p><button onClick={()=>retryShare(value=>value+1)}>{t('다시 시도')}</button></>:<p role="status">{t('불러오는 중…')}</p>}</Modal>}
-    {settings && me && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}><UserRoundPen size={20} aria-hidden="true"/>{t("프로필 수정")}</button>{data.notificationSettings&&<Suspense fallback={<p role="status">{t("불러오는 중…")}</p>}><NotificationSettings key={me.id} me={me}/></Suspense>}<button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}
+    {sharedPost && <Modal title={t('공유 피드')} onClose={()=>setSharedPost(null)}>{shareError?<><p role="alert">{t(shareError)}</p><button onClick={()=>retryShare(value=>value+1)}>{t('다시 시도')}</button></>:<LoadingIndicator label="불러오는 중…"/>}</Modal>}
+    {settings && me && <Modal title={t("설정")} onClose={()=>setSettings(false)}><div className="profile-settings-menu"><button onClick={()=>{setSettings(false);openProfile(me.id);setEditing(true);}}><UserRoundPen size={20} aria-hidden="true"/>{t("프로필 수정")}</button>{data.notificationSettings&&<Suspense fallback={<LoadingIndicator label="불러오는 중…"/>}><NotificationSettings key={me.id} me={me}/></Suspense>}<button disabled={busy} onClick={()=>perform(async()=>{await data.logout();setSettings(false);setProfileId(null);})}>{t("로그아웃")}</button></div></Modal>}
     {auth && <Auth close={() => setAuth(false)} done={u => { setMe(u); setAuth(false); if (page === 'profile') setProfileId(u.id); }}/>}
     {!auth && !form && !editing && !compose && <InstallPrompt/>}
   </div>;

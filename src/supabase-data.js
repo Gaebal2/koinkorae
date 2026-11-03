@@ -1,3 +1,4 @@
+import {createSwithpiCache} from './swithpi-cache.js';
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, deleteUser, getAdditionalUserInfo } from 'firebase/auth';
 import publicConfig from './firebase-config.json';
@@ -39,8 +40,7 @@ async function admitUser(user, newlyCreated=false) {
  try { await call('ensureProfile'); return toUser(user); }
  catch(error) { if(newlyCreated && error.message?.includes('Trial capacity reached')) { try { await deleteUser(user); } catch {} } await signOut(auth); throw Error(admissionMessage(error)); }
 }
-export const data={
-  async swithpi(action,value={}) {
+async function requestSwithpi(action,value={}) {
     await auth?.authStateReady();
     const user=auth?.currentUser;
     for(let attempt=0;attempt<2;attempt++) {
@@ -55,7 +55,13 @@ export const data={
       return result.data;
     }
     throw Error('다시 로그인해 주세요.');
-  },
+  }
+const swithpiCache=createSwithpiCache({request:requestSwithpi,storage,getScope:client.getScope,getScopeVersion:client.getScopeVersion});
+export const data={
+  peekQuery:client.peek,
+  swithpi:swithpiCache.call,
+  peekSwithpi:swithpiCache.peek,
+  watchSwithpi:swithpiCache.watch,
   reportContent:(kind,id)=>call('reportContent',{kind,id}),
   notificationInbox:(before=null)=>call('notificationInbox',{before}),
   adminReports:(before=null)=>call('adminReports',{before}),
@@ -67,7 +73,7 @@ export const data={
   unsubscribePush:endpoint=>call('unsubscribePush',{endpoint}),
   recordShare:postId=>call('recordShare',{postId}),
   battleRankings:(postId,cursor=null)=>call('battleRankings',{postId,cursor}),
-  watchAuth(callback) { if(!auth){callback(null);return()=>{};} let active=true, version=0;const stop=onAuthStateChanged(auth,async u=>{const current=++version;if(client.getScope()!=='guest'&&client.getScope()!==(u?.uid||'guest'))void markDeviceNotificationsRead(Date.now(),true);if(client.getScope()!==(u?.uid||'guest'))messages.clear();client.setScope(u?.uid||'guest');if(!u){callback(null);return;}try{await call('ensureProfile');if(active&&current===version)callback(toUser(u));}catch{if(active&&current===version){callback(null);await signOut(auth);}}});return()=>{active=false;stop();}; },
+  watchAuth(callback) { if(!auth){callback(null);return()=>{};} let active=true, version=0;const stop=onAuthStateChanged(auth,async u=>{const current=++version;if(client.getScope()!=='guest'&&client.getScope()!==(u?.uid||'guest'))void markDeviceNotificationsRead(Date.now(),true);if(client.getScope()!==(u?.uid||'guest')){messages.clear();swithpiCache.clear();}client.setScope(u?.uid||'guest');if(!u){callback(null);return;}try{await call('ensureProfile');if(active&&current===version)callback(toUser(u));}catch{if(active&&current===version){callback(null);await signOut(auth);}}});return()=>{active=false;stop();}; },
   page:(options,cursor=null,force=false)=>call('page',{options,cursor,limit:20},force),
   savedPage:options=>client.saved('page',{options,cursor:null,limit:20}),
   watchPinPage:(owner,callback,error)=>watch('page',{options:{mode:'pins',owner,detail:true},cursor:null,limit:20},page=>callback(page.items),error),

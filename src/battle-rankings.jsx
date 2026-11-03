@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import React,{useEffect,useRef,useState} from 'react';
 import {Trophy} from 'lucide-react';
 import {Modal,profileImage} from './ui.jsx';
@@ -33,6 +34,6 @@ export function BattleRankings({postId,me,onClose,onProfile}) {
     {me&&result&&<section className="my-battle-ranking"><h3>{t('내 기록')}</h3>{result.mine?<Participant row={result.mine} total={result.summary.total} mine onProfile={openProfile}/>:<p className="form-help">{t('아직 이 피드에 반영한 배틀이 없습니다.')}</p>}</section>}
     {result&&<><h3>{t('상위 100명')}</h3><div className="battle-ranking-list">{result.items.map(row=><Participant key={row.userId} row={row} total={result.summary.total} onProfile={openProfile}/>)}</div>{!result.items.length&&<p className="form-help">{t('첫 배틀 참여자가 되어 보세요.')}</p>}</>}
     {error&&<p className="error" role="alert">{t('순위를 불러오지 못했습니다.')} <button onClick={()=>load(result?.nextCursor??null)}>{t('다시 시도')}</button></p>}
-    {loading?<p role="status">{t('불러오는 중…')}</p>:!error&&result?.nextCursor&&result.items.length<100?<button className="secondary ranking-more" onClick={()=>load(result.nextCursor)}>{t('20명 더 보기')}</button>:null}
+    {loading?<LoadingIndicator label="불러오는 중…"/>:!error&&result?.nextCursor&&result.items.length<100?<button className="secondary ranking-more" onClick={()=>load(result.nextCursor)}>{t('20명 더 보기')}</button>:null}
   </Modal>;
 }

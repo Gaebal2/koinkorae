@@ -1,3 +1,4 @@
+import {LoadingIndicator} from './loading-indicator.jsx';
 import {OwnCommentCard} from './own-comment-card.jsx';
 import {sharedPostStatus} from './shared-link.js';
 import {useContentRefresh} from './content-refresh.jsx';
@@ -34,7 +35,7 @@ export function MoreResults({page}){
     const observer=new IntersectionObserver(([entry])=>{if(entry.isIntersecting)void page.more();},{rootMargin:'200px'});
     observer.observe(target.current);return()=>observer.disconnect();
   },[page.nextCursor,page.loading,page.refreshing,page.error,page.more]);
-  return <div ref={target} className="more-results">{page.error?<><p role="alert">{t("목록을 불러오지 못했습니다.")}</p><button onClick={page.retry}>{t("다시 시도")}</button></>:page.loading?<p role="status">{t("불러오는 중…")}</p>:page.nextCursor?<button onClick={page.more}>{t("더 보기")}</button>:null}</div>;
+  return <div ref={target} className="more-results">{page.error?<><p role="alert">{t("목록을 불러오지 못했습니다.")}</p><button onClick={page.retry}>{t("다시 시도")}</button></>:page.loading?<LoadingIndicator label="불러오는 중…"/>:page.nextCursor?<button onClick={page.more}>{t("더 보기")}</button>:null}</div>;
 }
 export function PagedPosts({options,me,onPin,onProfile,actions,onReady,excludeId,focusPostId}){
   const page=useCursorPage(options,me?.id);
