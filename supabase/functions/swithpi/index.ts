@@ -1,4 +1,5 @@
 import {loadPslProof} from '../_shared/psl-import.js';
+import {readSwithpiApplications} from '../_shared/swithpi-admin.js';
 import {createRemoteJWKSet,jwtVerify} from 'npm:jose@6';
 import {createClient} from 'npm:@supabase/supabase-js@2';
 import {Account,Keypair,MuxedAccount} from 'npm:@stellar/stellar-sdk@14.1.1';
@@ -32,6 +33,7 @@ Deno.serve(async request=>{
   if(action==='events')return reply({data:await rpc('events',identity?.uid||null)});
   if(!identity)return reply({error:'로그인이 필요합니다.'},401);
   const uid=identity.uid;
+  if(action==='adminApplications')return reply({data:await readSwithpiApplications(client,identity,value)});
   if(action==='status')return reply({data:await rpc('status',uid)});
   if(!['savePsl','apply','challenge','verify','importPsl'].includes(action))throw Error('지원하지 않는 요청입니다.');
   const {error:admissionError}=await client.rpc('korae_admit',{p_uid:uid,p_name:identity.name});

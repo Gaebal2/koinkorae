@@ -139,5 +139,17 @@
   "2단계: PSL 지갑 주소 확인": "Step 2: Confirm PSL wallet address",
   "Pi 지갑 인증 및 에드 지갑주소, 상품 및 서비스를 받을 주소 등록": "Verify your Pi wallet and register addresses to receive airdrops, products and services",
   "에드 지갑주소, 상품 및 서비스를 받을 주소 등록": "Register addresses to receive airdrops, products and services",
-  "이벤트를 찾을 수 없습니다.": "Event not found."
+  "이벤트를 찾을 수 없습니다.": "Event not found.",
+  "스윗파이 관리": "SwithPi management",
+  "스윗파이 신청 관리": "SwithPi applications",
+  "이벤트": "Event",
+  "신청 상태": "Application status",
+  "배정 완료 · 미지급": "Allocated · unpaid",
+  "신청 내역을 불러오지 못했습니다. 다시 시도해 주세요.": "Could not load applications. Please try again.",
+  "건": "applications",
+  "신청순": "Application order",
+  "신청 시각": "Applied at",
+  "회원 ID": "User ID",
+  "지급 거래 ID": "Payout transaction ID",
+  "신청 내역이 없습니다.": "No applications found."
 }

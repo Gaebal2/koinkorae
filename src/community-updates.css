@@ -824,3 +824,21 @@ button.bp-pill:focus-visible,.policy-back:focus-visible { outline:3px solid var(
 
 .mission-counts small{display:block;margin-top:5px;color:var(--muted);font-size:10px}
 .policy-mission h2{font-size:16px;align-items:center}
+
+/* Compact missions and administrator application list. */
+.policy-mission { padding:10px 18px; }
+.policy-mission h2 { margin:0 0 8px; }
+.policy-mission > p { margin:8px 0 0; }
+.mission-counts { gap:6px; }
+.mission-item { padding:4px 10px 4px 14px; }
+.profile-content-tabs { overflow-x:auto; }
+.profile-content-tabs > button { flex:1 0 40px; }
+.admin-swithpi { display:grid; gap:12px; padding:12px 0; }
+.admin-swithpi-toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:10px; }
+.admin-swithpi-toolbar label { display:grid; gap:5px; flex:1; min-width:130px; }
+.admin-swithpi-toolbar select { width:100%; padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:inherit; }
+.admin-swithpi-entry { padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+.admin-swithpi-entry header { display:flex; justify-content:space-between; gap:10px; }
+.admin-swithpi-entry dl { margin:10px 0 0; display:grid; gap:5px; font-size:12px; }
+.admin-swithpi-entry dt { color:var(--muted); }
+.admin-swithpi-entry dd { margin:0 0 6px; overflow-wrap:anywhere; user-select:text; }
