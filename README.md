@@ -1,5 +1,7 @@
 # Koin Korae
 
+2026-11-15: PSL_Mining의 무료 Supabase 프로젝트로 운영 이전을 완료하고 기존 Pro 구독을 해지했습니다. 이후 DB·서버 작업은 [공유 Supabase 운영 규칙](docs/shared-supabase.md)과 `AGENTS.md`를 먼저 확인하세요. 두 서비스의 데이터·서버 설정·마이그레이션 이력을 분리합니다.
+
 2026-09-28: DB와 배틀 서버를 Supabase로 이전했습니다. 운영 전환·검증·복구 기록은 [Supabase 이전 문서](docs/supabase-migration.md)를 참고하세요. 기존 Firebase 인증과 회원 ID를 유지합니다.
 
 현재 배포는 홈·지도·체크인·프로필 네 메뉴와 Google 로그인입니다. Firebase Google 제공업체 설정과 GitHub Actions 변수 `GOOGLE_SIGNIN_ENABLED=true`를 적용했습니다. 로그인 버튼에서 Google 계정을 선택하면 됩니다. 필요하면 명시적으로 `false`를 설정해 기존 이메일 로그인 화면으로 되돌릴 수 있습니다.

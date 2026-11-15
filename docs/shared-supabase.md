@@ -1,6 +1,6 @@
 # Shared Supabase operations
 
-koinkorae uses the existing Free project `xvqbsiqeoxbkxsvxgnvc` with PSL_Mining to avoid a second paid database. Firebase Authentication and the koinkorae domain remain separate. Production cutover completed on 2026-11-15. Retiring the old paid project and cancelling its subscription remain separate billing steps.
+koinkorae uses the existing Free project `xvqbsiqeoxbkxsvxgnvc` with PSL_Mining to avoid a second paid database. Firebase Authentication and the koinkorae domain remain separate. Production cutover, retirement of the old project, and cancellation of its Pro subscription completed on 2026-11-15.
 
 ## Ownership
 
@@ -40,7 +40,7 @@ At the 2026-11-15 preflight, the Free organization used 108 Edge invocations and
 
 Push dispatch queues due check-in notifications in SQL and invokes the Edge worker only when delivery work is ready, avoiding idle minute-by-minute Edge calls. Game replay validation remains enabled: current aggregate usage does not require weakening score verification to fit the Free plan.
 
-Backups for this move are in ignored `.runtime/shared-db-20261115/`. Keep the source project/data until the final consistency checks pass. After cutover, rollback must first stop destination writes and copy new records back; simply switching the frontend to an old snapshot would lose visibility of new records. A later paid split should copy only the resources in the ownership table and replace media URLs and frontend configuration.
+Backups for this move are in ignored `.runtime/shared-db-20261115/`. The original project was deleted with explicit user approval after final consistency checks. Recovery therefore requires a new project and restoring backups plus all changes made on the destination since cutover; the former project URL cannot be reused. A later paid split should copy only the resources in the ownership table and replace media URLs and frontend configuration.
 
 ## Release status
 
@@ -50,7 +50,10 @@ Production switched on 2026-11-15 (KST), commits `0d6f19e` and `0e7ea9f`. GitHub
 - Copied 44 images; all content hashes matched. Verified source media inventory again after write freeze.
 - Preserved 387 PSL_Mining schema objects without differences. Existing Edge secret digests were unchanged. PSL's migration history was not modified.
 - Passed 232 automated tests, 11 targeted media/cache tests, 32 cache/chat tests, frontend build and Edge bundles. Live public API, unauthenticated access rejection, realtime readiness and a fully rolled-back member/battle/idempotency probe passed.
-- Original source writes are blocked by `korae_migration_freeze` statement triggers on its 26 tables. Its two notification jobs are disabled; destination jobs are active. Do not unfreeze source after destination writes without reconciling data.
-- The source Pro-to-Free downgrade was blocked by the account's two-active-Free-project limit. Pro projects cannot be paused in the dashboard. Do not pause PSL_Mining or Youngmasal to get around this. Deleting the retired source requires explicit irreversible-deletion confirmation; until the old subscription is actually cancelled, its Pro charge remains.
+- The source was frozen before the final copy; its jobs were disabled before enabling destination jobs. The retired source `cxvznpfcmorysnwwmbna` was then permanently deleted with the user's explicit approval. All current writes belong to the destination.
+- The initial downgrade was blocked by the two-active-Free-project limit. After the approved source deletion, its organization was successfully downgraded from Pro to Free. The dashboard confirms **Free Plan**; its Pro subscription is no longer active. PSL_Mining and Youngmasal were not paused, deleted or upgraded.
+- Final shared DB size: 30,739,603 bytes (about 30.7 MB against the 500 MB Free limit). Images: 44 objects, 2,036,106 bytes. No retired-host image references or verification records remain. PSL's 41 migration records are unchanged; koinkorae has its own ledger. Both PSL jobs, both koinkorae jobs and shared log retention are active.
 
 Verified archives, final source SQL, checksums and media backups: `.runtime/shared-db-20261115/`. Source public schema/data are in `source.dump` and `source.sql`; the frozen final data are in `source-final-data.private.sql`. Original PSL schema/data are in `target.dump` and `target.sql`; the archived scheduler history is `target-cron-logs.dump`. These contain private records and must never be committed.
+
+Billing evidence is in `free-plan-confirmed.png`, source deletion evidence in `source-deleted.png`, and archive hashes in `retirement-backup-checksums.json` within that private directory. Cancellation does not erase prior paid invoices; the cancellation screen states that unused time is credited to the organization.
