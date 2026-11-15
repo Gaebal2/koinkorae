@@ -1,6 +1,6 @@
 # Shared Supabase operations
 
-koinkorae uses the existing Free project `xvqbsiqeoxbkxsvxgnvc` with PSL_Mining to avoid a second paid database. Firebase Authentication and the koinkorae domain remain separate. Migration is in progress; the final cutover and billing status must be recorded below after verification.
+koinkorae uses the existing Free project `xvqbsiqeoxbkxsvxgnvc` with PSL_Mining to avoid a second paid database. Firebase Authentication and the koinkorae domain remain separate. Production cutover completed on 2026-11-15. Retiring the old paid project and cancelling its subscription remain separate billing steps.
 
 ## Ownership
 
@@ -44,4 +44,13 @@ Backups for this move are in ignored `.runtime/shared-db-20261115/`. Keep the so
 
 ## Release status
 
-In progress. Do not infer completion from the destination being populated.
+Production switched on 2026-11-15 (KST), commits `0d6f19e` and `0e7ea9f`. GitHub Pages deployment and CI passed. The served site uses the destination URL and a fresh IndexedDB cache; its service worker caches only the new media origin.
+
+- Compared all 26 source service tables: 601 rows, matching normalized checksums after the intended media-host replacement. The destination has an additional isolated migration-ledger table.
+- Copied 44 images; all content hashes matched. Verified source media inventory again after write freeze.
+- Preserved 387 PSL_Mining schema objects without differences. Existing Edge secret digests were unchanged. PSL's migration history was not modified.
+- Passed 232 automated tests, 11 targeted media/cache tests, 32 cache/chat tests, frontend build and Edge bundles. Live public API, unauthenticated access rejection, realtime readiness and a fully rolled-back member/battle/idempotency probe passed.
+- Original source writes are blocked by `korae_migration_freeze` statement triggers on its 26 tables. Its two notification jobs are disabled; destination jobs are active. Do not unfreeze source after destination writes without reconciling data.
+- The source Pro-to-Free downgrade was blocked by the account's two-active-Free-project limit. Pro projects cannot be paused in the dashboard. Do not pause PSL_Mining or Youngmasal to get around this. Deleting the retired source requires explicit irreversible-deletion confirmation; until the old subscription is actually cancelled, its Pro charge remains.
+
+Verified archives, final source SQL, checksums and media backups: `.runtime/shared-db-20261115/`. Source public schema/data are in `source.dump` and `source.sql`; the frozen final data are in `source-final-data.private.sql`. Original PSL schema/data are in `target.dump` and `target.sql`; the archived scheduler history is `target-cron-logs.dump`. These contain private records and must never be committed.
