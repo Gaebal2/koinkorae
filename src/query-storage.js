@@ -7,7 +7,9 @@ export function createQueryStorage(indexedDB=globalThis.indexedDB) {
   const db=()=>opening??=new Promise(resolve=>{
     if(!indexedDB){resolve(null);return;}
     try {
-      const request=indexedDB.open('korae-public-cache-v2-trial-reset',1);
+      // The previous snapshots contain media URLs from the retired project.
+      // Use a fresh cache while keeping Firebase authentication independent.
+      const request=indexedDB.open('korae-public-cache-v3-shared-db',1);
       request.onupgradeneeded=()=>request.result.createObjectStore('queries',{keyPath:'key'});
       request.onsuccess=()=>resolve(request.result);request.onerror=()=>resolve(null);request.onblocked=()=>resolve(null);
     }catch{resolve(null);}
