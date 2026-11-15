@@ -4,7 +4,7 @@ import {createRemoteJWKSet,jwtVerify} from 'npm:jose@6';
 import {createClient} from 'npm:@supabase/supabase-js@2';
 import {Account,Keypair,MuxedAccount} from 'npm:@stellar/stellar-sdk@14.1.1';
 import {HORIZON,matchesPayment,validPslAddress} from '../_shared/swithpi.js';
-const project=Deno.env.get('FIREBASE_PROJECT_ID')||'koinkorae-map';
+const project=Deno.env.get('KORAE_FIREBASE_PROJECT_ID')||'koinkorae-map';
 const jwks=createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 const client=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
 const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store'};
@@ -53,7 +53,7 @@ Deno.serve(async request=>{
     return data;
    };
    const existing=await runImport();if(existing)return reply({data:{verified:true,alreadyVerified:true,identity:existing}});
-   const proof=await loadPslProof({subject:identity.googleSubject,email:identity.email,key:Deno.env.get('PSL_MINING_SERVICE_ROLE_KEY')});
+   const proof=await loadPslProof({subject:identity.googleSubject,email:identity.email,key:Deno.env.get('KORAE_PSL_MINING_SERVICE_ROLE_KEY')});
    Keypair.fromPublicKey(proof.walletAddress);
    proof.email=identity.email;
    return reply({data:{verified:true,identity:await runImport(proof)}});

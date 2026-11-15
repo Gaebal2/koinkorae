@@ -49,6 +49,12 @@ test('photo migration preserves concurrent edits and is unavailable to browser r
   assert.equal((await move(sample)).rows[0].moved,true);
   assert.equal((await move(sample)).rows[0].moved,false);
   assert.deepEqual((await pg.query('select body from korae_documents')).rows[0].body,{image:url,content:'keep'});
+  await pg.exec(await readFile('supabase/migrations/202611150001_shared_project_media.sql','utf8'));
+  await pg.query("update korae_documents set body=jsonb_set(body,'{image}',$1::jsonb)",[JSON.stringify(sample)]);
+  await assert.rejects(move(sample),/Invalid photo migration/);
+  const sharedUrl=url.replace('cxvznpfcmorysnwwmbna','xvqbsiqeoxbkxsvxgnvc');
+  assert.equal((await pg.query('select korae_move_photo($1,$2,$3,$4,$5,$6) as moved',['posts','post','','image',sample,sharedUrl])).rows[0].moved,true);
+  assert.equal((await pg.query('select body from korae_documents')).rows[0].body.image,sharedUrl);
   for(const role of ['anon','authenticated']){await pg.exec('set role '+role);await assert.rejects(move(sample),/permission denied/);await pg.exec('reset role');}
  }finally{await pg.close();}
 });

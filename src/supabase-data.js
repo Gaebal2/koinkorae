@@ -20,7 +20,7 @@ export const configured=Object.values(config).every(Boolean);
 const auth=configured ? getAuth(getApps().length ? getApp() : initializeApp(config)) : null;
 const toUser=u=>u?{isAdmin:u.emailVerified===true&&u.email?.toLowerCase()==='gaebal2017@gmail.com',id:u.uid,username:(u.displayName || '회원').slice(0,24)}:null;
 const ready=()=>{if(!auth) throw Error('로그인 설정을 확인해 주세요.');};
-const connection={url:import.meta.env.VITE_SUPABASE_URL || 'https://cxvznpfcmorysnwwmbna.supabase.co',key:import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
+const connection={url:import.meta.env.VITE_SUPABASE_URL || 'https://xvqbsiqeoxbkxsvxgnvc.supabase.co',key:import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
   token:async force=>{ await auth?.authStateReady(); return await auth?.currentUser?.getIdToken(force) || null; }};
 const storage=createQueryStorage();
 const client=createCommunityClient({

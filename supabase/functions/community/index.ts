@@ -6,7 +6,7 @@ import { createPhotoStore, MEDIA_BUCKET } from './media.js';
 import {createPublicReadCache} from './public-cache.js';
 const publicRead=createPublicReadCache();
 
-const project = Deno.env.get('FIREBASE_PROJECT_ID') || 'koinkorae-map';
+const project = Deno.env.get('KORAE_FIREBASE_PROJECT_ID') || 'koinkorae-map';
 const jwks = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 const client = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {auth:{persistSession:false,autoRefreshToken:false}});
 const table = () => client.from('korae_documents');
@@ -18,7 +18,7 @@ const db = {
   adminReports: (identity:any,before:number|null)=>result(client.rpc('korae_admin_reports',{p_uid:identity.uid,p_email:identity.email,p_verified:identity.emailVerified,p_before:before})),
   dismissReports: (identity:any,kind:string,id:string,reportId:number)=>result(client.rpc('korae_dismiss_reports',{p_uid:identity.uid,p_email:identity.email,p_verified:identity.emailVerified,p_kind:kind,p_id:id,p_report_id:reportId})),
   moderateContent: (identity:any,kind:string,id:string,hidden:boolean)=>result(client.rpc('korae_moderate_content',{p_uid:identity.uid,p_email:identity.email,p_verified:identity.emailVerified,p_kind:kind,p_id:id,p_hidden:hidden})),
-  pushPublicKey: Deno.env.get('WEB_PUSH_PUBLIC_KEY') || '',
+  pushPublicKey: Deno.env.get('KORAE_WEB_PUSH_PUBLIC_KEY') || '',
   notificationInbox: (uid:string,before:string|null)=>result(client.rpc('korae_notification_inbox_page',{p_uid:uid,p_before:before})),
   notifications: (uid:string|null,action:string,value:any={}) => result(client.rpc('korae_notification_settings',{p_uid:uid,p_action:action,p_value:value})),
   pointsBalance: (uid:string) => result(client.rpc('korae_mutate',{p_action:'pointsBalance',p_uid:uid})),

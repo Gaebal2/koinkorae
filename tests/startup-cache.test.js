@@ -24,10 +24,10 @@ test('cached immutable chunks start without any network request',async()=>{
 });
 
 test('immutable public upload images reuse cache, while signed and foreign URLs are excluded',async()=>{
- const url='https://cxvznpfcmorysnwwmbna.supabase.co/storage/v1/object/public/community-media/'+'a'.repeat(64)+'.png';
+ const url='https://xvqbsiqeoxbkxsvxgnvc.supabase.co/storage/v1/object/public/community-media/'+'a'.repeat(64)+'.png';
  let calls=0;const cached=new Response('photo');const app=worker(async()=>{calls++;return new Response('new',{headers:{'content-type':'image/png'}});},new Map([[url,cached]]));
  assert.equal(await app.run(url),cached);assert.equal(calls,0);
- assert.equal(app.run(url+'?token=private'),undefined);assert.equal(app.run(url.replace('cxvznpfcmorysnwwmbna','other')),undefined);
+ assert.equal(app.run(url+'?token=private'),undefined);assert.equal(app.run(url.replace('xvqbsiqeoxbkxsvxgnvc','other')),undefined);
  const next=url.replace('a'.repeat(64),'b'.repeat(64));await app.run(next);await Promise.all(app.waits);assert.equal(calls,1);assert.equal(app.writes.length,1);
 });
 test('missing chunks are downloaded and saved',async()=>{

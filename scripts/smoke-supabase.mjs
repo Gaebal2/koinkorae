@@ -2,7 +2,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {randomUUID,randomBytes} from 'node:crypto';
 const {apiKey}=JSON.parse(await readFile('src/firebase-config.json','utf8'));
-const url='https://cxvznpfcmorysnwwmbna.supabase.co/functions/v1/community';
+const url='https://xvqbsiqeoxbkxsvxgnvc.supabase.co/functions/v1/community';
 let token,uid;
 async function api(action,args={},authenticated=true){
   const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',...(authenticated&&token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify({action,args}),signal:AbortSignal.timeout(30000)});

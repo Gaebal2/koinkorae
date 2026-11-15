@@ -3,7 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {createPhotoStore,MEDIA_BUCKET} from '../supabase/functions/community/media.js';
-const project='cxvznpfcmorysnwwmbna',baseUrl=`https://${project}.supabase.co`;
+const project='xvqbsiqeoxbkxsvxgnvc',baseUrl=`https://${project}.supabase.co`;
 const args=['--yes','supabase','projects','api-keys','--project-ref',project,'--reveal','--output','json'];
 const raw=process.platform==='win32'?execFileSync('cmd.exe',['/d','/s','/c','npx.cmd '+args.join(' ')],{encoding:'utf8',stdio:['ignore','pipe','pipe'],windowsHide:true}):execFileSync('npx',args,{encoding:'utf8',stdio:['ignore','pipe','pipe']});
 const secret=JSON.parse(raw).find(x=>x.name==='service_role')?.api_key;

@@ -1,4 +1,4 @@
-const CACHE = 'korae-community-v29-cache-revisions';
+const CACHE = 'korae-community-v30-shared-db';
 const ROOT = new URL('./', self.location.href).href;
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -12,7 +12,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   // Content-addressed public uploads have immutable URLs. Keep a bounded image
   // cache independent of app deployments; never intercept private/signed URLs.
-  const media = url.origin === 'https://cxvznpfcmorysnwwmbna.supabase.co'
+  const media = url.origin === 'https://xvqbsiqeoxbkxsvxgnvc.supabase.co'
     && /^\/storage\/v1\/object\/public\/community-media\/[a-f0-9]{64}\.(jpeg|png|webp)$/.test(url.pathname) && !url.search;
   if(event.request.method==='GET' && media){
     event.respondWith((async()=>{
